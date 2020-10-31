@@ -76,9 +76,11 @@ class TextGenerator(self):
             template = self.generate()
 
         r = random.random()
-        for i in self.vocab_groups:
-            if i in template and random.random()<self.replace_percentage:
-                template = template.replace(i,random.choice(self.vocab_groups[i]), 1)
+        if random.random()<self.replace_percentage:
+            for i in self.vocab_groups:
+                if i in template:
+                    for _ in template.count(i):
+                        template = template.replace(i,random.choice(self.vocab_groups[i]), 1)
 
         return template
         
