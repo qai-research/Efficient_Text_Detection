@@ -1,6 +1,7 @@
 from pathlib import Path
 import configparser
 
+
 class Constants:
     def __init__(self, config_path):
         config_p = Path(config_path)
@@ -11,3 +12,8 @@ class Constants:
         self.config = config_parser['DEFAULT']
         print('loaded config from : ', str(config_p.resolve()))
 
+
+def read_vocab(file_path):
+    with open(file_path, "r", encoding='utf-8-sig') as f:
+        list_lines = f.read().strip().split("\n")
+    return list_lines

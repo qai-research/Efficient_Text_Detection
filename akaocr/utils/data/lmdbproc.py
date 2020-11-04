@@ -10,7 +10,7 @@ class LabelHandler:
     """
     Class contain all pre-process of label from LMDB database
     """
-    def __init__(self, type="label", character=None, sensitive=True, unknown="?"):
+    def __init__(self, type="norm", character=None, sensitive=True, unknown="?"):
         """
         :param type: transformation type of label # norm/loadj
         """
@@ -18,6 +18,7 @@ class LabelHandler:
         self.character = character
         self.sensitive = sensitive
         self.unknown = unknown
+
     @staticmethod
     def normalize_label(label, character, sensitive=True, unknown="?"):
         """

@@ -20,8 +20,7 @@ import torchvision.transforms as transforms
 from tqdm import tqdm
 import warnings
 
-# import constants
-from utils.data import lmdbproc
+from utils.runtime import colorize, Color, warn
 
 
 def read_lmdb(root):
@@ -31,17 +30,15 @@ def read_lmdb(root):
     :return: env, length embedded in database
     """
     env = lmdb.open(root, max_readers=32, readonly=True, lock=False, readahead=False, meminit=False)
+
     if not env:
-        warnings.warn(
-            'cannot create lmdb from {}'.format(root)
-        )
-        sys.exit(0)
+        warn('cannot create lmdb from {}'.format(root))
 
     with env.begin(write=False) as txn:
         try:
             num_samples = int(txn.get('num-samples'.encode()))
         except:
-            num_samples = int(txn.stat()['entries']/2 - 1)
+            num_samples = int(txn.stat()['entries'] / 2 - 1)
     return env, num_samples
 
 
@@ -53,7 +50,7 @@ def lmdb_loader(lmdb_file, index, rgb=False):
     :return:
     """
     label_key = 'label-{:09d}'.format(index).encode()
-    label = lmdb_file.get(label_key)
+    label = lmdb_file.get(label_key).decode('utf-8')
     img_key = 'image-{:09d}'.format(index).encode()
     img_buf = lmdb_file.get(img_key)
 
@@ -76,13 +73,18 @@ class LmdbDataset(Dataset):
     """
     Base loader for lmdb type dataset
     """
-    def __init__(self, root, type_handler=None):
+
+    def __init__(self, root, labelproc=None):
         """
         :param root: path to lmdb dataset
         :param label_handler: type of label processing
         """
         self.env, self.num_samples = read_lmdb(root)
-        self.labelproc = lmdbproc.LabelHandler(type=type_handler)
+
+        if labelproc is None:
+            warn("You don\'t have label handler")
+
+        self.labelproc = labelproc
         self.lmdb_file = self.env.begin(write=False)
 
     def __len__(self):
@@ -91,4 +93,7 @@ class LmdbDataset(Dataset):
     def __getitem__(self, index):
         assert index <= len(self), 'index range error'
         image, label = lmdb_loader(self.lmdb_file, index)
+        if self.labelproc is not None:
+            print(label)
+            label = self.labelproc.process_label(label)
         return image, label
