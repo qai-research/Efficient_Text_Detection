@@ -3,14 +3,17 @@ import sys
 sys.path.append("../")
 import os
 import torch
+import numpy as np
+
 
 from utils.data.dataloader import LmdbDataset
 from utils.data.lmdbproc import AlignCollate
 from utils.file_utils import Constants, read_vocab
 from utils.data import lmdbproc
+from utils.visproc import visualizer, json2contour
 
 
-def test_dataloader(root, config_path, vocab, label_type="norm"):
+def test_dataloader(root, config_path, vocab=None, label_type="norm"):
     constants = Constants(config_path)
     constants = constants.config
     chars = read_vocab(vocab)
@@ -30,8 +33,15 @@ def test_dataloader(root, config_path, vocab, label_type="norm"):
         pin_memory=True)
 
     iterator = iter(_data_loader)
-    image, text = iterator.next()
-    print(image.shape, text)
+    images, labels = iterator.next()
+
+    # contours, _, texts = json2contour(labels[0])
+    # image = np.array(images[0])
+    # print(image.shape)
+    # img = visualizer(image, contours=contours, texts=texts, font="../data/fonts/default_vis_font.ttf")
+    # cv2.imwrite("demo.jpg", img)
+    print(np.mean(images.numpy()))
+    print(labels)
 
 
 if __name__ == '__main__':
@@ -41,4 +51,4 @@ if __name__ == '__main__':
     config_path = '../data/recog_constants.ini'
     vocab = '../data/vocabs/char_jpn_v2.txt'
     # vocab = '../data/vocabs/char_eng.txt'
-    test_dataloader(root_detec, config_path, vocab, label_type="loadj")
+    test_dataloader(root_recog, config_path, vocab, label_type="norm")

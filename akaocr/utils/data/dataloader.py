@@ -20,7 +20,7 @@ import torchvision.transforms as transforms
 from tqdm import tqdm
 import warnings
 
-from utils.runtime import colorize, Color, warn
+from utils.runtime import warn
 
 
 def read_lmdb(root):
@@ -94,6 +94,5 @@ class LmdbDataset(Dataset):
         assert index <= len(self), 'index range error'
         image, label = lmdb_loader(self.lmdb_file, index)
         if self.labelproc is not None:
-            print(label)
             label = self.labelproc.process_label(label)
         return image, label
