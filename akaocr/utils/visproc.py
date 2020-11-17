@@ -4,6 +4,7 @@ import numpy as np
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
+from pre.image import ImageProc
 
 def json2contour(json_data):
     contours_words = list()
@@ -150,3 +151,22 @@ def visualizer(image_ori, contours=None, boxes=None, lines=None, bcolor=(0, 255,
         cv2.waitKey(0)
         cv2.destroyAllWindows()
     return image
+
+
+def save_heatmap(image, bboxes, region_scores,
+                 affinity_scores, output_path="output", image_name="demo"):
+    output_image = np.uint8(image.copy())
+    output_image = cv2.cvtColor(output_image, cv2.COLOR_RGB2BGR)
+    if len(bboxes) > 0:
+        for i in range(len(bboxes)):
+            _bboxes = np.int32(bboxes[i])
+            for j in range(_bboxes.shape[0]):
+                cv2.polylines(output_image, [np.reshape(_bboxes[j], (-1, 1, 2))], True, (0, 0, 255))
+
+    target_gaussian_heatmap_color = ImageProc.cvt2_heatmap_img(region_scores)
+    target_gaussian_affinity_heatmap_color = ImageProc.cvt2_heatmap_img(affinity_scores)
+    heat_map = np.concatenate([target_gaussian_heatmap_color, target_gaussian_affinity_heatmap_color], axis=1)
+    output = np.concatenate([output_image, heat_map], axis=1)
+    out_path = Path(output_path).joinpath("%s_input.jpg" % Path(image_name).stem)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(out_path), output)

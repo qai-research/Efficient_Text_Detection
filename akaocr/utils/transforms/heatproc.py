@@ -4,6 +4,7 @@ from PIL import Image
 
 from utils.file_utils import read_json_annotation
 from pre.image import ImageProc
+from utils.visproc import save_heatmap
 
 
 def load_image_boxes(image, json_label, min_size=768, max_size=1280):
@@ -63,11 +64,12 @@ def transform2heatmap(image, json_label, gaussian_transformer, min_size=768, max
     # image = Image.fromarray(cv_image)
     # image = image.convert('RGB')
     # image = transforms.ColorJitter(brightness=32.0 / 255, saturation=0.5)(image)
+    # import cv2
+    # primg = cv2.resize(cv_image, (350, 350))
+    # save_heatmap(primg, [], region_scores, affinity_scores)
 
-    image = ImageProc.normalize_mean_variance(np.array(image), mean=(0.485, 0.456, 0.406),
+    image = ImageProc.normalize_mean_variance(np.array(cv_image), mean=(0.485, 0.456, 0.406),
                                               variance=(0.229, 0.224, 0.225))
-    affinity_scores = affinity_scores/255
-    confidence_mask = confidence_mask/255
     return image, region_scores, affinity_scores, confidence_mask, confidences
 
 

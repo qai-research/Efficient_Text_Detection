@@ -1,8 +1,11 @@
+import sys
 import cv2
 import numpy as np
 from skimage import io
 from pathlib import Path
+import random
 
+from utils.runtime import warn, error
 
 class ImageProc:
     """
@@ -145,32 +148,40 @@ class ImageProc:
         return image_ori
 
     @staticmethod
-    def resize_aspect_ratio(image, max_size, interpolation=cv2.INTER_LINEAR):
+    def resize_aspect_ratio(image, size, interpolation=cv2.INTER_LINEAR, mode="max"):
         """
-        Resize image bigger edge to max_size
+        Resize image bigger edge to size
         :param image: numpy array
-        :param max_size: new max side
+        :param size: new max side
         :param interpolation: type of interpolation
+        :param mode: mode resize, max: big -> size, min: small -> size
         :return:
         """
         height, width = image.shape[:2]
-        ratio = max_size / max(height, width)
+        if mode=="max":
+            ratio = size / max(height, width)
+        elif mode=="min":
+            ratio = size / min(height, width)
+        else:
+            warn(f"mode {mode} to resize not found")
+            sys.exit()
 
         target_h, target_w = int(height * ratio), int(width * ratio)
         image = cv2.resize(image, (target_w, target_h), interpolation=interpolation)
         return image, ratio
 
-    # @staticmethod
-    def random_scale(self, image, min_size=768, max_size=1280):
+    @classmethod
+    def random_scale(cls, image, min_size=768, max_size=1280, mode="min"):
         """
         Random resize image to the range of min_size to max_side
         :param image: numpy array
         :param min_size: min to resize
         :param max_size: max to resize
+        :param mode: mode resize, max: big -> size, min: small -> size
         :return: resized image
         """
-        size = random.randint(min_size, max_size)
-        image, ratio = self.resize_aspect_ratio(image, size)
+        size = random.randint(int(min_size), int(max_size))
+        image, ratio = cls.resize_aspect_ratio(image, size, mode=mode)
         return image, ratio
 
     @staticmethod
@@ -243,30 +254,8 @@ class ImageProc:
         heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
         return heatmap
 
-    def save_heatmap(self, image_name, image, bboxes, affinity_bboxes, region_scores,
-                     affinity_scores, confidence_mask, output_path="output"):
-        output_image = np.uint8(image.copy())
-        output_image = cv2.cvtColor(output_image, cv2.COLOR_RGB2BGR)
-        if len(bboxes) > 0:
-            affinity_bboxes = np.int32(affinity_bboxes)
-            for i in range(affinity_bboxes.shape[0]):
-                cv2.polylines(output_image, [np.reshape(affinity_bboxes[i], (-1, 1, 2))], True, (255, 0, 0))
-            for i in range(len(bboxes)):
-                _bboxes = np.int32(bboxes[i])
-                for j in range(_bboxes.shape[0]):
-                    cv2.polylines(output_image, [np.reshape(_bboxes[j], (-1, 1, 2))], True, (0, 0, 255))
-
-        target_gaussian_heatmap_color = self.cvt2_heatmap_img(region_scores / 255)
-        target_gaussian_affinity_heatmap_color = self.cvt2_heatmap_img(affinity_scores / 255)
-        heat_map = np.concatenate([target_gaussian_heatmap_color, target_gaussian_affinity_heatmap_color], axis=1)
-        confidence_mask_gray = self.cvt2_heatmap_img(confidence_mask)
-        output = np.concatenate([output_image, heat_map, confidence_mask_gray], axis=1)
-        out_path = Path(output_path).joinpath("%s_input.jpg" % Path(image_name).stem)
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        cv2.imwrite(str(out_path), output)
-
-    @staticmethod
-    def sub_image_random_crop(imgs, img_size, character_bboxes):
+    @classmethod
+    def sub_image_random_crop(cls, imgs, img_size, character_bboxes):
 
         """
         Random crop a small fix size image from the original image
@@ -287,7 +276,6 @@ class ImageProc:
                     [[bboxes[:, :, 0].min(), bboxes[:, :, 1].min()], [bboxes[:, :, 0].max(), bboxes[:, :, 1].max()]])
         word_bboxes = np.array(word_bboxes, np.int32)
 
-        # IC15 for 0.6, MLT for 0.35
         if random.random() > 0.6 and len(word_bboxes) > 0:
             sample_bboxes = word_bboxes[random.randint(0, len(word_bboxes) - 1)]
             left = max(sample_bboxes[1, 0] - img_size[0], 0)
@@ -303,7 +291,6 @@ class ImageProc:
             crop_h = sample_bboxes[1, 1] if th < sample_bboxes[1, 1] - i else th
             crop_w = sample_bboxes[1, 0] if tw < sample_bboxes[1, 0] - j else tw
         else:
-            # train for MLT dataset
             i, j = 0, 0
             crop_h, crop_w = h + 1, w + 1  # make the crop_h, crop_w > tw, th
 
@@ -312,10 +299,24 @@ class ImageProc:
                 imgs[idx] = imgs[idx][i:i + crop_h, j:j + crop_w, :]
             else:
                 imgs[idx] = imgs[idx][i:i + crop_h, j:j + crop_w]
-
             if crop_w > tw or crop_h > th:
-                imgs[idx] = padding_image(imgs[idx], tw)
+                imgs[idx] = cls.padding_image(imgs[idx], tw)
         return imgs
+
+    @staticmethod
+    def padding_image(image, img_size):
+        length = max(image.shape[0:2])
+        if len(image.shape) == 3:
+            img = np.zeros((img_size, img_size, len(image.shape)), dtype=np.uint8)
+        else:
+            img = np.zeros((img_size, img_size), dtype=np.uint8)
+        scale = img_size / length
+        image = cv2.resize(image, dsize=None, fx=scale, fy=scale)
+        if len(image.shape) == 3:
+            img[:image.shape[0], :image.shape[1], :] = image
+        else:
+            img[:image.shape[0], :image.shape[1]] = image
+        return img
 
     @staticmethod
     def resize_gt(gt_mask, size):
