@@ -36,6 +36,7 @@ class LmdbDataset(Dataset):
         image, label = self.lmdbreader.lmdb_loader(index)
         if self.labelproc is not None:
             label = self.labelproc.process_label(label)
+<<<<<<< HEAD
         return image, label
 <<<<<<< HEAD
 
@@ -56,3 +57,6 @@ def get_seg(path):
                 yield tem
 =======
 >>>>>>> d63f4ed173251eaede0c7c790bf34d09a3712175
+=======
+        return image, label
+>>>>>>> 983e19d5ce27d61d5d708f2b893d039a924fe13d
