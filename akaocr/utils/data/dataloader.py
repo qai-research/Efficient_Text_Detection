@@ -1,12 +1,9 @@
 
-<<<<<<< HEAD
 import os
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import copy
-=======
->>>>>>> d63f4ed173251eaede0c7c790bf34d09a3712175
 from utils.file_utils import LmdbReader
 from torch.utils.data import Dataset, ConcatDataset, Subset
 
