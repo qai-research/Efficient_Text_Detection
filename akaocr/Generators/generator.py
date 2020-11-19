@@ -9,12 +9,22 @@ import matplotlib.pyplot as plt
 from akaocr.Generators.ImgtextProcessing.PerspectiveTransformation import Transform
 from akaocr.Generators.TextToImage.fromfont import TextFontGenerator
 from akaocr.Processing.TextGenerator.text_gen import TextGenerator
+from akaocr.Generators.BackgroundProcessing.box_generator import BoxGenerator
 
-def generate(fonts_path, font_size_range, target_json_path, target_image, new_text_gen = False, fixed_box = True, output_path = None, vocab_path = None, **kwargs):
+def generate(fonts_path, font_size_range, target_json_path, target_image, random_color = False, font_color = (0,0,0),
+             new_text_gen = False, fixed_box = True, 
+             output_path = None, vocab_path = None, is_white_list = False, **kwargs):
+
+    if is_white_list is False:
+        new_text_gen = True
+
 
     # Load target label
-    with open(target_json_path,'r',encoding = 'utf-8-sig') as reader:
-        target_json = json.loads(reader.read())
+    try:
+        with open(target_json_path,'r',encoding = 'utf-8-sig') as reader:
+            target_json = json.loads(reader.read())
+    except:
+        target_json = target_json_path
 
     target_points = [np.float32([[(char['x1'],char['y1']),
                                 (char['x2'],char['y2']),
@@ -22,6 +32,11 @@ def generate(fonts_path, font_size_range, target_json_path, target_image, new_te
                                 (char['x4'],char['y4'])]]) for char in target_json['words']]
     # Create new text generator 
     if new_text_gen:
+        try:
+            source_text_path = kwargs.pop('source_text_path')
+        except KeyError:
+            raise KeyError("The source_text_path (str) is required.")
+            
         try:
             text_gen = TextGenerator(source_text_path,
                                      vocab_group_path = vocab_path, 
@@ -40,7 +55,9 @@ def generate(fonts_path, font_size_range, target_json_path, target_image, new_te
                                         replace_percentage = 1)
     
     # Create font to images generator
-    font_to_img_gen = TextFontGenerator(fonts_path, font_size_range, fixed_box = fixed_box)
+    font_to_img_gen = TextFontGenerator(fonts_path, font_size_range, 
+                                        fixed_box = fixed_box,
+                                        random_color = random_color, font_color = font_color)
     num_samples = len(target_points)
 
 
@@ -49,7 +66,7 @@ def generate(fonts_path, font_size_range, target_json_path, target_image, new_te
     source_chars_coor = []
     for word in target_json['words']:
 
-        if new_text:
+        if new_text_gen:
             ## Generator text with out any infomation of source text
             img,out_json = font_to_img_gen.generator(text_gen.generate(opt_len = len(word["text"])))
         else:
@@ -75,14 +92,15 @@ def generate(fonts_path, font_size_range, target_json_path, target_image, new_te
 
     # Preprocess the clean background
     clearned_target_image = cv2.imread(target_image)
-    cv2.fillPoly(clearned_target_image, np.int32(target_points),[255,255,255])
-    mask_img = np.uint8(np.zeros(clearned_target_image.shape))
-    cv2.fillPoly(mask_img, np.int32(target_points),[255,255,255])
-    mask_img = cv2.cvtColor(mask_img, cv2.COLOR_BGR2GRAY)
-    clearned_target_image = cv2.inpaint(clearned_target_image, mask_img, 3, flags=cv2.INPAINT_NS)
+    if is_white_list:
+        cv2.fillPoly(clearned_target_image, np.int32(target_points),[255,255,255])
+        mask_img = np.uint8(np.zeros(clearned_target_image.shape))
+        cv2.fillPoly(mask_img, np.int32(target_points),[255,255,255])
+        mask_img = cv2.cvtColor(mask_img, cv2.COLOR_BGR2GRAY)
+        clearned_target_image = cv2.inpaint(clearned_target_image, mask_img, 3, flags=cv2.INPAINT_NS)
 
     # Add text images to background
-    trans = Transform(source_images, source_chars_coor, target_points, clearned_target_image)
+    trans = Transform(source_images, source_chars_coor, target_points, target_image)
     result_pic, out_json_trans =  trans.fit()
 
     # Save images and json
@@ -90,18 +108,6 @@ def generate(fonts_path, font_size_range, target_json_path, target_image, new_te
         image_path = os.path.join(output_path,'images/%s.png'%target_json['file'][:-4])
         json_path = os.path.join(output_path,'annotations/%s.json'%target_json['file'][:-5])
         cv2.imwrite(image_path)
-        with open(json_path,'w', ,encoding = 'utf-8-sig') as fw:
+        with open(json_path,'w',encoding = 'utf-8-sig') as fw:
             fw.write(json.dumps(out_json_trans))
     return result_pic, out_json_trans
-
-if __name__ == "__main__":   
-
-    fonts_path = "../data/fonts/outfont"
-    font_size_range = (50,70)
-    target_json_path = '../ST_SMZ_GT_v1_1/annotations/BTG_004.json'
-    target_image = '../ST_SMZ_GT_v1_1/images/BTG_004.png'
-    vocab_path = '../data/templates/alphabet.json'
-    source_text_path = '../data/source.txt'
-    output_path = '../data/test'
-
-    generate(fonts_path, font_size_range, target_json_path, target_image, new_text_gen = False, fixed_box = True, output_path = None)

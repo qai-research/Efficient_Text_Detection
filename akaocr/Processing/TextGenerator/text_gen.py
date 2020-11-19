@@ -85,10 +85,10 @@ class TextGenerator():
                 length_text = random.randint(min_length, int(max_length / 2))
             template = template[start_chars:start_chars + length_text]
         elif len(template) < min_length:
-            template = self.generate(opt_len)
+            template = self.generate(opt_len-1)
 
         if not template.replace(" ",''):
-            template = self.generate(opt_len)
+            template = self.generate(opt_len+1)
 
         r = random.random()
         if random.random()<self.replace_percentage:
