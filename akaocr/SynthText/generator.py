@@ -6,10 +6,10 @@ import time
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-from akaocr.Generators.ImgtextProcessing.PerspectiveTransformation import Transform
-from akaocr.Generators.TextToImage.fromfont import TextFontGenerator
-from akaocr.Processing.TextGenerator.text_gen import TextGenerator
-from akaocr.Generators.BackgroundProcessing.box_generator import BoxGenerator
+from akaocr.SynthText.ImgtextProcessing.PerspectiveTransformation import Transform
+from akaocr.SynthText.TextToImage.fromfont import TextFontGenerator
+from akaocr.SynthText.BackgroundProcessing.box_generator import BoxGenerator
+from akaocr.utils.text_gen import TextGenerator
 
 def generate(fonts_path, font_size_range, target_json_path, target_image, random_color = False, font_color = (0,0,0),
              new_text_gen = False, fixed_box = True, 

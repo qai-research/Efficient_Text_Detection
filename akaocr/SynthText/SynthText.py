@@ -4,15 +4,16 @@ import cv2
 import json
 import time
 import random
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse
+
 sys.path.insert(0,'../akaocr')
-from akaocr.SynthText.ImgtextProcessing.PerspectiveTransformation import Transform
+from akaocr.utils.text_gen import TextGenerator
+from akaocr.SynthText.generator import generate
 from akaocr.SynthText.TextToImage.fromfont import TextFontGenerator
 from akaocr.SynthText.BackgroundProcessing.box_generator import BoxGenerator
-from akaocr.SynthText.generator import generate
-from akaocr.utils.text_gen import TextGenerator
+from akaocr.SynthText.ImgtextProcessing.PerspectiveTransformation import Transform
 
 
 def get_args():
@@ -103,7 +104,8 @@ def get_args():
                          default = '.', 
                          help = 'The path of source text path')
 
-    return parser.parse_args()
+    opt = parser.parse_args()
+    return opt
 
 def main(opt):    
     for im_path in os.listdir(opt.backgrounds_path):
