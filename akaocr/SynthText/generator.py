@@ -13,9 +13,9 @@ from akaocr.Generators.BackgroundProcessing.box_generator import BoxGenerator
 
 def generate(fonts_path, font_size_range, target_json_path, target_image, random_color = False, font_color = (0,0,0),
              new_text_gen = False, fixed_box = True, 
-             output_path = None, vocab_path = None, is_white_list = False, **kwargs):
+             output_path = None, vocab_path = None, method = 'white', **kwargs):
 
-    if is_white_list is False:
+    if method=='white' is False:
         new_text_gen = True
 
 
@@ -92,7 +92,7 @@ def generate(fonts_path, font_size_range, target_json_path, target_image, random
 
     # Preprocess the clean background
     clearned_target_image = cv2.imread(target_image)
-    if is_white_list:
+    if method=='white':
         cv2.fillPoly(clearned_target_image, np.int32(target_points),[255,255,255])
         mask_img = np.uint8(np.zeros(clearned_target_image.shape))
         cv2.fillPoly(mask_img, np.int32(target_points),[255,255,255])

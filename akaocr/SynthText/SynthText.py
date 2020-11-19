@@ -8,11 +8,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 sys.path.insert(0,'../akaocr')
-from akaocr.Generators.ImgtextProcessing.PerspectiveTransformation import Transform
-from akaocr.Generators.TextToImage.fromfont import TextFontGenerator
-from akaocr.Processing.TextGenerator.text_gen import TextGenerator
-from akaocr.Generators.BackgroundProcessing.box_generator import BoxGenerator
-from akaocr.Generators.generator import generate
+from akaocr.SynthText.ImgtextProcessing.PerspectiveTransformation import Transform
+from akaocr.SynthText.TextToImage.fromfont import TextFontGenerator
+from akaocr.SynthText.BackgroundProcessing.box_generator import BoxGenerator
+from akaocr.SynthText.generator import generate
+from akaocr.utils.text_gen import TextGenerator
 
 
 def get_args():
@@ -67,6 +67,11 @@ def get_args():
                          help = 'The path of source text path')
 
     parser.add_argument('--heigh_random_range',
+                         type = str, 
+                         type = None, 
+                         help = 'The path of source text path')
+
+    parser.add_argument('--method',
                          type = str, 
                          type = None, 
                          help = 'The path of source text path')
