@@ -1,9 +1,12 @@
 
+<<<<<<< HEAD
 import os
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import copy
+=======
+>>>>>>> d63f4ed173251eaede0c7c790bf34d09a3712175
 from utils.file_utils import LmdbReader
 from torch.utils.data import Dataset, ConcatDataset, Subset
 
@@ -34,6 +37,7 @@ class LmdbDataset(Dataset):
         if self.labelproc is not None:
             label = self.labelproc.process_label(label)
         return image, label
+<<<<<<< HEAD
 
 def get_seg(path):
     f = h5py.File(path, 'r')
@@ -50,3 +54,5 @@ def get_seg(path):
                 tem = copy.deepcopy(val)
                 tem[tem!=j] = 0
                 yield tem
+=======
+>>>>>>> d63f4ed173251eaede0c7c790bf34d09a3712175
