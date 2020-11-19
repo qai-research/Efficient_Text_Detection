@@ -1,2 +1,4 @@
-.env
+.envs
+.ipynb_checkpoints
+*.ipynb
 *.pyc
