@@ -40,7 +40,7 @@ def get_args():
     parser.add_argument('--num_samples',
                          type = int, 
                          default = 100, 
-                         help = 'The path of source text path')
+                         help = 'The number of out images for each backgroud image')
                          
     parser.add_argument('--aug_percent',
                          type = float, 
