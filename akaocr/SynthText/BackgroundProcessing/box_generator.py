@@ -1,34 +1,29 @@
-import numpy as np
-import cv2
 import os
-import datetime
-from matplotlib import pyplot as plt
-from functools import reduce
-import operator
-import math
-import random
+import sys
+import cv2
+import pdb
 import h5py
 import copy
-from akaocr.Generators.utils import resize
-
-
+import math
+import time
+import random
+import datetime
+import operator
+import numpy as np
 import itertools as IT
 import multiprocessing
-import pdb
-
-import cv2
-import matplotlib.patches as patches
-import matplotlib.pyplot as plt
-import numpy as np
-import random
-import math
 from scipy import optimize
+from functools import reduce
+from matplotlib import pyplot as plt
+
+sys.path.append('../akaocr')
+from SynthText.utils import resize
 
 class BoxGenerator():
 
     def __init__(self, img_path, fixed_size = None, weigh_random_range = None, 
                  heigh_random_range = None, box_iter = None, aug_percent = 0, 
-                 num_samples = 100, max_num_box = 100, segment_path = None, threshold = 0.01):
+                 num_samples = 100, max_num_box = 100, segment = None, threshold = 0.01):
         
 #         if (weigh_random_range is None or heigh_random_range is None):
 #             raise ValueError("weigh_random_range (tuple) and heigh_random_range (tuple) are required.")
@@ -52,9 +47,12 @@ class BoxGenerator():
         self.target_base_name   = os.path.splitext(self.target_name)[0]
         self.target_base_type   = os.path.splitext(self.target_name)[1][1:]
         self.out_size           = (self.image.shape[1],self.image.shape[0])
-        try:
-            f = h5py.File(segment_path, 'r')
-            assert self.target_name in f['mask'].keys()
+        try:            
+            if type(segment)==str:  
+                f = h5py.File(segment, 'r')
+                assert self.target_name in f['mask'].keys()
+            else:
+                f = segment.copy()
             val = np.array(f['mask'][self.target_name])
             m = np.max(val)
             self.segments = []
@@ -182,7 +180,8 @@ class BoxGenerator():
     def box_generator_existed_masker(self):
 
         results = [] 
-        for i,markers in enumerate(self.segments):  
+        a = time.time()
+        for i,markers in enumerate(self.segments): 
             h,w = markers.shape
             dump_marker = np.zeros((h,w,3))
             dump_marker[markers==0] = [255,255,255]
@@ -295,7 +294,7 @@ class BoxGenerator():
     def run(self):
         self.mask_marker()
         results = []
-        for i in range(self.num_samples):
+        for _ in range(self.num_samples):
             uniq_filename = str(datetime.datetime.now().date()) + '_' + str(datetime.datetime.now().time()).replace(':', '.')
             name = ".".join([self.target_base_name,uniq_filename,self.target_base_type])
             out_json = {"file": name,

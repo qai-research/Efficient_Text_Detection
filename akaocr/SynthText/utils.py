@@ -24,3 +24,93 @@ def resize(image, new_size):
                                 trans_matrix, 
                                 new_size,
                                 borderValue  = (255,255,255)) 
+
+def get_args():
+
+    parser = argparse.ArgumentParser(description='Run SynthText')
+
+    parser.add_argument('--backgrounds_path',
+                        type = str, 
+                        default = '.', 
+                        help = 'The path of background directory, contains all background.')
+
+    parser.add_argument('--vocab_path',
+                        type = str, 
+                        default = '.', 
+                        help = 'The path of vocab files')
+
+    parser.add_argument('--segment_path',
+                        type = str,
+                        default = '.', 
+                        help = "The path to segmentation files (h5) generate with matlab. With an image didn't segment, it will be auto segment in another algorithism")
+
+    #######################################
+
+    parser.add_argument('--num_samples',
+                        type = int, 
+                        default = 100, 
+                        help = 'The number of out images for each backgroud image')
+                        
+    parser.add_argument('--aug_percent',
+                        type = float, 
+                        default = 0.5, 
+                        help = 'The percent of augumentation of each box')
+
+    parser.add_argument('--max_num_box',
+                        type = int, 
+                        default = 100, 
+                        help = 'The maximum number of box will generators for each image')
+
+    parser.add_argument('--box_iter',
+                        type = int,
+                        default = 100, 
+                        help = 'The maximum tries when gen a box')
+
+    parser.add_argument('--fixed_size',
+                        type = tuple, 
+                        default = None)
+
+    parser.add_argument('--weigh_random_range',
+                        type = tuple, 
+                        default = None, 
+                        help = 'Tuple with range of weigh')
+
+    parser.add_argument('--heigh_random_range',
+                        type = tuple, 
+                        default = None, 
+                        help = 'Tuple with range of heigh')
+
+    #######################################
+
+    parser.add_argument('--fonts_path',
+                        type = str, 
+                        default = '.', 
+                        help = 'The path of font directory, just for True Tye Font (.ttf) files.')
+
+    parser.add_argument('--source_text_path',
+                        type = str, 
+                        default = '.', 
+                        help = 'The path of source text path')
+
+    parser.add_argument('--random_color',
+                        type = boolean,
+                        default = False,  
+                        help = 'Boolean')
+
+    parser.add_argument('--font_color',
+                        type = list,
+                        default = [0,0,0],  
+                        help = 'Font color')
+
+    parser.add_argument('--output_path',
+                        type = str, 
+                        default = '.', 
+                        help = 'The path to save output images and anotations')
+
+    parser.add_argument('--method',
+                        type = str,
+                        default = 'blacklist',  
+                        help = 'Method')
+
+
+    return parser.parse_args()                                  

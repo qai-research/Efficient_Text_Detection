@@ -6,7 +6,7 @@ import os
 
 class Transform():
 
-    def __init__(self, source_images, source_chars_coor, target_points, target_image_path):
+    def __init__(self, source_images, source_chars_coor, target_points, target_image_path, inpainting = False, fixed_ratio = False):
         
         assert len(source_images) == len(target_points)
         assert len(source_images) == len(source_chars_coor)
@@ -14,13 +14,23 @@ class Transform():
         self.source_images      = source_images
         self.source_chars_coor  = source_chars_coor
         self.target_points      = target_points
-        try:
-            self.target_image   = cv2.imread(target_image_path)
-        except:
-            self.target_image   = target_image_path
+        self.target_image       = cv2.imread(target_image_path)
         self.target_base_name   = os.path.splitext(os.path.basename(target_image_path))[0]
         self.target_base_type   = os.path.splitext(os.path.basename(target_image_path))[1][1:]
+
+        if inpainting is True:
+            self.target_image   = self.inpainting()
+            
         self.out_size           = (self.target_image.shape[1],self.target_image.shape[0])
+        self.fixed_ratio        = fixed_ratio
+
+    def inpainting(self):
+        clearned_target_image = self.target_image.copy()
+        cv2.fillPoly(clearned_target_image, np.int32(self.target_points),[255,255,255])
+        mask_img = np.uint8(np.zeros(clearned_target_image.shape))
+        cv2.fillPoly(mask_img, np.int32(self.target_points),[255,255,255])
+        mask_img = cv2.cvtColor(mask_img, cv2.COLOR_BGR2GRAY)
+        return cv2.inpaint(clearned_target_image, mask_img, 3, flags=cv2.INPAINT_NS)
 
     def transform(self,image,trans_matrix):
 
@@ -35,13 +45,13 @@ class Transform():
     def new_coordinate(self, p, matrix):
         px = (matrix[0][0]*p[0] + matrix[0][1]*p[1] + matrix[0][2]) / ((matrix[2][0]*p[0] + matrix[2][1]*p[1] + matrix[2][2]))
         py = (matrix[1][0]*p[0] + matrix[1][1]*p[1] + matrix[1][2]) / ((matrix[2][0]*p[0] + matrix[2][1]*p[1] + matrix[2][2]))
-        return px,py
+        return int(px),int(py)
 
     def fit(self, name = None):
         
         
         result_pic = self.target_image.copy()
-        uniq_filename = str(datetime.datetime.now().date()) + '_' + str(datetime.datetime.now().time()).replace(':', '.')
+        uniq_filename = str(datetime.datetime.now().date()).replace('-', '') + '_' + str(datetime.datetime.now().time()).replace(':', '')
         if name is None:
             name = ".".join([self.target_base_name,uniq_filename,self.target_base_type])
 
@@ -67,14 +77,14 @@ class Transform():
 
             word_out = {}
             word_out['text'] = char_coor['words']
-            word_out['x1'] = target_point[0][0][0]
-            word_out['y1'] = target_point[0][0][1]
-            word_out['x2'] = target_point[0][1][0]
-            word_out['y2'] = target_point[0][1][1]
-            word_out['x3'] = target_point[0][2][0]
-            word_out['y3'] = target_point[0][2][1]
-            word_out['x4'] = target_point[0][3][0]
-            word_out['y4'] = target_point[0][3][1]
+            word_out['x1'] = int(target_point[0][0][0])
+            word_out['y1'] = int(target_point[0][0][1])
+            word_out['x2'] = int(target_point[0][1][0])
+            word_out['y2'] = int(target_point[0][1][1])
+            word_out['x3'] = int(target_point[0][2][0])
+            word_out['y3'] = int(target_point[0][2][1])
+            word_out['x4'] = int(target_point[0][3][0])
+            word_out['y4'] = int(target_point[0][3][1])
             word_out['chars'] = []
 
             for char_dict in char_coor['text']:
