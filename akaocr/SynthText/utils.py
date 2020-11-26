@@ -10,7 +10,7 @@ def coordinate_transform(p, source_coor, target_coor):
     py = (matrix[1][0]*p[0] + matrix[1][1]*p[1] + matrix[1][2]) / ((matrix[2][0]*p[0] + matrix[2][1]*p[1] + matrix[2][2]))
     return px,py
 
-def resize(image, new_size):
+def resize_with_char(image, new_size):
     try:
         h,w,_ = image.shape
     except:

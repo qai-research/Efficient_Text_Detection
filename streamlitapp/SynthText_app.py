@@ -1,6 +1,7 @@
 import os
 import io
 import sys
+import time
 import config
 import argparse
 import pandas as pd
@@ -97,59 +98,88 @@ def main():
         checked_df  = check_valild(config_file, bg_df, source_df, font_df)
         key = key.insert(0,'DETAIL')
         key = key.insert(0,'STATUS')
+
+        st.text("The uploaded config")
         st.dataframe(checked_df[key])
-        for index, value in enumerate(checked_df.values):
+        if st.button("START GEN"):
+            for index, value in enumerate(checked_df.values):
 
-            Method,Fonts,Backgrounds,Textsources,num_images,char_spacing,min_font_size,max_font_size,min_text_length,max_text_length,color_range,max_num_text, status, detail = value
-            if status is "INVALID":
-                continue
+                Method,Fonts,Backgrounds,Textsources,num_images,max_num_box = value[:6]
+                char_spacing,min_font_size,max_font_size,min_text_length,max_text_length,random_color,max_num_text = value[:-4][6:]
+                max_height, max_width, status, detail = value[-4:]
+                if status is "INVALID":
+                    continue
+                parser = argparse.ArgumentParser()
+                opt = parser.parse_args()
 
-            st.write("Begin running SynthText with %s folder"%Backgrounds)
-            parser = argparse.ArgumentParser()
-            opt = parser.parse_args()
+                opt.method = Method
+                opt.backgrounds_path = os.path.join(config.background_folder,Backgrounds,'images')
 
-            if Textsources in source_df[source_df['TYPE'] == 'Object type']['NAME'].values:
-                opt.is_object = True
-
-            opt.method = Method
-            st.text(Method)
-            opt.backgrounds_path = os.path.join(config.background_folder,Backgrounds,'images')
-
-            opt.fonts_path = os.path.join(config.font_folder,Fonts)
-            opt.font_size_range = (min_font_size, max_font_size)
-            opt.fixed_box = True
-            opt.num_images = num_images
-            opt.output_path = os.path.join(config.outputs_folder,Backgrounds)
-            opt.source_path = os.path.join(config.source_folder, Textsources)
-            opt.random_color = True
-            opt.font_color   = [0,0,0]
-            opt.min_text_length = min_text_length
-            opt.max_text_length = max_text_length
-
-            if opt.method == 'white':
-                opt.input_json = os.path.join(config.background_folder,Backgrounds,'anotations')
-                runner = WhiteList(opt)
-
-            elif opt.method == 'black':
-                opt.fixed_size = None
-                opt.weigh_random_range = (30,100)
-                opt.heigh_random_range = (10,50)
-                opt.box_iter = 10
-                opt.max_num_box = 10
+                opt.fonts_path = os.path.join(config.font_folder,Fonts)
+                opt.font_size_range = (min_font_size, max_font_size)
+                opt.fixed_box = True
                 opt.num_images = num_images
-                opt.aug_percent = 1
-                seg_path = os.path.join(config.background_folder,Backgrounds,'seg.h5')
-                opt.segment = seg_path if os.path.exists(seg_path) else None
-                runner = BlackList(opt)
-            if st.button("START GEN"):
+                opt.output_path = os.path.join(config.outputs_folder,Backgrounds)
+                opt.source_path = os.path.join(config.source_folder, Textsources)
+                opt.random_color = (random_color==1)
+                opt.font_color   = (0,0,0)
+                opt.min_text_length = min_text_length
+                opt.max_text_length = max_text_length
+                opt.max_num_text = None
+                opt.max_size = (max_height, max_width)
+
+                st.warning("Begin running SynthText with %s folder"%Backgrounds)
+
+                if opt.method == 'white':
+                    opt.input_json = os.path.join(config.background_folder,Backgrounds,'anotations')
+                    runner = WhiteList(opt)
+
+                elif opt.method == 'black':
+                    opt.fixed_size = None
+                    opt.weigh_random_range = (30,100)
+                    opt.heigh_random_range = (10,50)
+                    opt.box_iter = 100
+                    opt.max_num_box = 10
+                    opt.num_images = num_images
+                    opt.aug_percent = 0
+                    seg_path = os.path.join(config.background_folder,Backgrounds,'seg.h5')
+                    opt.segment = seg_path if os.path.exists(seg_path) else None
+                    opt.segment = None
+                    runner = BlackList(opt)
+
+                elif opt.method == 'double_black':
+                    a = time.time()
+                    opt.method = 'black'
+                    opt.fixed_size = None
+                    opt.weigh_random_range = (30,100)
+                    opt.heigh_random_range = (10,50)
+                    opt.box_iter = 100
+                    opt.max_num_box = max_num_box*10
+                    opt.num_images = num_images
+                    opt.aug_percent = 0
+                    opt.segment = None
+                    opt.source_path = '/home/vietvh9/Project/OCR_Components/data/sources/source.txt'
+                    opt.is_object = False
+                    runner = BlackList(opt, is_return = True)
+                    new_backgrounds_path = runner.run()
+
+                    
+                    opt.source_path = os.path.join(config.source_folder, Textsources)
+                    if Textsources in source_df[source_df['TYPE'] == 'Object type']['NAME'].values:
+                        opt.is_object = True
+                    opt.max_num_box = max_num_box
+                    opt.backgrounds_path = os.path.join(new_backgrounds_path,'images')
+                    opt.output_path = os.path.join(new_backgrounds_path,"Double_black")
+                    runner = BlackList(opt, is_random_sample = False)
                 runner.run()
+                st.text("Time for this process was %s seconds"%(time.time() - a))
 
 def check_valild(dataframe, bg_df, source_df, fonts_df):
     df = dataframe.copy()
     results = {}
     for index, value in enumerate(dataframe.values):
         results[index] = {"Status":"valid", "Error":[]}
-        Method,Fonts,Backgrounds,Textsources,_,_,_,_,_,_,_,_ = value
+        Method,Fonts,Backgrounds,Textsources = value[:4]
         if Backgrounds not in bg_df['NAME'].values:
             results[index]['Error'].append('The backgrounds does not existed.')
         else:

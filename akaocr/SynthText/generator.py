@@ -28,6 +28,7 @@ def generate(fonts_path = None,
              num_samples = 1, 
              is_object = False, 
              source_path = None,
+             max_size = None,
              **kwargs):
 
 
@@ -45,8 +46,7 @@ def generate(fonts_path = None,
         if not method=='white':
             new_text_gen = True
         # Create new text generator 
-        if new_text_gen:
-                
+        if new_text_gen:                
             try:
                 text_gen = TextGenerator(source_path,
                                         vocab_group_path = vocab_path, 
@@ -117,9 +117,9 @@ def generate(fonts_path = None,
 
     # Preprocess the clean background
     if method=='white':
-        trans = Transform(source_images, source_chars_coor, target_points, target_image, inpainting = True)
+        trans = Transform(source_images, source_chars_coor, target_points, target_image, max_size = max_size, inpainting = True)
     else:
-        trans = Transform(source_images, source_chars_coor, target_points, target_image, inpainting = False)        
+        trans = Transform(source_images, source_chars_coor, target_points, target_image, max_size = max_size,  inpainting = False)        
 
     for _ in range(num_samples):
         if is_object:

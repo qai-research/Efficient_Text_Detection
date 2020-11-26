@@ -21,13 +21,19 @@ from SynthText.ImgtextProcessing.PerspectiveTransformation import Transform
 
 class BlackList():
 
-    def __init__(self, opt): 
+    def __init__(self, opt, is_return = False, is_random_sample = True): 
         self.opt = opt
+        self.is_return = is_return
+        self.is_random_sample = is_random_sample
 
     def run(self):        
 
         list_background = os.listdir(self.opt.backgrounds_path)
-        samples = np.random.choice(len(list_background),size = self.opt.num_images)
+        if self.is_random_sample:
+            samples = np.random.choice(len(list_background),size = self.opt.num_images)
+        else:
+            samples = list(range(len(list_background)))
+
         output_path = self.opt.output_path
 
         if self.opt.output_path is not None:
@@ -39,9 +45,11 @@ class BlackList():
             os.mkdir(os.path.join(output_path,'anotations'))
 
         for ind in set(samples):
-            a = time.time()
             im_full_name = list_background[ind]
-            num_samples = np.count_nonzero(samples==ind)
+            if self.is_random_sample:
+                num_samples = np.count_nonzero(samples==ind)
+            else:
+                num_samples = 1
 
             target_image = os.path.join(self.opt.backgrounds_path,im_full_name)
             box_gen = BoxGenerator(target_image,
@@ -52,7 +60,8 @@ class BlackList():
                                 max_num_box          = self.opt.max_num_box,
                                 num_samples          = num_samples,
                                 aug_percent          = self.opt.aug_percent,
-                                segment              = self.opt.segment
+                                segment              = self.opt.segment,
+                                max_size             = self.opt.max_size
                             )
             out = box_gen.run()  
             for input_json in out:
@@ -67,8 +76,12 @@ class BlackList():
                                         font_color          = self.opt.font_color,
                                         min_text_length     = self.opt.min_text_length,
                                         max_text_length     = self.opt.max_text_length,
-                                        is_object           = self.opt.is_object)
-            print("blacklist", num_samples, time.time()-a)        
+                                        is_object           = self.opt.is_object,
+                                        max_size            = self.opt.max_size,
+                                        method              = self.opt.method
+                                        )
+        if self.is_return:
+            return output_path
 
 
 class WhiteList():
@@ -112,7 +125,8 @@ class WhiteList():
                                     num_samples         = num_samples,
                                     min_text_length     = self.opt.min_text_length,
                                     max_text_length     = self.opt.max_text_length,
-                                    is_object           = self.opt.is_object
+                                    is_object           = self.opt.is_object,
+                                    method              = self.opt.method
                                     )          
             print(time.time()-a)                          
 

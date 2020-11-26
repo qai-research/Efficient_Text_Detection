@@ -3,10 +3,12 @@ import json
 import numpy as np
 import datetime
 import os
+import sys
+# from SynthText.utils import resize
 
 class Transform():
 
-    def __init__(self, source_images, source_chars_coor, target_points, target_image_path, inpainting = False, fixed_ratio = False):
+    def __init__(self, source_images, source_chars_coor, target_points, target_image_path, max_size = None, inpainting = False, fixed_ratio = False):
         
         assert len(source_images) == len(target_points)
         assert len(source_images) == len(source_chars_coor)
@@ -14,11 +16,24 @@ class Transform():
         self.source_images      = source_images
         self.source_chars_coor  = source_chars_coor
         self.target_points      = target_points
-        self.target_image       = cv2.imread(target_image_path)
+        target_image            = cv2.imread(target_image_path)
+
+        if max_size is not None:
+            w,h = max_size
+            if target_image.size>h*w*3:
+                old_h, old_w, _ = target_image.shape
+                scale_percent = min([old_h/h,old_w/w])
+                new_h, new_w = int(old_h * scale_percent), int(old_w * scale_percent)
+                self.target_image = cv2.resize(target_image,(new_w,new_h))
+            else:
+                self.target_image = target_image
+        else:
+            self.target_image = target_image
+
         self.target_base_name   = os.path.splitext(os.path.basename(target_image_path))[0]
         self.target_base_type   = os.path.splitext(os.path.basename(target_image_path))[1][1:]
 
-        if inpainting is True:
+        if inpainting:
             self.target_image   = self.inpainting()
             
         self.out_size           = (self.target_image.shape[1],self.target_image.shape[0])

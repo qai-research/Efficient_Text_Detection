@@ -44,7 +44,7 @@ class NumbericGenerator():
 
 class TextGenerator():
 
-    def __init__(self, source_text_path, vocab_group_path=None, min_length=1, max_length=15, replace_percentage=0.5):
+    def __init__(self, source_text_path, vocab_group_path=None, min_text_length=1, max_text_length=15, replace_percentage=0.5):
 
         with open(source_text_path, "r", encoding='utf-8-sig') as f:
             self.source_sentences = f.read().strip().split("\n")
@@ -58,33 +58,33 @@ class TextGenerator():
                     if j!='':
                         self.vocab_dict[j]=l
                 
-        self.min_length = min_length
-        self.max_length = max_length
+        self.min_text_length = min_text_length
+        self.max_text_length = max_text_length
         self.replace_percentage = replace_percentage
         self.short_percentage = 0.8
 
     def generate(self, opt_len = None):
 
         if type(opt_len) == int:
-            min_length = max(1,opt_len - 1)
-            max_length = max(2,opt_len + 1)
+            min_text_length = max(1,opt_len - 1)
+            max_text_length = max(2,opt_len + 1)
         else:
             try:
-                min_length, max_length = opt_len
+                min_text_length, max_text_length = opt_len
             except:
-                min_length = self.min_length
-                max_length = self.max_length
+                min_text_length = self.min_text_length
+                max_text_length = self.max_text_length
 
         template = random.choice(self.source_sentences)
 
-        if len(template) > max_length:
-            start_chars = random.randint(0, len(template) - max_length)
-            if random.random() > self.short_percentage or max_length / 2 < min_length:
-                length_text = random.randint(min_length, max_length)
+        if len(template) > max_text_length:
+            start_chars = random.randint(0, len(template) - max_text_length)
+            if random.random() > self.short_percentage or max_text_length / 2 < min_text_length:
+                length_text = random.randint(min_text_length, max_text_length)
             else:
-                length_text = random.randint(min_length, int(max_length / 2))
+                length_text = random.randint(min_text_length, int(max_text_length / 2))
             template = template[start_chars:start_chars + length_text]
-        elif len(template) < min_length:
+        elif len(template) < min_text_length:
             template = self.generate()
 
         if not template.replace(" ",''):

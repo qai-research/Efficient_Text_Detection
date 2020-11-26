@@ -15,19 +15,33 @@ import multiprocessing
 from scipy import optimize
 from functools import reduce
 from matplotlib import pyplot as plt
+from pre.image import ImageProc
 
 sys.path.append('../akaocr')
-from SynthText.utils import resize
+from SynthText.utils import resize_with_char
 
 class BoxGenerator():
 
     def __init__(self, img_path, fixed_size = None, weigh_random_range = None, 
                  heigh_random_range = None, box_iter = None, aug_percent = 0, 
-                 num_samples = 100, max_num_box = 100, segment = None, threshold = 0.01):
+                 num_samples = 100, max_num_box = 100, segment = None, threshold = 0.01, max_size = None):
         
 #         if (weigh_random_range is None or heigh_random_range is None):
 #             raise ValueError("weigh_random_range (tuple) and heigh_random_range (tuple) are required.")
-        self.image = cv2.imread(img_path)
+        image = cv2.imread(img_path)
+
+        if max_size is not None:
+            w,h = max_size
+            if image.size>h*w*3:
+                old_h, old_w, _ = image.shape
+                scale_percent = min([old_h/h,old_w/w])
+                new_h, new_w = int(old_h * scale_percent), int(old_w * scale_percent)
+                self.image = cv2.resize(image,(new_w,new_h))
+            else:
+                self.image = image
+        else:
+            self.image = image
+
         self.fixed_size = fixed_size
         self.weigh_random_range = weigh_random_range
         self.heigh_random_range = heigh_random_range
@@ -106,9 +120,9 @@ class BoxGenerator():
 
             if count == 0:
                 break
-            if np.min(trans_box_coor)<0 or max([x for x,y in trans_box_coor])>self.out_size[0] or max([y for x,y in trans_box_coor])>self.out_size[1]:
+            if np.min(trans_box_coor)<0 or max([x for x,y in trans_box_coor])>=self.out_size[0] or max([y for x,y in trans_box_coor])>=self.out_size[1]:
                 continue
-            if np.all(dump_marker[self.get_inside(trans_box_coor)]!=0):
+            elif np.all(dump_marker[self.get_inside(trans_box_coor)]!=0):
                 break
 
         if count == 0:
@@ -165,8 +179,8 @@ class BoxGenerator():
         box_W, box_H = self.get_box_size(img)
 
         results = []
-        plt.imshow(img)
-        plt.show()
+        # plt.imshow(img)
+        # plt.show()
         for i in range(self.max_num_box):
             box_W, box_H = self.get_box_size(img)
             if box_W*box_H==0:
@@ -175,6 +189,8 @@ class BoxGenerator():
             if p is not None:
                 img = cv2.fillPoly(img, np.int32([p]),[0,0,0])
                 results.append(p)
+                # plt.imshow(img)
+                # plt.show()
         return results
 
     def box_generator_existed_masker(self):
@@ -185,7 +201,7 @@ class BoxGenerator():
             h,w = markers.shape
             dump_marker = np.zeros((h,w,3))
             dump_marker[markers==0] = [255,255,255]
-            dump_marker = resize(dump_marker,self.out_size)
+            dump_marker = resize_with_char(dump_marker,self.out_size)
             num_box = 0
             img = self.image.copy()
             img[dump_marker != 255] = 255
