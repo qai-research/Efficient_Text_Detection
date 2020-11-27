@@ -131,15 +131,19 @@ def main():
                 st.warning("Begin running SynthText with %s folder"%Backgrounds)
 
                 if opt.method == 'white':
+                    a = time.time()
                     opt.input_json = os.path.join(config.background_folder,Backgrounds,'anotations')
                     runner = WhiteList(opt)
 
                 elif opt.method == 'black':
+                    a = time.time()
+                    if Textsources in source_df[source_df['TYPE'] == 'Object type']['NAME'].values:
+                        opt.is_object = True
                     opt.fixed_size = None
                     opt.weigh_random_range = (30,100)
                     opt.heigh_random_range = (10,50)
                     opt.box_iter = 100
-                    opt.max_num_box = 10
+                    opt.max_num_box = max_num_box
                     opt.num_images = num_images
                     opt.aug_percent = 0
                     seg_path = os.path.join(config.background_folder,Backgrounds,'seg.h5')
