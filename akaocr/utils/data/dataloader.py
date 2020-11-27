@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6
+Created Date: Mon November 03 10:00:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contain base loader for lmdb type of data + wrapper 
+_____________________________________________________________________________
+"""
+
 import torch
 import logging
 from pathlib import Path
@@ -5,7 +18,8 @@ from torch.utils.data import Dataset, ConcatDataset, Subset
 
 from utils.file_utils import LmdbReader
 from utils.file_utils import Constants, read_vocab
-from utils.data import collates
+from utils.data import collates, label_handler
+from utils.runtime import Color, colorize
 
 
 class LmdbDataset(Dataset):
@@ -22,10 +36,10 @@ class LmdbDataset(Dataset):
         log = logging.getLogger("load-dataset")
         if labelproc is None:
             log.warning(f"You don\'t have label handler for loading {root}")
+        log.info(f"load dataset from : {root}")
 
         self.labelproc = labelproc
         self.lmdbreader = LmdbReader(root, rgb)
-        log.info(f"load dataset from : {root}")
 
     def __len__(self):
         return self.lmdbreader.num_samples
@@ -34,7 +48,7 @@ class LmdbDataset(Dataset):
         assert index <= len(self), 'index range error'
         image, label = self.lmdbreader.get_item(index)
         if self.labelproc is not None:
-            label = self.labelproc.process_label(label)
+            label = self.labelproc(label)
         return image, label
 
 
@@ -78,11 +92,15 @@ class LoadDataset:
             chars = read_vocab(self.vocab)
         except TypeError:
             raise Exception(f"vocab path {self.vocab} not found")
-        labelproc = collates.LabelHandler(label_type="norm", character=chars,
-                                          sensitive=self.constants.getboolean('sensitive'),
-                                          unknown=self.constants["unknown"])
-        dataset = LmdbDataset(root, rgb=self.constants.getboolean('rgb'), labelproc=labelproc)
-
+        labelproc = label_handler.TextLableHandle(character=chars,
+                                                  sensitive=self.constants.getboolean('sensitive'),
+                                                  unknown=self.constants["unknown"])
+        try:
+            dataset = LmdbDataset(root, rgb=self.constants.getboolean('rgb'), labelproc=labelproc)
+        except Exception:
+            log = logging.getLogger("load-dataset")
+            log.warning(colorize(Color.YELLOW, f"can't read recog LMDB database from {root}"))
+            return None
         align_collate = collates.AlignCollate(img_h=int(self.constants['img_h']), img_w=int(self.constants['img_w']),
                                               keep_ratio_with_pad=self.constants.getboolean('pad'))
 
@@ -100,9 +118,13 @@ class LoadDataset:
         :param root: path to lmdb dataset
         :return: dataloader
         """
-        labelproc = collates.LabelHandler(label_type="json")
-
-        dataset = LmdbDataset(root, rgb=self.constants.getboolean('rgb'), labelproc=labelproc)
+        labelproc = label_handler.JsonLabelHandle()
+        try:
+            dataset = LmdbDataset(root, rgb=self.constants.getboolean('rgb'), labelproc=labelproc)
+        except Exception:
+            log = logging.getLogger("load-dataset")
+            log.warning(colorize(Color.YELLOW, f"can't read detec LMDB database from {root}"))
+            return None
 
         gaussian_collate = collates.GaussianCollate(int(self.constants["min_size"]), int(self.constants["max_size"]))
         data_loader = torch.utils.data.DataLoader(
@@ -133,5 +155,3 @@ class LoadDataset:
                 raise ValueError(f"invalid mode type_dataset : {type_dataset} for _load_multiple_dataset")
             list_dataset.append(dataset)
         return list_dataset
-
-

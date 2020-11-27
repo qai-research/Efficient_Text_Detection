@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6
+Created Date: Mon November 03 10:00:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contain unit test for dataloader 
+_____________________________________________________________________________
+"""
+
 import sys
 import os
 import torch
@@ -8,17 +21,18 @@ from pathlib import Path
 sys.path.append("../")
 from utils.data.dataloader import LmdbDataset, LoadDataset
 from utils.file_utils import Constants, read_vocab
-from utils.data import collates
+from utils.data import collates, label_handler
 from utils.visproc import visualizer, json2contour
 from utils.visproc import save_heatmap
 from pre.image import ImageProc
 
 
-def test_dataloader_detec(root, config_path, vocab=None, label_type="json"):
+def test_dataloader_detec(root, config_path, vocab=None):
     """Test LmdbDataset for detec"""
     constants = Constants(config_path)
     constants = constants.config
-    labelproc = collates.LabelHandler(label_type=label_type)
+    # labelproc = collates.LabelHandler(label_type=label_type)
+    labelproc = label_handler.JsonLabelHandle()
 
     _dataset = LmdbDataset(root, rgb=constants.getboolean('rgb'), labelproc=labelproc)
 
@@ -40,14 +54,15 @@ def test_dataloader_detec(root, config_path, vocab=None, label_type="json"):
     save_heatmap(img, [], re, af)
 
 
-def test_dataloader_recog(root, config_path, vocab=None, label_type="norm"):
+def test_dataloader_recog(root, config_path, vocab=None):
     """Test LmdbDataset for recog"""
     constants = Constants(config_path)
     constants = constants.config
     chars = read_vocab(vocab)
-    labelproc = collates.LabelHandler(label_type=label_type, character=chars,
-                                      sensitive=constants.getboolean('sensitive'),
-                                      unknown=constants["unknown"])
+    labelproc = label_handler.TextLableHandle(character=chars,
+                                              sensitive=constants.getboolean('sensitive'),
+                                              unknown=constants["unknown"])
+
     _dataset = LmdbDataset(root, rgb=constants.getboolean('rgb'), labelproc=labelproc)
 
     _align_collate = collates.AlignCollate(img_h=int(constants['img_h']), img_w=int(constants['img_w']),
@@ -84,10 +99,10 @@ if __name__ == '__main__':
     config_recog = '../data/recog_constants.ini'
     config_detec = '../data/detec_constants.ini'
     vocab = '../data/vocabs/char_jpn_v2.txt'
-    # test_dataloader_detec(root_detec, config_detec, vocab, label_type="json")
-    # test_dataloader_recog(root_recog, config_recog, vocab, label_type="norm")
+    test_dataloader_detec(root_detec, config_detec, vocab)
+    test_dataloader_recog(root_recog, config_recog, vocab)
 
-    test_load_dataset(root_recog, config_recog, load_type="recog", vocab=vocab)
-    test_load_dataset(root_detec, config_detec, load_type="detec", vocab=vocab)
+    # test_load_dataset(root_recog, config_recog, load_type="recog", vocab=vocab)
+    # test_load_dataset(root_detec, config_detec, load_type="detec", vocab=vocab)
     test_load_dataset(root_data_recog, config_recog, load_type="mrecog", vocab=vocab)
     test_load_dataset(root_data_detec, config_detec, load_type="mdetec", vocab=vocab)

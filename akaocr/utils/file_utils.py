@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6
+Created Date: Mon November 03 10:00:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contain read, write func of various data type
+_____________________________________________________________________________
+"""
+
 import six
 import lmdb
 import json
@@ -6,8 +19,6 @@ import numpy as np
 from pathlib import Path
 from PIL import Image
 import logging
-
-from utils.runtime import warn, error
 
 
 class Constants:
@@ -69,8 +80,6 @@ class LmdbReader:
         :param rgb: to use color image
         """
         self.env = lmdb.open(root, max_readers=32, readonly=True, lock=False, readahead=False, meminit=False)
-        if not self.env:
-            warn('cannot create lmdb from {}'.format(root))
 
         self.cursor = self.env.begin(write=False)
         try:

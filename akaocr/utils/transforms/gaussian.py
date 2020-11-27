@@ -1,9 +1,20 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6
+Created Date: Mon November 03 10:00:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contain gaussian generator
+_____________________________________________________________________________
+"""
+
 from math import exp
 import numpy as np
 import cv2
 import os
-
-# from . import imgproc
 
 
 class GaussianTransformer(object):

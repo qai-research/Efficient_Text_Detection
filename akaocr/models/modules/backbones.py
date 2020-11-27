@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6
+Created Date: Mon November 03 10:00:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contain backbones and feature extractor for every models
+_____________________________________________________________________________
+"""
+
+
 from pathlib import Path
 from collections import namedtuple
 import torch

@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Minh Trang - Trangnm5
+Created Date: Mon November 03 10:00:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contain bidirectional lstm for recognition model
+_____________________________________________________________________________
+"""
+
 import torch.nn as nn
 
 
