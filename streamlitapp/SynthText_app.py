@@ -140,8 +140,8 @@ def main():
                     if Textsources in source_df[source_df['TYPE'] == 'Object type']['NAME'].values:
                         opt.is_object = True
                     opt.fixed_size = None
-                    opt.weigh_random_range = (30,100)
-                    opt.heigh_random_range = (10,50)
+                    opt.weigh_random_range = (min_font_size*min_text_length,min_font_size*max_text_length)
+                    opt.heigh_random_range = (min_font_size,max_font_size)
                     opt.box_iter = 100
                     opt.max_num_box = max_num_box
                     opt.num_images = num_images
@@ -155,8 +155,8 @@ def main():
                     a = time.time()
                     opt.method = 'black'
                     opt.fixed_size = None
-                    opt.weigh_random_range = (30,100)
-                    opt.heigh_random_range = (10,50)
+                    opt.weigh_random_range = (min_font_size*min_text_length,min_font_size*max_text_length)
+                    opt.heigh_random_range = (min_font_size,max_font_size)
                     opt.box_iter = 100
                     opt.max_num_box = max_num_box*10
                     opt.num_images = num_images
