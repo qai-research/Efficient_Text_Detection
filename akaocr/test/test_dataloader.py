@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 _____________________________________________________________________________
@@ -7,7 +6,7 @@ Created Date: Mon November 03 10:00:00 VNT 2020
 Project : AkaOCR core
 _____________________________________________________________________________
 
-This file contain unit test for dataloader 
+This file contain unit test for dataloader
 _____________________________________________________________________________
 """
 
@@ -19,7 +18,7 @@ import cv2
 from pathlib import Path
 
 sys.path.append("../")
-from utils.data.dataloader import LmdbDataset, LoadDataset
+from utils.data.dataloader import LmdbDataset, LoadDataset, LoadDatasetIterator
 from utils.file_utils import Constants, read_vocab
 from utils.data import collates, label_handler
 from utils.visproc import visualizer, json2contour
@@ -27,7 +26,7 @@ from utils.visproc import save_heatmap
 from pre.image import ImageProc
 
 
-def test_dataloader_detec(root, config_path, vocab=None):
+def test_dataloader_detec(root, config_path, vocab=None, image_name="demo_single_dataset_load"):
     """Test LmdbDataset for detec"""
     constants = Constants(config_path)
     constants = constants.config
@@ -46,12 +45,7 @@ def test_dataloader_detec(root, config_path, vocab=None):
 
     iterator = iter(_data_loader)
     x = iterator.next()
-    img = x[0][0].permute(1, 2, 0).numpy()
-    img = ImageProc.denormalize_mean_variance(img)
-    img = cv2.resize(img, (350, 350))
-    re = x[1][0].numpy()
-    af = x[2][0].numpy()
-    save_heatmap(img, [], re, af)
+    save_vis_heatmap_from_model(x, image_name=image_name)
 
 
 def test_dataloader_recog(root, config_path, vocab=None):
@@ -91,6 +85,32 @@ def test_load_dataset(root, config_path, load_type="recog", vocab=None):
     return dataset
 
 
+def test_load_iterator(root, config_path, load_type="recog", vocab=None):
+    data_path = Path(root, vocab=vocab)
+    datalist = [str(dataset.name) for dataset in data_path.iterdir()]
+
+    iterator = LoadDatasetIterator(root, selected_data=datalist, load_type=load_type,
+                                   config_path=config_path, vocab=vocab)
+    print(iterator)
+    iterator = iter(iterator)
+    print(iterator)
+    data = next(iterator)
+    if load_type == "recog":
+        print(data[1])
+    elif load_type == "detec":
+        save_vis_heatmap_from_model(data, image_name="demo_multiple_dataset_iterator")
+    return iterator
+
+
+def save_vis_heatmap_from_model(x, image_name="demo"):
+    img = x[0][0].permute(1, 2, 0).numpy()
+    img = ImageProc.denormalize_mean_variance(img)
+    img = cv2.resize(img, (350, 350))
+    re = x[1][0].numpy()
+    af = x[2][0].numpy()
+    save_heatmap(img, [], re, af, image_name=image_name)
+
+
 if __name__ == '__main__':
     root_data_recog = "/home/bacnv6/data/train_data/lake_recog"
     root_data_detec = "/home/bacnv6/data/train_data/lake_detec"
@@ -102,7 +122,10 @@ if __name__ == '__main__':
     test_dataloader_detec(root_detec, config_detec, vocab)
     test_dataloader_recog(root_recog, config_recog, vocab)
 
-    # test_load_dataset(root_recog, config_recog, load_type="recog", vocab=vocab)
-    # test_load_dataset(root_detec, config_detec, load_type="detec", vocab=vocab)
+    test_load_dataset(root_recog, config_recog, load_type="recog", vocab=vocab)
+    test_load_dataset(root_detec, config_detec, load_type="detec", vocab=vocab)
     test_load_dataset(root_data_recog, config_recog, load_type="mrecog", vocab=vocab)
     test_load_dataset(root_data_detec, config_detec, load_type="mdetec", vocab=vocab)
+
+    test_load_iterator(root_data_recog, config_recog, load_type="recog", vocab=vocab)
+    test_load_iterator(root_data_detec, config_detec, load_type="detec", vocab=vocab)

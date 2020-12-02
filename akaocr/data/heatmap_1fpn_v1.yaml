@@ -1,0 +1,45 @@
+_BASE_:
+  # for random seed setting, int
+  MANUAL_SEED : 1111
+
+MODEL:
+
+  # the minimum size of the image's longer dimension, int
+  MIN_SIZE : 700
+
+  # the maximum size of the image's longer dimension, int
+  MAX_SIDE : 1200
+
+  # type of image input rgb or gray
+  RGB : True
+
+SOLVER:
+  # number of data loading workers default=0, int
+  WORKERS : 4
+
+  # maximum number of iteration
+  MAX_ITER: 300000
+
+  # IDs of devices that host the data, model, etc.
+  DEVICE_IDS : None
+
+  # batch size of training default=1, int
+  BATCH_SIZE : 1
+
+  # initial learning rate, float
+  LR : 3.2768e-3
+
+  # Weight decay for SGD, float
+  WEIGHT_DECAY : 5e-4
+
+INFERENCE:
+  # threshold for texts heat map, 0 < text_threshold < 1, smaller means fewer text filtered, float
+  TEXT_THRESHOLD : 0.7
+
+  # threshold for affinities heat map between characters, 0 < link_threshold < 1, bigger means fewer link filtered, float
+  LINK_THRESHOLD : 0.4
+
+  # threshold for accept a word to be detected, 0 < text_threshold < 1, smaller means fewer text filtered, float
+  LOW_TEXT_SCORE : 0.4
+
+VERSION: 0.1

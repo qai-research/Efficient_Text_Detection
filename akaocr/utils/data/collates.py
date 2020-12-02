@@ -7,7 +7,8 @@ Created Date: Mon November 03 10:00:00 VNT 2020
 Project : AkaOCR core
 _____________________________________________________________________________
 
-This file contain collate classes of
+This file contain collate classes which convert data to torch array and other
+operations.
 _____________________________________________________________________________
 """
 
