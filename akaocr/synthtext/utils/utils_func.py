@@ -38,3 +38,15 @@ def resize_with_char(image, new_size):
                                trans_matrix,
                                new_size,
                                borderValue=(255, 255, 255))
+
+
+def inpainting(image, poly_point):
+    """
+    Delete the object and change the color of the deleted area
+    """
+    clearned_target_image = image.copy()
+    cv2.fillPoly(clearned_target_image, np.int32(poly_point), [255, 255, 255])
+    mask_img = np.uint8(np.zeros(clearned_target_image.shape))
+    cv2.fillPoly(mask_img, np.int32(poly_point), [255, 255, 255])
+    mask_img = cv2.cvtColor(mask_img, cv2.COLOR_BGR2GRAY)
+    return cv2.inpaint(clearned_target_image, mask_img, 3, flags=cv2.INPAINT_NS)

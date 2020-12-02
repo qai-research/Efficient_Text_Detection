@@ -60,7 +60,6 @@ class PerspectiveTransform:
         self.source_chars_coor = source_chars_coor
         self.target_points = target_points
         target_image = cv2.imread(target_image_path)
-
         # Resize target image to the maxsize of picture with out changing of ratio
         if max_size is not None:
             w, h = max_size
@@ -126,22 +125,42 @@ class PerspectiveTransform:
             alpha = np.random.uniform(0.7, 0.9)
             mapped = cv2.bitwise_and(word_img, result_pic)
             result_pic = cv2.addWeighted(mapped, alpha, result_pic, 1 - alpha, 0, result_pic)
-            word_out = {'text': char_coor['words'],
-                        'x1': int(target_point[0][0][0]), 'y1': int(target_point[0][0][1]),
-                        'x2': int(target_point[0][1][0]), 'y2': int(target_point[0][1][1]),
-                        'x3': int(target_point[0][2][0]), 'y3': int(target_point[0][2][1]),
-                        'x4': int(target_point[0][3][0]), 'y4': int(target_point[0][3][1]),
-                        'chars': []}
-            for char_dict in char_coor['text']:
-                out_char = {'char': char_dict['char'],
-                            'x1': (new_coordinate((char_dict['x1'], char_dict['y1']), matrix))[0],
-                            'y1': (new_coordinate((char_dict['x1'], char_dict['y1']), matrix))[1],
-                            'x2': (new_coordinate((char_dict['x2'], char_dict['y2']), matrix))[0],
-                            'y2': (new_coordinate((char_dict['x2'], char_dict['y2']), matrix))[1],
-                            'x3': (new_coordinate((char_dict['x3'], char_dict['y3']), matrix))[0],
-                            'y3': (new_coordinate((char_dict['x3'], char_dict['y3']), matrix))[1],
-                            'x4': (new_coordinate((char_dict['x4'], char_dict['y4']), matrix))[0],
-                            'y4': (new_coordinate((char_dict['x4'], char_dict['y4']), matrix))[1]}
-                word_out['chars'].append(out_char)
+            if type(char_coor) is dict:
+                word_out = {'text': char_coor['words'],
+                            'x1': int(target_point[0][0][0]), 'y1': int(target_point[0][0][1]),
+                            'x2': int(target_point[0][1][0]), 'y2': int(target_point[0][1][1]),
+                            'x3': int(target_point[0][2][0]), 'y3': int(target_point[0][2][1]),
+                            'x4': int(target_point[0][3][0]), 'y4': int(target_point[0][3][1]),
+                            'chars': []}
+                for char_dict in char_coor['text']:
+                    out_char = {'char': char_dict['char'],
+                                'x1': (new_coordinate((char_dict['x1'], char_dict['y1']), matrix))[0],
+                                'y1': (new_coordinate((char_dict['x1'], char_dict['y1']), matrix))[1],
+                                'x2': (new_coordinate((char_dict['x2'], char_dict['y2']), matrix))[0],
+                                'y2': (new_coordinate((char_dict['x2'], char_dict['y2']), matrix))[1],
+                                'x3': (new_coordinate((char_dict['x3'], char_dict['y3']), matrix))[0],
+                                'y3': (new_coordinate((char_dict['x3'], char_dict['y3']), matrix))[1],
+                                'x4': (new_coordinate((char_dict['x4'], char_dict['y4']), matrix))[0],
+                                'y4': (new_coordinate((char_dict['x4'], char_dict['y4']), matrix))[1]}
+                    word_out['chars'].append(out_char)
+            else:
+                word_out = {'text': "",
+                            'x1': int(target_point[0][0][0]), 'y1': int(target_point[0][0][1]),
+                            'x2': int(target_point[0][1][0]), 'y2': int(target_point[0][1][1]),
+                            'x3': int(target_point[0][2][0]), 'y3': int(target_point[0][2][1]),
+                            'x4': int(target_point[0][3][0]), 'y4': int(target_point[0][3][1]),
+                            'chars': []}
+                for char_dict in char_coor:
+                    (x1,y1),(x2,y2),(x3,y3),(x4,y4) = char_coor
+                    out_char = {'char': "",
+                                'x1': (new_coordinate((x1,y1), matrix))[0],
+                                'y1': (new_coordinate((x1,y1), matrix))[1],
+                                'x2': (new_coordinate((x2,y2), matrix))[0],
+                                'y2': (new_coordinate((x2,y2), matrix))[1],
+                                'x3': (new_coordinate((x3,y3), matrix))[0],
+                                'y3': (new_coordinate((x3,y3), matrix))[1],
+                                'x4': (new_coordinate((x4,y4), matrix))[0],
+                                'y4': (new_coordinate((x4,y4), matrix))[1]}
+                    word_out['chars'].append(out_char)
             out_json['words'].append(word_out)
-        return result_pic, out_json
+        return result_pic , out_json

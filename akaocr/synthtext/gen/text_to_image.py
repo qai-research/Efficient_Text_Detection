@@ -17,6 +17,7 @@ import glob
 import sys
 import random
 import json
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
@@ -26,6 +27,7 @@ class TextFontGenerator:
     """
     Generator text image from font with Pillow and True Font Type
     """
+
     def __init__(self, fonts_path, font_size_range, fixed_box=True, random_color=False, font_color=(0, 0, 0)):
         self.fonts_list = glob.glob(os.path.join(fonts_path, "*.ttf"))
         self.fonts_list.extend(glob.glob(os.path.join(fonts_path, "*.TTF")))
@@ -71,10 +73,10 @@ class TextFontGenerator:
 
         all_black = np.argwhere(np.array(full_img)[:, :, :] != 255)
 
-        global_min_y = min(all_black[:, 0]) - 1
-        global_max_y = max(all_black[:, 0]) + 1
-        global_min_x = min(all_black[:, 1]) - 1
-        global_max_x = max(all_black[:, 1]) + 1
+        global_min_y = min(all_black[:, 0]) - 2
+        global_max_y = max(all_black[:, 0]) + 2
+        global_min_x = min(all_black[:, 1]) - 2
+        global_max_x = max(all_black[:, 1]) + 2
 
         full_img = full_img.crop([global_min_x, global_min_y, global_max_x, global_max_y])
 
@@ -82,6 +84,7 @@ class TextFontGenerator:
         old_img = Image.new('RGB', (font_size * (len(word) + 2), font_size * 4), color=color)
         out_json = {"words": word,
                     "text": []}
+        print(font_path, font_size)
         for i, w in enumerate(word):
             try:
                 char = {'char': w}
@@ -89,9 +92,12 @@ class TextFontGenerator:
                 d = ImageDraw.Draw(new_img)
                 d.text((font_size, font_size), word[:i + 1], font=fnt, fill=(255, 255, 255))
                 char_img = 255 - (np.array(new_img) - np.array(old_img))
+                kernel = np.ones((2, 2), np.uint8)
+                char_img = cv2.dilate(char_img, kernel, iterations=1)
+                char_img = cv2.erode(char_img, kernel, iterations=1)
                 old_img = new_img.copy()
 
-                all_black = np.argwhere(np.array(char_img)[:, :, :] != 255)
+                all_black = np.argwhere(np.array(char_img)[:, :, :] == [0, 0, 0])
                 if word[i] != ' ':
                     min_y = int(min(all_black[:, 0]) - global_min_y) - 1
                     max_y = int(max(all_black[:, 0]) - global_min_y) + 1
@@ -146,6 +152,9 @@ class TextFontGenerator:
             d = ImageDraw.Draw(new_img)
             d.text((font_size, font_size), word[:i + 1], font=fnt, fill=(255, 255, 255))
             char_img = 255 - (np.array(new_img) - np.array(old_img))
+            kernel = np.ones((2, 2), np.uint8)
+            char_img = cv2.dilate(char_img, kernel, iterations=1)
+            char_img = cv2.erode(char_img, kernel, iterations=1)
             old_img = new_img.copy()
 
             all_black = np.argwhere(np.array(char_img)[:, :, :] != 255)

@@ -32,17 +32,18 @@ class BlackList:
     The blacklist method progress flow
     """
 
-    def __init__(self, config, is_return=False, is_random_sample=True):
+    def __init__(self, config, is_return=False, is_random_background=True, out_name='black'):
         self.config = config
         self.is_return = is_return
-        self.is_random_sample = is_random_sample
+        self.is_random_background = is_random_background
+        self.out_name = out_name
 
     def run(self):
         """
         Running the blacklist method
         """
         list_background = os.listdir(self.config.backgrounds_path)
-        if self.is_random_sample:
+        if self.is_random_background:
             samples = random.choice(len(list_background), size=self.config.num_images)
         else:
             samples = list(range(len(list_background)))
@@ -52,14 +53,15 @@ class BlackList:
         if self.config.output_path is not None:
             _date = str(datetime.datetime.now().date()).replace("-", '')
             _time = str(datetime.datetime.now().time()).replace(":", '')[:6]
-            output_path = "_".join([output_path, _date, _time])
-            os.mkdir(output_path)
-            os.mkdir(os.path.join(output_path, 'images'))
-            os.mkdir(os.path.join(output_path, 'anotations'))
+            output_path = "_".join([output_path, self.out_name, _date, _time])
+            if not os.path.exists(output_path):
+                os.mkdir(output_path)
+                os.mkdir(os.path.join(output_path, 'images'))
+                os.mkdir(os.path.join(output_path, 'anotations'))
 
         for ind in set(samples):
             im_full_name = list_background[ind]
-            if self.is_random_sample:
+            if self.is_random_background:
                 num_samples = count_nonzero(samples == ind)
             else:
                 num_samples = 1
@@ -93,8 +95,7 @@ class BlackList:
                                max_size=self.config.max_size,
                                method=self.config.method
                                )
-        if self.is_return:
-            return output_path
+        return output_path
 
 
 class WhiteList:
@@ -102,28 +103,30 @@ class WhiteList:
     The whitelist method progress flow
     """
 
-    def __init__(self, config, is_return=False, is_random_sample=True):
+    def __init__(self, config, is_return=False, is_random_background=True, out_name='white'):
         self.config = config
         self.is_return = is_return
-        self.is_random_sample = is_random_sample
+        self.is_random_background = is_random_background
+        self.out_name = out_name
 
     def run(self):
         """
         Running the whitelist method
         """
         list_background = os.listdir(self.config.backgrounds_path)
-        if self.is_random_sample:
+        if self.is_random_background:
             samples = random.choice(len(list_background), size=self.config.num_images)
         else:
             samples = list(range(len(list_background)))
         output_path = self.config.output_path
         if self.config.output_path is not None:
-            _date = str(datetime.datetime.now().date()).replace("-", '')
+            _date = str(datetime.datetime.now().date()).replace("-", '')[4:]
             _time = str(datetime.datetime.now().time()).replace(":", '')[:6]
-            output_path = "_".join([output_path, _date, _time])
-            os.mkdir(output_path)
-            os.mkdir(os.path.join(output_path, 'images'))
-            os.mkdir(os.path.join(output_path, 'anotations'))
+            output_path = "_".join([output_path, self.out_name, _date, _time])
+            if not os.path.exists(output_path):
+                os.mkdir(output_path)
+                os.mkdir(os.path.join(output_path, 'images'))
+                os.mkdir(os.path.join(output_path, 'anotations'))
 
         for ind in set(samples):
             im_full_name = list_background[ind]
@@ -148,8 +151,7 @@ class WhiteList:
                            is_object=self.config.is_object,
                            method=self.config.method
                            )
-        if self.is_return:
-            return output_path
+        return output_path
 
 # if __name__ == '__main__':
 #     config = get_args()
