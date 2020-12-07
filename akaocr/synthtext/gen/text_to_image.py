@@ -13,12 +13,15 @@ The Module Has Been Build for...
 _____________________________________________________________________________
 """
 import os
-import glob
 import sys
-import random
-import json
 import cv2
+import json
+import glob
+import random
+import pygame
 import numpy as np
+import pygame.locals
+import pygame.freetype
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 
@@ -28,149 +31,174 @@ class TextFontGenerator:
     Generator text image from font with Pillow and True Font Type
     """
 
-    def __init__(self, fonts_path, font_size_range, fixed_box=True, random_color=False, font_color=(0, 0, 0)):
+    def __init__(self, fonts_path,
+                 font_size_range,
+                 fixed_box=True,
+                 random_color=False,
+                 font_color=(0, 0, 0),
+                 char_spacing_range=None):
         self.fonts_list = glob.glob(os.path.join(fonts_path, "*.ttf"))
-        self.fonts_list.extend(glob.glob(os.path.join(fonts_path, "*.TTF")))
+        # self.fonts_list.extend(glob.glob(os.path.join(fonts_path, "*.TTF")))
         self.font_size_range = font_size_range
         self.fixed_box = fixed_box
         self.random_color = random_color
         self.font_color = font_color
+        self.char_spacing_range = char_spacing_range
 
     def generator(self, source_word):
         """
         Gen image with bounding box for each character
         """
         font_path = random.choice(self.fonts_list)
+        pygame.freetype.init()
 
         if self.font_size_range is not None:
             l, h = self.font_size_range
             font_size = np.random.randint(low=l, high=h)
         else:
             font_size = np.random.randint(10, 50)
-
-        if self.fixed_box is True:
-            img, out_json = self.fixed_box_gen(source_word, font_path, font_size)
+        font_renderer = pygame.freetype.Font(font_path, size=font_size, font_index=0, resolution=0, ucs4=False)
+        if self.char_spacing_range is not None:
+            l, h = self.char_spacing_range
+            char_spacing_factor = round(random.uniform(l, h), 1)
         else:
-            img, out_json = self.none_fixed_box_gen(source_word, font_path, font_size)
+            char_spacing_factor = 0
+        if self.fixed_box is True:
+            img, out_json = self.fixed_box_gen(font_renderer, source_word, char_spacing_factor)
+        else:
+            img, out_json = self.none_fixed_box_gen(font_renderer, source_word, char_spacing_factor)
 
+        pygame.freetype.quit()
         return img, out_json
 
-    def fixed_box_gen(self, word, font_path, font_size):
-        """
-        Gen image with big bounding box for each character
-        """
-
-        # Make full images
-        if self.random_color is False:
-            color = self.font_color
-        else:
-            color = (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))
-
-        fnt = ImageFont.truetype(font_path, font_size)
-        full_img = Image.new('RGB', (font_size * (len(word) + 2), font_size * 4), color=(255, 255, 255))
-        full_draw = ImageDraw.Draw(full_img)
-        full_draw.text((font_size, font_size), word, font=fnt, fill=color)
-
-        all_black = np.argwhere(np.array(full_img)[:, :, :] != 255)
-
-        global_min_y = min(all_black[:, 0]) - 2
-        global_max_y = max(all_black[:, 0]) + 2
-        global_min_x = min(all_black[:, 1]) - 2
-        global_max_x = max(all_black[:, 1]) + 2
-
-        full_img = full_img.crop([global_min_x, global_min_y, global_max_x, global_max_y])
-
-        # Determine charactor box
-        old_img = Image.new('RGB', (font_size * (len(word) + 2), font_size * 4), color=color)
-        out_json = {"words": word,
-                    "text": []}
-        print(font_path, font_size)
-        for i, w in enumerate(word):
-            try:
-                char = {'char': w}
-                new_img = Image.new('RGB', (font_size * (len(word) + 2), font_size * 4), color=color)
-                d = ImageDraw.Draw(new_img)
-                d.text((font_size, font_size), word[:i + 1], font=fnt, fill=(255, 255, 255))
-                char_img = 255 - (np.array(new_img) - np.array(old_img))
-                kernel = np.ones((2, 2), np.uint8)
-                char_img = cv2.dilate(char_img, kernel, iterations=1)
-                char_img = cv2.erode(char_img, kernel, iterations=1)
-                old_img = new_img.copy()
-
-                all_black = np.argwhere(np.array(char_img)[:, :, :] == [0, 0, 0])
-                if word[i] != ' ':
-                    min_y = int(min(all_black[:, 0]) - global_min_y) - 1
-                    max_y = int(max(all_black[:, 0]) - global_min_y) + 1
-                    min_x = int(min(all_black[:, 1]) - global_min_x) - 1
-                    max_x = int(max(all_black[:, 1]) - global_min_x) + 1
-                    char['x1'] = min_x
-                    char['y1'] = min_y
-                    char['x2'] = max_x
-                    char['y2'] = min_y
-                    char['x3'] = max_x
-                    char['y3'] = max_y
-                    char['x4'] = min_x
-                    char['y4'] = max_y
-                    out_json['text'].append(char)
-            except ValueError:
-                pass
-        return full_img, out_json
-
-    def none_fixed_box_gen(self, word, font_path, font_size):
+    def fixed_box_gen(self, font_renderer, word, char_spacing_factor=0):
         """
         Gen image with small bounding box for each character
         """
-        # Make full images
         if self.random_color is False:
             color = self.font_color
         else:
             color = (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))
-
-        fnt = ImageFont.truetype(font_path, font_size)
-        full_img = Image.new('RGB', (font_size * (len(word) + 2), font_size * 4), color=(255, 255, 255))
-        full_draw = ImageDraw.Draw(full_img)
-        full_draw.text((font_size, font_size), word, font=fnt, spacing=100, fill=color)
-
-        all_black = np.argwhere(np.array(full_img)[:, :, :] != 255)
-
-        global_min_y = min(all_black[:, 0]) - 1
-        global_max_y = max(all_black[:, 0]) + 1
-        global_min_x = min(all_black[:, 1]) - 1
-        global_max_x = max(all_black[:, 1]) + 1
-
-        full_img = full_img.crop([global_min_x, global_min_y, global_max_x, global_max_y])
-        # full_box = [(global_min_x - global_min_x, global_min_y - global_min_y),
-        #             (global_max_x - global_min_x, global_max_y - global_min_y)]
-
-        # Determine charactor box
-        old_img = Image.new('RGB', (font_size * (len(word) + 2), font_size * 4), color=color)
+        width = font_renderer.get_rect('O').w
+        heigh = font_renderer.get_rect('Gg').h + 1
+        char_spacing = int(char_spacing_factor * width)
+        fsize = (width + char_spacing) * (len(word)+1), heigh*2
+        surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
+        surf.fill((255, 255, 255))
         out_json = {"words": word,
                     "text": []}
-        for i, w in enumerate(word):
-            char = {'char': w}
-            new_img = Image.new('RGB', (font_size * (len(word) + 2), font_size * 4), color=color)
-            d = ImageDraw.Draw(new_img)
-            d.text((font_size, font_size), word[:i + 1], font=fnt, fill=(255, 255, 255))
-            char_img = 255 - (np.array(new_img) - np.array(old_img))
-            kernel = np.ones((2, 2), np.uint8)
-            char_img = cv2.dilate(char_img, kernel, iterations=1)
-            char_img = cv2.erode(char_img, kernel, iterations=1)
-            old_img = new_img.copy()
 
-            all_black = np.argwhere(np.array(char_img)[:, :, :] != 255)
-            if word[i] != ' ':
-                min_y = 0
-                max_y = global_max_y
-                min_x = int(min(all_black[:, 1]) - global_min_x)
-                max_x = int(max(all_black[:, 1]) - global_min_x)
-                char['x1'] = min_x
-                char['y1'] = min_y
-                char['x2'] = max_x
-                char['y2'] = min_y
-                char['x3'] = max_x
-                char['y3'] = max_y
-                char['x4'] = min_x
-                char['y4'] = max_y
-                out_json['text'].append(char)
+        re = font_renderer.get_rect(word[0])
+        old_x = re.x
+        old_w = re.w
+        y_change = heigh
+        re.y = y_change - re.y
+        font_renderer.render_to(surf, re, word[0], fgcolor=color)
+        first_x = 0
+        first_y = 0
+        img_w = re.w + 1
+        img_h = first_y + re.h + 1
+        if word[0] != " ":
+            char_json = {'char': word[0],
+                         'x1': re.x,
+                         'y1': 0,
+                         'x2': re.x + re.w,
+                         'y2': 0,
+                         'x3': re.x + re.w,
+                         'y3': 0,
+                         'x4': re.x,
+                         'y4': 0}
+            out_json['text'].append(char_json)
+        for char in word[1:]:
+            re = font_renderer.get_rect(char)
+            re.x = old_x + old_w + char_spacing
+            re.y = y_change - re.y
+            font_renderer.render_to(surf, re, char, fgcolor=color)
+            old_x = re.x
+            old_w = re.w
+            if char != " ":
+                char_json = {'char': char,
+                             'x1': re.x,
+                             'y1': 0,
+                             'x2': re.x + re.w,
+                             'y2': 0,
+                             'x3': re.x + re.w,
+                             'y3': 0,
+                             'x4': re.x,
+                             'y4': 0}
+                out_json['text'].append(char_json)
+                img_w = max(img_w, re.x + re.w - first_x + 2)
+                img_h = max(img_h, re.y + re.h)
+        for ind, _ in enumerate(out_json['text']):
+            out_json['text'][ind]['y3'] = img_h - 1
+            out_json['text'][ind]['y4'] = img_h - 1
 
-        return full_img, out_json
+        raw_str = pygame.image.tostring(surf, 'RGB', False)
+        image = Image.frombytes('RGB', surf.get_size(), raw_str)
+        image = image.crop((first_x, first_y, img_w, img_h))
+        pygame.freetype.quit()
+        return image, out_json
+
+    def none_fixed_box_gen(self, font_renderer, word, char_spacing_factor=0):
+        """
+        Gen image with small bounding box for each character
+        """
+        if self.random_color is False:
+            color = self.font_color
+        else:
+            color = (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))
+        width = font_renderer.get_rect('0').w
+        heigh = font_renderer.get_rect('Gg').h + 1
+        char_spacing = int(char_spacing_factor * width)
+        fsize = (width + char_spacing) * (len(word)+1), heigh*2
+        surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
+        surf.fill((255, 255, 255))
+        out_json = {"words": word,
+                    "text": []}
+
+        re = font_renderer.get_rect(word[0])
+        old_x = re.x
+        old_w = re.w
+        y_change = heigh
+        re.y = y_change - re.y
+        font_renderer.render_to(surf, re, word[0], fgcolor=color)
+        first_x = 0
+        first_y = 0
+        img_w = re.w + 1
+        img_h = first_y + re.h + 1
+        if word[0] != " ":
+            char_json = {'char': word[0],
+                         'x1': re.x,
+                         'y1': re.y,
+                         'x2': re.x + re.w,
+                         'y2': re.y,
+                         'x3': re.x + re.w,
+                         'y3': re.y + re.h,
+                         'x4': re.x,
+                         'y4': re.y + re.h}
+            out_json['text'].append(char_json)
+        for char in word[1:]:
+            re = font_renderer.get_rect(char)
+            re.x = old_x + old_w + char_spacing
+            re.y = y_change - re.y
+            font_renderer.render_to(surf, re, char, fgcolor=color)
+            old_x = re.x
+            old_w = re.w
+            if char != " ":
+                char_json = {'char': char,
+                             'x1': re.x,
+                             'y1': re.y,
+                             'x2': re.x + re.w,
+                             'y2': re.y,
+                             'x3': re.x + re.w,
+                             'y3': re.y + re.h,
+                             'x4': re.x,
+                             'y4': re.y + re.h}
+                out_json['text'].append(char_json)
+                img_w = max(img_w, re.x + re.w - first_x + 2)
+                img_h = max(img_h, re.y + re.h)
+
+        raw_str = pygame.image.tostring(surf, 'RGB', False)
+        image = Image.frombytes('RGB', surf.get_size(), raw_str)
+        image = image.crop((first_x, first_y, img_w, img_h))
+        return image, out_json

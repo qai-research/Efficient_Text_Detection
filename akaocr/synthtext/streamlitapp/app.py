@@ -154,13 +154,13 @@ def main():
                             continue
 
                         if Method == 'white':
-                            local_output_path = whiteapp(value, source_df, out_name='white')
+                            local_output_path = whiteapp(value)
 
                         elif Method == 'black':
-                            local_output_path = blackapp(value, source_df, out_name='black')
+                            local_output_path = blackapp(value)
 
                         elif Method == 'double_black':
-                            local_output_path = doubleblackapp(value, source_df, out_name='double_black')
+                            local_output_path = doubleblackapp(value)
 
                         else:
                             local_output_path = None

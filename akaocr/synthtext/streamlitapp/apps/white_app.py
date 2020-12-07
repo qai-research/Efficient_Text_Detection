@@ -20,10 +20,10 @@ import streamlit as st
 from synthtext.main import BlackList, WhiteList
 
 
-def whiteapp(value, source_df, out_name='white'):
+def whiteapp(value):
     Method, Fonts, Backgrounds, ObjectSources, TextSources, num_images, max_num_box = value[:7]
-    char_spacing, min_size, max_size, min_text_len, max_text_len, random_color = value[:-4][7:]
-    max_height, max_width, status, detail = value[-4:]
+    char_spacing, min_size, max_size, min_text_len, max_text_len, random_color = value[7:-7]
+    max_height, max_width, status, detail, shear_p, dropout_p, blur_p = value[-7:]
     parser = argparse.ArgumentParser()
     opt = parser.parse_args()
 
@@ -43,8 +43,20 @@ def whiteapp(value, source_df, out_name='white'):
     opt.max_num_text = None
     opt.max_size = (max_height, max_width)
     opt.input_json = os.path.join(config.background_folder, Backgrounds, 'anotations')
+    opt.aug_option = {'shear': {'p': shear_p,
+                                'v': {"x": (-15, 15),
+                                      "y": (-15, 15)
+                                      }
+                                },
+                      'dropout': {'p': dropout_p,
+                                  'v': (0.2, 0.3)
+                                  },
+                      'blur': {'p': blur_p,
+                               'v': (0.0, 2.0)
+                               }
+                      }
 
-    st.warning("Begin running %s Method SynthText with %s folder" %(opt.method,Backgrounds))
+    st.warning("Begin running %s Method SynthText with folder %s " %(opt.method,Backgrounds))
     begin_time = time.time()
     results = []
     if ObjectSources == '0':

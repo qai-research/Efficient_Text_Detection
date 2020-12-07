@@ -20,13 +20,13 @@ import streamlit as st
 from synthtext.main import BlackList, WhiteList
 
 
-def blackapp(value, source_df, out_name='black'):
+def blackapp(value):
     """
     Gen data with black method
     """
     Method, Fonts, Backgrounds, ObjectSources, TextSources, num_images, max_num_box = value[:7]
-    char_spacing, min_size, max_size, min_text_len, max_text_len, random_color = value[:-4][7:]
-    max_height, max_width, status, detail = value[-4:]
+    char_spacing, min_size, max_size, min_text_len, max_text_len, random_color = value[7:-7]
+    max_height, max_width, status, detail, shear_p, dropout_p, blur_p = value[-7:]
     parser = argparse.ArgumentParser()
     opt = parser.parse_args()
 
@@ -55,8 +55,20 @@ def blackapp(value, source_df, out_name='black'):
     seg_path = os.path.join(config.background_folder, Backgrounds, 'seg.h5')
     opt.segment = seg_path if os.path.exists(seg_path) else None
     opt.segment = None
+    opt.aug_option = {'shear': {'p': shear_p,
+                                'v': {"x": (-15, 15),
+                                      "y": (-15, 15)
+                                      }
+                                },
+                      'dropout': {'p': dropout_p,
+                                  'v': (0.2, 0.3)
+                                  },
+                      'blur': {'p': blur_p,
+                               'v': (0.0, 2.0)
+                               }
+                      }
 
-    st.warning("Begin running %s Method SynthText with folder %s " %(opt.method,Backgrounds))
+    st.warning("Begin running %s Method SynthText with folder %s " % (opt.method, Backgrounds))
     begin_time = time.time()
     results = []
     if ObjectSources == '0':
@@ -77,7 +89,7 @@ def blackapp(value, source_df, out_name='black'):
         st.write("Time for this process was %s seconds" % int(time.time() - begin_time))
     else:
         # Running white method with both ObjectSources and TextSources
-        opt.num_images = num_images//2
+        opt.num_images = num_images // 2
         opt.is_object = False
         opt.source_path = os.path.join(config.source_folder, TextSources)
         runner = BlackList(opt, out_name='black')
