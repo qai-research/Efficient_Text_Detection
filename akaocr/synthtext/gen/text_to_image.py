@@ -49,26 +49,29 @@ class TextFontGenerator:
         """
         Gen image with bounding box for each character
         """
-        font_path = random.choice(self.fonts_list)
-        pygame.freetype.init()
+        try:
+            font_path = random.choice(self.fonts_list)
+            pygame.freetype.init()
 
-        if self.font_size_range is not None:
-            l, h = self.font_size_range
-            font_size = np.random.randint(low=l, high=h)
-        else:
-            font_size = np.random.randint(10, 50)
-        font_renderer = pygame.freetype.Font(font_path, size=font_size, font_index=0, resolution=0, ucs4=False)
-        if self.char_spacing_range is not None:
-            l, h = self.char_spacing_range
-            char_spacing_factor = round(random.uniform(l, h), 1)
-        else:
-            char_spacing_factor = 0
-        if self.fixed_box is True:
-            img, out_json = self.fixed_box_gen(font_renderer, source_word, char_spacing_factor)
-        else:
-            img, out_json = self.none_fixed_box_gen(font_renderer, source_word, char_spacing_factor)
+            if self.font_size_range is not None:
+                l, h = self.font_size_range
+                font_size = np.random.randint(low=l, high=h)
+            else:
+                font_size = np.random.randint(10, 50)
+            font_renderer = pygame.freetype.Font(font_path, size=font_size, font_index=0, resolution=0, ucs4=False)
+            if self.char_spacing_range is not None:
+                l, h = self.char_spacing_range
+                char_spacing_factor = round(random.uniform(l, h), 1)
+            else:
+                char_spacing_factor = 0
+            if self.fixed_box is True:
+                img, out_json = self.fixed_box_gen(font_renderer, source_word, char_spacing_factor)
+            else:
+                img, out_json = self.none_fixed_box_gen(font_renderer, source_word, char_spacing_factor)
 
-        pygame.freetype.quit()
+            pygame.freetype.quit()
+        except TypeError:
+            img, out_json = self.generator(source_word)
         return img, out_json
 
     def fixed_box_gen(self, font_renderer, word, char_spacing_factor=0):
@@ -82,7 +85,7 @@ class TextFontGenerator:
         width = font_renderer.get_rect('O').w
         heigh = font_renderer.get_rect('Gg').h + 1
         char_spacing = int(char_spacing_factor * width)
-        fsize = (width + char_spacing) * (len(word)+1), heigh*2
+        fsize = (width + char_spacing) * (len(word) + 1), heigh * 2
         surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
         surf.fill((255, 255, 255))
         out_json = {"words": word,
@@ -150,7 +153,7 @@ class TextFontGenerator:
         width = font_renderer.get_rect('0').w
         heigh = font_renderer.get_rect('Gg').h + 1
         char_spacing = int(char_spacing_factor * width)
-        fsize = (width + char_spacing) * (len(word)+1), heigh*2
+        fsize = (width + char_spacing) * (len(word) + 1), heigh * 2
         surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
         surf.fill((255, 255, 255))
         out_json = {"words": word,

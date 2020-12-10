@@ -21,9 +21,12 @@ from synthtext.main import BlackList, WhiteList
 
 
 def whiteapp(value):
-    Method, Fonts, Backgrounds, ObjectSources, TextSources, num_images, max_num_box = value[:7]
-    char_spacing, min_size, max_size, min_text_len, max_text_len, random_color = value[7:-7]
-    max_height, max_width, status, detail, shear_p, dropout_p, blur_p = value[-7:]
+    """
+    Gen data with white method
+    """
+    Method, NumCores, Fonts, Backgrounds, ObjectSources, TextSources, num_images, max_num_box = value[:8]
+    char_spacing, min_size, max_size, min_text_len, max_text_len, random_color = value[8:-7]
+    max_height, max_width, shear_p, dropout_p, blur_p, status, detail = value[-7:]
     parser = argparse.ArgumentParser()
     opt = parser.parse_args()
 
@@ -56,10 +59,10 @@ def whiteapp(value):
                                }
                       }
 
-    st.warning("Begin running %s Method SynthText with folder %s " %(opt.method,Backgrounds))
+    st.warning("Begin running %s Method SynthText with folder %s " % (opt.method, Backgrounds))
     begin_time = time.time()
     results = []
-    if ObjectSources == '0':
+    if str(ObjectSources) == '0':
         # Just running white method with TextSources if ObjectSources does not exists
         opt.is_object = False
         opt.source_path = os.path.join(config.source_folder, TextSources)
@@ -67,7 +70,7 @@ def whiteapp(value):
         output_path = runner.run()
         results.append(output_path)
         st.write("Time for this process was %s seconds" % int(time.time() - begin_time))
-    elif TextSources == '0':
+    elif str(TextSources) == '0':
         # Just running white method with ObjectSources if TextSources does not exists
         opt.is_object = True
         opt.source_path = os.path.join(config.source_folder, ObjectSources)
@@ -77,15 +80,15 @@ def whiteapp(value):
         st.write("Time for this process was %s seconds" % int(time.time() - begin_time))
     else:
         # Running white method with both ObjectSources and TextSources
-        opt.num_images = num_images//2
+        opt.num_images = num_images // 2
         opt.is_object = False
-        opt.source_path = os.path.join(config.source_folder, TextSources)
+        opt.source_path = os.path.join(config.source_folder, str(TextSources))
         runner = WhiteList(opt, out_name='white')
         output_path = runner.run()
         results.append(output_path)
         opt.num_images = num_images - opt.num_images
         opt.is_object = True
-        opt.source_path = os.path.join(config.source_folder, ObjectSources)
+        opt.source_path = os.path.join(config.source_folder, str(ObjectSources))
         runner = WhiteList(opt, out_name='white')
         output_path = runner.run()
         results.append(output_path)

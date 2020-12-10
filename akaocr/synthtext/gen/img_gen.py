@@ -24,6 +24,7 @@ import numpy as np
 from .boxgen import BoxGenerator
 from .text_to_image import TextFontGenerator
 from synthtext.utils.text_gen import TextGenerator
+from synthtext.utils.utils_func import Augmentator
 from synthtext.pre.perspective import PerspectiveTransform
 
 
@@ -43,6 +44,7 @@ def ImageGenerator(fonts_path=None,
                    source_path=None,
                    max_size=None,
                    is_return=False,
+                   aug_option=None,
                    **kwargs):
     """
     The image generator with each background and bounding box
@@ -60,8 +62,7 @@ def ImageGenerator(fonts_path=None,
     if not is_object:
         if not method == 'white':
             new_text_gen = True
-        # Create new text generator
-        if new_text_gen:
+            # Create new text generator
             try:
                 text_gen = TextGenerator(source_path,
                                          vocab_group_path=vocab_path,
@@ -106,7 +107,10 @@ def ImageGenerator(fonts_path=None,
                     if i in template:
                         for _ in range(template.count(i)):
                             template = template.replace(i, random.choice(vocab_dict[i]), 1)
-                img, out_json = font_to_img_gen.generator(template)
+                try:
+                    img, out_json = font_to_img_gen.generator(template)
+                except TypeError:
+                    img, out_json = font_to_img_gen.generator(template)
             source_images.append(np.array(img))
             source_chars_coor.append(out_json)
     else:
@@ -127,14 +131,13 @@ def ImageGenerator(fonts_path=None,
         source_images = [source_images[i] for i in sample_index]
         source_chars_coor = [source_chars_coor[i] for i in sample_index]
 
+    source_images, source_chars_coor = Augmentator(source_images, source_chars_coor, aug_option)
     # Preprocess the clean background
+    trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image, max_size=max_size)
     if method == 'white':
-        trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image, max_size=max_size,
-                          inpainting=True)
+        trans.inpainting = True
     else:
-        trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image, max_size=max_size,
-                          inpainting=False)
-
+        trans.inpainting = False
     for _ in range(num_samples):
         if is_object:
             sample_index = np.random.choice(range(len(source_images)), size=len(target_points))

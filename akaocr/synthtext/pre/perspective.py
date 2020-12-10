@@ -65,7 +65,7 @@ class PerspectiveTransform:
             w, h = max_size
             if target_image.size > h * w * 3:
                 old_h, old_w, _ = target_image.shape
-                scale_percent = min([old_h / h, old_w / w])
+                scale_percent = min([h / old_h, w / old_w])
                 new_h, new_w = int(old_h * scale_percent), int(old_w * scale_percent)
                 self.target_image = cv2.resize(target_image, (new_w, new_h))
             else:
@@ -151,16 +151,16 @@ class PerspectiveTransform:
                             'x4': int(target_point[0][3][0]), 'y4': int(target_point[0][3][1]),
                             'chars': []}
                 for char_dict in char_coor:
-                    (x1,y1),(x2,y2),(x3,y3),(x4,y4) = char_coor
+                    (x1, y1), (x2, y2), (x3, y3), (x4, y4) = char_dict
                     out_char = {'char': "",
-                                'x1': (new_coordinate((x1,y1), matrix))[0],
-                                'y1': (new_coordinate((x1,y1), matrix))[1],
-                                'x2': (new_coordinate((x2,y2), matrix))[0],
-                                'y2': (new_coordinate((x2,y2), matrix))[1],
-                                'x3': (new_coordinate((x3,y3), matrix))[0],
-                                'y3': (new_coordinate((x3,y3), matrix))[1],
-                                'x4': (new_coordinate((x4,y4), matrix))[0],
-                                'y4': (new_coordinate((x4,y4), matrix))[1]}
+                                'x1': (new_coordinate((x1, y1), matrix))[0],
+                                'y1': (new_coordinate((x1, y1), matrix))[1],
+                                'x2': (new_coordinate((x2, y2), matrix))[0],
+                                'y2': (new_coordinate((x2, y2), matrix))[1],
+                                'x3': (new_coordinate((x3, y3), matrix))[0],
+                                'y3': (new_coordinate((x3, y3), matrix))[1],
+                                'x4': (new_coordinate((x4, y4), matrix))[0],
+                                'y4': (new_coordinate((x4, y4), matrix))[1]}
                     word_out['chars'].append(out_char)
             out_json['words'].append(word_out)
-        return result_pic , out_json
+        return result_pic, out_json

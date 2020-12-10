@@ -54,17 +54,20 @@ def inpainting(image, poly_point):
     return cv2.inpaint(clearned_target_image, mask_img, 3, flags=cv2.INPAINT_NS)
 
 
-def augmentation(images, points, option):
+def Augmentator(images, points=None, option=None):
     """
     Augmentation list of images.
     Option list: Dictionary of name of augmentation: {augment name: augment value}
-    @type option: dictionary
+    @param images: list of images
+    @param points: List of info json
+    @type option: dict
     Example:
     option = {'shear'  :{'p':0.8,'v':{"x": (-15, 15), "y": (-15, 15)}},
               'dropout':{'p':0.6,'v':(0.2,0.3)},
               'blur'   :{'p':0.6,'v':(0.0, 2.0)}}
     """
-
+    if option is None:
+        return images, points
     base = iaa.Sequential()
     if 'shear' in option:
         base.add(iaa.Sometimes(option['shear']['p'],
@@ -77,26 +80,30 @@ def augmentation(images, points, option):
     if 'blur' in option:
         base.add(iaa.Sometimes(option['blur']['p'],
                                iaa.GaussianBlur(sigma=option['blur']['v'])))
-    kps = []
-    for img_info in points:
-        kp = []
-        for char_inf in img_info['text']:
-            ck = [(char_inf['x1'], char_inf['y1']),
-                  (char_inf['x2'], char_inf['y2']),
-                  (char_inf['x3'], char_inf['y3']),
-                  (char_inf['x4'], char_inf['y4'])]
-            kp.extend(ck)
-        kps.append(kp)
-    images_aug, out_keypoints = base(images=255 - np.array(images), keypoints=kps)
-    for i in range(len(points)):
-        for j in range(len(points[i]['text'])):
-            (x1, y1), (x2, y2), (x3, y3), (x4, y4) = out_keypoints[i][4 * j:4 * (j + 1)]
-            points[i]['text'][j]['x1'] = int(x1)
-            points[i]['text'][j]['x2'] = int(x2)
-            points[i]['text'][j]['x3'] = int(x3)
-            points[i]['text'][j]['x4'] = int(x4)
-            points[i]['text'][j]['y1'] = int(y1)
-            points[i]['text'][j]['y2'] = int(y2)
-            points[i]['text'][j]['y3'] = int(y3)
-            points[i]['text'][j]['y4'] = int(y4)
-    return 255 - np.array(images_aug), points
+    if points is not None:
+        kps = []
+        for img_info in points:
+            kp = []
+            for char_inf in img_info['text']:
+                ck = [(char_inf['x1'], char_inf['y1']),
+                      (char_inf['x2'], char_inf['y2']),
+                      (char_inf['x3'], char_inf['y3']),
+                      (char_inf['x4'], char_inf['y4'])]
+                kp.extend(ck)
+            kps.append(kp)
+        images_aug, out_keypoints = base(images=[255 - np.array(img) for img in images], keypoints=kps)
+        for i in range(len(points)):
+            for j in range(len(points[i]['text'])):
+                (x1, y1), (x2, y2), (x3, y3), (x4, y4) = out_keypoints[i][4 * j:4 * (j + 1)]
+                points[i]['text'][j]['x1'] = int(x1)
+                points[i]['text'][j]['x2'] = int(x2)
+                points[i]['text'][j]['x3'] = int(x3)
+                points[i]['text'][j]['x4'] = int(x4)
+                points[i]['text'][j]['y1'] = int(y1)
+                points[i]['text'][j]['y2'] = int(y2)
+                points[i]['text'][j]['y3'] = int(y3)
+                points[i]['text'][j]['y4'] = int(y4)
+    else:
+        images_aug = base(images=[255 - np.array(img) for img in images])
+
+    return [255 - np.array(img) for img in images_aug], points

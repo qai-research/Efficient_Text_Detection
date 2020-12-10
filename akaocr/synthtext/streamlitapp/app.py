@@ -180,19 +180,19 @@ def check_valid(dataframe, bg_df, source_df, fonts_df):
     results = {}
     for index, value in enumerate(dataframe.values):
         results[index] = {"Status": "valid", "Error": []}
-        Method, Fonts, Backgrounds, ObjectSources, Textsources = value[:5]
+        Method, NumCores, Fonts, Backgrounds, ObjectSources, Textsources = value[:6]
         if Backgrounds not in bg_df['NAME'].values:
             results[index]['Error'].append('Invalid Backgrounds Folder')
         else:
             info = bg_df[bg_df['NAME'] == Backgrounds]
-            st.dataframe(info)
+            # st.dataframe(info)
             if Method == 'white' and 'white' not in info['METHOD'].values:
                 results[index]['Error'].append('Invalid Method')
             if Fonts not in fonts_df['NAME'].values:
                 results[index]['Error'].append('Fonts Folder Is Not Existed.')
-            if Textsources != '0' and Textsources not in source_df['NAME'].values:
+            if str(Textsources) != '0' and Textsources not in source_df['NAME'].values:
                 results[index]['Error'].append('The TextSources Is Not Existed.')
-            if ObjectSources != '0' and ObjectSources not in source_df['NAME'].values:
+            if str(ObjectSources) != '0' and ObjectSources not in source_df['NAME'].values:
                 results[index]['Error'].append('The ObjectSources Is Not Existed.')
         if len(results[index]['Error']) is not 0:
             results[index]["Status"] = "INVALID"

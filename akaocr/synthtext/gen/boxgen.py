@@ -179,22 +179,21 @@ class BoxGenerator:
         # Number of trials to gen a box on segment area
         count = 100 if self.box_iter is None else self.box_iter
         while True:
+            if count == 0:
+                return None
+            count -= 1
             # Randomly select a point in the valid area, create the rectangle box with box_w and box_h.
             y1, x1 = random.choice(all_valid_pixel)
             box_coordinates = [(x1, y1), (x1 + box_w, y1), (x1 + box_w, y1 + box_h), (x1, y1 + box_h)]
             # Make the created box transform.
             trans_box_coordinates = self.transform(box_coordinates)
-            count -= 1
-
-            if count == 0:
-                return None
             # Check that the position of the box is not outside the area of the image.
             if np.min(trans_box_coordinates) < 0 \
                     or max([x for x, y in trans_box_coordinates]) >= self.out_size[0] \
                     or max([y for x, y in trans_box_coordinates]) >= self.out_size[1]:
                 continue
             # Check that no pixel of the box overlaps the marker black area
-            if np.all(dump_marker[self.get_inside(trans_box_coordinates)] != 0):
+            if np.all(dump_marker[self.get_inside(trans_box_coordinates)] == 255):
                 break
         (x1, y1), (x2, y2), (x3, y3), (x4, y4) = trans_box_coordinates
         if x1 == x3 or y1 == y3:
@@ -312,10 +311,9 @@ class BoxGenerator:
             d = np.random.choice(range(-90, 90))
             theta = math.radians(d)
             (x1, y1), (x2, y2), (x3, y3), (x4, y4) = self.rotate(box_coordinate, theta)
-            if all(np.array([x1, x2, x3, x4]) < self.out_size[1]) and all(np.array([x1, x2, x3, x4]) >= 0):
-                if all(np.array([y1, y2, y3, y4]) < self.out_size[0]) and all(np.array([y1, y2, y3, y4]) >= 0):
-                    return (x1, y1), (x2, y2), (x3, y3), (x4, y4)
-        return box_coordinate
+            return (x1, y1), (x2, y2), (x3, y3), (x4, y4)
+        else:
+            return box_coordinate
 
     def gen_fixed_box(self, matrix, iters=50, thresh=0.5):
         """
