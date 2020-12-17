@@ -38,7 +38,7 @@ class TextFontGenerator:
                  font_color=(0, 0, 0),
                  char_spacing_range=None):
         self.fonts_list = glob.glob(os.path.join(fonts_path, "*.ttf"))
-        # self.fonts_list.extend(glob.glob(os.path.join(fonts_path, "*.TTF")))
+        self.fonts_list.extend(glob.glob(os.path.join(fonts_path, "*.TTF")))
         self.font_size_range = font_size_range
         self.fixed_box = fixed_box
         self.random_color = random_color
@@ -76,7 +76,7 @@ class TextFontGenerator:
 
     def fixed_box_gen(self, font_renderer, word, char_spacing_factor=0):
         """
-        Gen image with small bounding box for each character
+        Gen image with big bounding box for each character
         """
         if self.random_color is False:
             color = self.font_color
@@ -150,7 +150,7 @@ class TextFontGenerator:
             color = self.font_color
         else:
             color = (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))
-        width = font_renderer.get_rect('0').w
+        width = font_renderer.get_rect('O').w
         heigh = font_renderer.get_rect('Gg').h + 1
         char_spacing = int(char_spacing_factor * width)
         fsize = (width + char_spacing) * (len(word) + 1), heigh * 2

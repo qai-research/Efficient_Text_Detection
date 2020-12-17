@@ -107,3 +107,111 @@ def Augmentator(images, points=None, option=None):
         images_aug = base(images=[255 - np.array(img) for img in images])
 
     return [255 - np.array(img) for img in images_aug], points
+
+
+def check_valid(dataframe, bg_df, source_df, fonts_df):
+    """
+    Check if the valid of input dataframe
+    """
+    df = dataframe.copy()
+    results = {}
+    for index, value in enumerate(dataframe.values):
+        results[index] = {"Status": "valid", "Error": []}
+        Method, NumCores, Fonts, Backgrounds, ObjectSources, Textsources, ImageSources = value[:7]
+        if Backgrounds not in bg_df['NAME'].values:
+            results[index]['Error'].append('Invalid Backgrounds Folder')
+        else:
+            info = bg_df[bg_df['NAME'] == Backgrounds]
+            if Method == 'white' and 'white' not in info['METHOD'].values:
+                results[index]['Error'].append('Invalid Method')
+            if Fonts not in fonts_df['NAME'].values:
+                results[index]['Error'].append('Fonts Folder Is Not Existed.')
+            if str(Textsources) != '0' and Textsources not in source_df['NAME'].values:
+                results[index]['Error'].append('The TextSources Is Not Existed.')
+            if str(ObjectSources) != '0' and ObjectSources not in source_df['NAME'].values:
+                results[index]['Error'].append('The ObjectSources Is Not Existed.')
+            if str(ImageSources) != '0' and ImageSources not in source_df['NAME'].values:
+                results[index]['Error'].append('The ObjectSources Is Not Existed.')
+        if len(results[index]['Error']) is not 0:
+            results[index]["Status"] = "INVALID"
+    df['STATUS'] = [results[i]["Status"] for i in range(len(results))]
+    df['DETAIL'] = [results[i]["Error"] for i in range(len(results))]
+    return df
+
+
+def get_all_valid(config):
+    # CREATE BACKGROUND DATAFRAME
+    existed_background = sorted(
+        [os.path.join(config.background_folder, name) for name in os.listdir(config.background_folder)])
+    whitelist_background = [path for path in existed_background if
+                            os.path.isdir(path) and 'anotations' in os.listdir(path)]
+    blacklist_background = [path for path in existed_background if os.path.isdir(path)]
+    bg_df = {"NAME": [],
+             "METHOD": [],
+             "SIZE": [],
+             "PATH": []
+             }
+
+    for path in existed_background:
+
+        if not len(os.listdir(path)) > 0:
+            continue
+
+        if path in blacklist_background:
+            bg_df['NAME'].append(os.path.basename(path))
+            bg_df['METHOD'].append('black')
+            bg_df['SIZE'].append(len(os.listdir(path + "/images")))
+            bg_df['PATH'].append(path)
+
+        if path in whitelist_background:
+            bg_df['NAME'].append(os.path.basename(path))
+            bg_df['METHOD'].append('white')
+            bg_df['SIZE'].append(len(os.listdir(path + "/images")))
+            bg_df['PATH'].append(path)
+    bg_df = pd.DataFrame(bg_df, columns=["NAME", "METHOD", "SIZE", "PATH"])
+
+    # CREATE SOURCE DATAFRAME
+    existed_source = sorted([os.path.join(config.source_folder, name) for name in os.listdir(config.source_folder)])
+    source_df = {"NAME": [],
+                 "SIZE": [],
+                 "PATH": [],
+                 "TYPE": []
+                 }
+    for path in existed_source:
+        if os.path.isfile(path) and path.endswith('.txt'):
+            source_df["NAME"].append(os.path.basename(path))
+            with open(path, 'r', encoding='utf8') as fr:
+                source_df["SIZE"].append(len(fr.read().split("\n")))
+            source_df["PATH"].append(path)
+            source_df["TYPE"].append("Text")
+
+        elif os.path.isdir(path) and 'images' in os.listdir(path):
+            length = len(os.listdir(os.path.join(path, 'images')))
+            source_df["NAME"].append(os.path.basename(path))
+            source_df["SIZE"].append(length)
+            source_df["PATH"].append(path)
+            source_df["TYPE"].append("Object")
+
+        elif os.path.isdir(path) and 'data.mdb' in os.listdir(path) and 'lock.mdb' in os.listdir(path):
+            loader = lmdb_dataset_loader(path)
+            length = len(loader.key_dict)
+            source_df["NAME"].append(os.path.basename(path))
+            source_df["SIZE"].append(length)
+            source_df["PATH"].append(path)
+            source_df["TYPE"].append("Handwriting Images")
+    source_df = pd.DataFrame(source_df, columns=["NAME", "TYPE", "SIZE", "PATH"])
+
+    # CREATE FONT DATAFRAME
+    existed_font = sorted([os.path.join(config.font_folder, name) for name in os.listdir(config.font_folder)])
+
+    font_df = {"NAME": [],
+               "SIZE": [],
+               "PATH": []
+               }
+    for path in existed_font:
+        if os.path.isdir(path):
+            font_df["NAME"].append(os.path.basename(path))
+            font_df["SIZE"].append(len(os.listdir(path)))
+            font_df["PATH"].append(path)
+    font_df = pd.DataFrame(font_df, columns=["NAME", "SIZE", "PATH"])
+    return bg_df, source_df, font_df

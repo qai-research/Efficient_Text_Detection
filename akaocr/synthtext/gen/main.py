@@ -21,10 +21,10 @@ import argparse
 import datetime
 import matplotlib.pyplot as plt
 from numpy import random, count_nonzero
-from .gen.img_gen import ImageGenerator
-from .gen.boxgen import BoxGenerator
-from .gen.text_to_image import TextFontGenerator
-from .pre.perspective import PerspectiveTransform
+from .img_gen import ImageGenerator
+from .boxgen import BoxGenerator
+from .text_to_image import TextFontGenerator
+from pre.perspective import PerspectiveTransform
 from multiprocessing.pool import Pool
 
 
