@@ -89,3 +89,30 @@ def white_handwriting(value):
         results.append(output_path)
 
     return results
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config_path', type=str, default='', help='path to config file')
+    parser.add_argument('--output_path', type=str, default='', help='path to output folder')
+    opt = parser.parse_args()
+    bg_df, source_df, font_df = get_all_valid(config)
+    config_file = pd.read_csv(opt.config_path)
+    key = config_file.columns
+    checked_df = check_valid(config_file, bg_df, source_df, font_df)
+    for index, value in enumerate(checked_df.values):
+        Method = value[0]
+        status = value[-2]
+        if status is "INVALID":
+            continue
+        if Method == 'white':
+            local_output_path = whiteapp(value)
+        elif Method == 'black':
+            local_output_path = blackapp(value)
+        elif Method == 'doubleblack':
+            local_output_path = doubleblack(value)
+            for path in local_output_path:
+                if not os.path.exists(output_path):
+                    os.mkdir(output_path)
+                if path is not None:
+                    move_folder(path, opt.output_path)

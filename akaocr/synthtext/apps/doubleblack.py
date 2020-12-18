@@ -19,6 +19,7 @@ import argparse
 import streamlit as st
 from shutil import rmtree as remove_folder
 from synthtext.main import BlackList, WhiteList
+from synthtext.utils.utils_func import check_valid, get_all_valid
 
 
 def doubleblackapp(value):
@@ -106,3 +107,25 @@ def doubleblackapp(value):
     output_path = runner.run()
     remove_folder(new_backgrounds_path)
     return [output_path]
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config_path', type=str, default='', help='path to config file')
+    parser.add_argument('--output_path', type=str, default='', help='path to output folder')
+    opt = parser.parse_args()
+    bg_df, source_df, font_df = get_all_valid(config)
+    config_file = pd.read_csv(opt.config_path)
+    key = config_file.columns
+    checked_df = check_valid(config_file, bg_df, source_df, font_df)
+    for index, value in enumerate(checked_df.values):
+        Method = value[0]
+        status = value[-2]
+        if status is "INVALID" or Method != 'doubleblack':
+            continue
+        local_output_path = doubleblackapp(value)
+        for path in local_output_path:
+            if not os.path.exists(opt.output_path):
+                os.mkdir(opt.output_path)
+            if path is not None:
+                move_folder(path, opt.output_path)
