@@ -18,7 +18,9 @@ import configparser
 import numpy as np
 from pathlib import Path
 from PIL import Image
-import logging
+
+from utils.utility import initial_logger
+logger = initial_logger()
 
 
 class Constants:
@@ -110,7 +112,7 @@ class LmdbReader:
                 img = Image.open(buf).convert('L')
             return img, label
         except IOError:
-            print(f'Corrupted image for {index}')
+            logger.warning(f'Corrupted image for {index}')
             # return None and ignore in dataloader
             return None
 
@@ -118,4 +120,4 @@ class LmdbReader:
         if self.get_func is None:
             return self.lmdb_loader(index)
         else:
-            error("get func type on found")
+            logger.error("get func type on found")

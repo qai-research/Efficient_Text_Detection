@@ -16,7 +16,6 @@ import numpy as np
 from skimage import io
 from pathlib import Path
 import random
-import logging
 
 
 class ImageProc:

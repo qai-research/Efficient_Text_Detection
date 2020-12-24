@@ -20,6 +20,8 @@ from utils.file_utils import LmdbReader
 from utils.file_utils import Constants, read_vocab
 from utils.data import collates, label_handler
 from utils.runtime import Color, colorize
+from utils.utility import initial_logger
+logger = initial_logger()
 
 
 class LmdbDataset(Dataset):
@@ -32,10 +34,9 @@ class LmdbDataset(Dataset):
         :param rgb: process color image
         :param label_handler: type of label processing
         """
-        log = logging.getLogger("load-dataset")
         if labelproc is None:
-            log.warning(f"You don\'t have label handler for loading {root}")
-        log.info(f"load dataset from : {root}")
+            logger.warning(f"You don\'t have label handler for loading {root}")
+        logger.info(f"load dataset from : {root}")
 
         self.labelproc = labelproc
         self.lmdbreader = LmdbReader(root, rgb)
@@ -97,8 +98,7 @@ class LoadDataset:
         try:
             dataset = LmdbDataset(root, rgb=self.constants.getboolean('rgb'), labelproc=labelproc)
         except Exception:
-            log = logging.getLogger("load-dataset")
-            log.warning(colorize(Color.YELLOW, f"can't read recog LMDB database from {root}"))
+            logger.warning(colorize(Color.YELLOW, f"can't read recog LMDB database from {root}"))
             return None
         align_collate = collates.AlignCollate(img_h=int(self.constants['img_h']), img_w=int(self.constants['img_w']),
                                               keep_ratio_with_pad=self.constants.getboolean('pad'))
@@ -121,8 +121,7 @@ class LoadDataset:
         try:
             dataset = LmdbDataset(root, rgb=self.constants.getboolean('rgb'), labelproc=labelproc)
         except Exception:
-            log = logging.getLogger("load-dataset")
-            log.warning(colorize(Color.YELLOW, f"can't read detec LMDB database from {root}"))
+            logger.warning(colorize(Color.YELLOW, f"can't read detec LMDB database from {root}"))
             return None
 
         gaussian_collate = collates.GaussianCollate(int(self.constants["min_size"]), int(self.constants["max_size"]))
@@ -167,7 +166,6 @@ class LoadDatasetIterator:
         root_path = Path(root)
         self.list_dataset = list()
         self.list_iterator = list()
-        self.log = logging.getLogger("load-dataset")
         self.selected_data = selected_data
         loader = LoadDataset(config_path, vocab=vocab)
         for dataset_name in selected_data:
@@ -196,7 +194,7 @@ class LoadDatasetIterator:
                 return data
             except StopIteration:
                 list_iterator[idi] = iter(list_dataset[idi])
-                self.log.info(f"finish on dataloader from {self.selected_data[idi]}")
+                self.logger.info(f"finish on dataloader from {self.selected_data[idi]}")
             except ValueError:
-                self.log.warning(f"Getting data from dataloader failed")
+                self.logger.warning(f"Getting data from dataloader failed")
 

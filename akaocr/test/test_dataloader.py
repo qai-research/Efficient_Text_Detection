@@ -119,13 +119,13 @@ if __name__ == '__main__':
     config_recog = '../data/recog_constants.ini'
     config_detec = '../data/detec_constants.ini'
     vocab = '../data/vocabs/char_jpn_v2.txt'
-    test_dataloader_detec(root_detec, config_detec, vocab)
-    test_dataloader_recog(root_recog, config_recog, vocab)
-
-    test_load_dataset(root_recog, config_recog, load_type="recog", vocab=vocab)
-    test_load_dataset(root_detec, config_detec, load_type="detec", vocab=vocab)
-    test_load_dataset(root_data_recog, config_recog, load_type="mrecog", vocab=vocab)
-    test_load_dataset(root_data_detec, config_detec, load_type="mdetec", vocab=vocab)
+    # test_dataloader_detec(root_detec, config_detec, vocab)
+    # test_dataloader_recog(root_recog, config_recog, vocab)
+    #
+    # test_load_dataset(root_recog, config_recog, load_type="recog", vocab=vocab)
+    # test_load_dataset(root_detec, config_detec, load_type="detec", vocab=vocab)
+    # test_load_dataset(root_data_recog, config_recog, load_type="mrecog", vocab=vocab)
+    # test_load_dataset(root_data_detec, config_detec, load_type="mdetec", vocab=vocab)
 
     test_load_iterator(root_data_recog, config_recog, load_type="recog", vocab=vocab)
     test_load_iterator(root_data_detec, config_detec, load_type="detec", vocab=vocab)
