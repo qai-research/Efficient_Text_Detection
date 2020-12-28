@@ -77,10 +77,7 @@ class HandWritingGenerator:
             y4 = info['y4']
             target_coor = np.float32([[(x1, y1), (x2, y2), (x3, y3), (x4, y4)]])
             source_img = self.self.char_img(char)(char)
-            try:
-                h, w = np.array(source_img).shape
-            except ValueError:
-                h, w, _ = np.array(source_img).shape
+            h, w = np.array(source_img).shape
             source_coor = np.float32([[(0, 0), (w, 0), (w, h), (0, h)]])
             trans_matrix = cv2.getPerspectiveTransform(source_coor, target_coor)
             word_img = cv2.warpPerspective(source_img,
@@ -113,10 +110,7 @@ class HandWritingGenerator:
             y4 = info['y4']
             target_coor = np.float32([[(x1, y1), (x2, y2), (x3, y3), (x4, y4)]])
             source_img = self.char_img(char)
-            try:
-                h, w = np.array(source_img).shape
-            except ValueError:
-                h, w, _ = np.array(source_img).shape
+            h, w = np.array(source_img).shape
             source_coor = np.float32([[(0, 0), (w, 0), (w, h), (0, h)]])
             trans_matrix = cv2.getPerspectiveTransform(source_coor, target_coor)
             word_img = cv2.warpPerspective(np.float32(source_img),
@@ -139,4 +133,6 @@ class HandWritingGenerator:
             source_img = self.data.random_sample(char)
         except Exception:
             source_img, _ = self.possition_gen.generator(char)
+            h, w, _ = np.array(source_img).shape
+            source_img = np.reshape(source_img[:, :, 0], (h, w))
         return source_img
