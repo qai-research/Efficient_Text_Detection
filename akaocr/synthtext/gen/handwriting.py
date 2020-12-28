@@ -132,5 +132,5 @@ class HandWritingGenerator:
         try:
             source_img = self.data.random_sample(char)
         except Exception:
-            source_img, _ = self.generator(char)
+            source_img, _ = self.possition_gen.generator(char)
         return source_img
