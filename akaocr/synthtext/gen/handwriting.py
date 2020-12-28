@@ -134,5 +134,5 @@ class HandWritingGenerator:
         except Exception:
             source_img, _ = self.possition_gen.generator(char)
             h, w, _ = np.array(source_img).shape
-            source_img = np.reshape(source_img[:, :, 0], (h, w))
+            source_img = np.reshape(np.array(source_img)[:, :, 0], (h, w))
         return source_img
