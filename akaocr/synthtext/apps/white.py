@@ -71,7 +71,7 @@ def whiteapp(value):
     if str(ObjectSources) == '0':
         # Just running white method with TextSources if ObjectSources does not exists
         opt.is_object = False
-        opt.source_path = os.path.join(config.source_folder, TextSources)
+        opt.source_path = os.path.join(config.source_folder, str(TextSources))
         runner = WhiteList(opt, out_name='white', num_cores=NumCores)
         output_path = runner.run()
         results.append(output_path)
@@ -79,7 +79,7 @@ def whiteapp(value):
         opt.is_handwriting = False
         # Just running white method with ObjectSources if TextSources does not exists
         opt.is_object = True
-        opt.source_path = os.path.join(config.source_folder, ObjectSources)
+        opt.source_path = os.path.join(config.source_folder, str(ObjectSources))
         runner = WhiteList(opt, out_name='white', num_cores=NumCores)
         output_path = runner.run()
         results.append(output_path)

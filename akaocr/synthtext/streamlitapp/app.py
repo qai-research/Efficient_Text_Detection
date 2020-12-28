@@ -30,9 +30,9 @@ def main():
     """
 
     sys.path.append(config.ocr_path)
-    from synthtext.apps.white_app import whiteapp
-    from synthtext.apps.black_app import blackapp
-    from synthtext.apps.doubleblack_app import doubleblackapp
+    from synthtext.apps.white import whiteapp
+    from synthtext.apps.black import blackapp
+    from synthtext.apps.doubleblack import doubleblackapp
     from synthtext.utils.data_loader import lmdb_dataset_loader
     from synthtext.utils.utils_func import check_valid, get_all_valid
 
@@ -88,10 +88,11 @@ def main():
 
                         Method = value[0]
                         status = value[-2]
+                        Backgrounds = value[5]
                         if status is "INVALID":
                             continue
                         begin_time = time.time()
-                        st.warning("Begin running %s Method SynthText with folder %s " % (opt.method, Backgrounds))
+                        st.warning("Begin running %s Method SynthText with folder %s " % (Method, Backgrounds))
 
                         if Method == 'white':
                             local_output_path = whiteapp(value)

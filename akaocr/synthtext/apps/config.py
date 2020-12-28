@@ -22,10 +22,11 @@ while True:
     i += 1
     if os.path.exists(data) and 'backgrounds' in os.listdir(data):
         break
+i = 1
 while True:
     ocr_path = os.path.join("/".join(tree[:-i]), 'akaocr')
     i += 1
-    if os.path.exists(data) and 'synthtext' in os.listdir(ocr):
+    if os.path.exists(ocr_path) and 'synthtext' in os.listdir(ocr_path):
         break
 css_path = os.path.join(ocr_path, 'synthtext/streamlitapp/style.css')
 font_folder = os.path.join(data, 'fonts')

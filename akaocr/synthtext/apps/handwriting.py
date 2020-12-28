@@ -38,7 +38,7 @@ def white_handwriting(value):
     opt.fixed_box = True
     opt.num_images = num_images
     opt.output_path = os.path.join(config.outputs_folder, Backgrounds)
-    opt.source_path = os.path.join(config.source_folder, TextSources)
+    opt.source_path = os.path.join(config.source_folder, str(TextSources))
     opt.random_color = (random_color == 1)
     opt.font_color = (0, 0, 0)
     opt.min_text_length = min_text_len
@@ -62,14 +62,14 @@ def white_handwriting(value):
     if str(ObjectSources) == '0':
         # Just running white method with TextSources if ObjectSources does not exists
         opt.is_object = False
-        opt.source_path = os.path.join(config.source_folder, TextSources)
+        opt.source_path = os.path.join(config.source_folder, str(TextSources))
         runner = WhiteList(opt, out_name='white', num_cores=NumCores)
         output_path = runner.run()
         results.append(output_path)
     elif str(TextSources) == '0':
         # Just running white method with ObjectSources if TextSources does not exists
         opt.is_object = True
-        opt.source_path = os.path.join(config.source_folder, ObjectSources)
+        opt.source_path = os.path.join(config.source_folder, str(ObjectSources))
         runner = WhiteList(opt, out_name='white', num_cores=NumCores)
         output_path = runner.run()
         results.append(output_path)

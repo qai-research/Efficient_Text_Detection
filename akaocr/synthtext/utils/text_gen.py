@@ -107,10 +107,10 @@ class TextGenerator:
                 length_text = random.randint(min_text_length, int(max_text_length / 2))
             template = template[start_chars:start_chars + length_text]
         elif len(template) < min_text_length:
-            template = self.generate()
+            template = self.generate(min_text_length)
 
         if not template.replace(" ", ''):
-            template = self.generate()
+            template = self.generate(min_text_length)
 
         if random.random() < self.replace_percentage:
             for i in self.vocab_dict:

@@ -88,7 +88,6 @@ class HandWritingGenerator:
             img2[:, :, 1] = word_img
             img2[:, :, 2] = word_img
             results = cv2.bitwise_and(img2, results)
-            print('Done')
         return results, target_poss
 
     def fixed_box_gen(self, target_img, target_poss):
@@ -113,7 +112,7 @@ class HandWritingGenerator:
             h, w = np.array(source_img).shape
             source_coor = np.float32([[(0, 0), (w, 0), (w, h), (0, h)]])
             trans_matrix = cv2.getPerspectiveTransform(source_coor, target_coor)
-            word_img = cv2.warpPerspective(source_img,
+            word_img = cv2.warpPerspective(np.float32(source_img),
                                            trans_matrix,
                                            (W, H),
                                            borderValue=(255, 255, 255))
@@ -126,5 +125,4 @@ class HandWritingGenerator:
             target_poss['text'][index]['y2'] = 0
             target_poss['text'][index]['y3'] = h
             target_poss['text'][index]['y4'] = h
-            print('Done')
         return results, target_poss

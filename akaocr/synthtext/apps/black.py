@@ -44,7 +44,7 @@ def blackapp(value):
     opt.source_path = os.path.join(config.source_folder, str(TextSources))
     #############
     opt.is_handwriting = (GenType != 'font')
-    opt.handwriting_path = os.path.join(config.source_folder, ImageSources)
+    opt.handwriting_path = os.path.join(config.source_folder, str(ImageSources))
     #############
     opt.random_color = (random_color == 1)
     opt.font_color = (0, 0, 0)

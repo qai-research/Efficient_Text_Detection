@@ -45,6 +45,7 @@ class lmdb_dataset_loader:
         @return: image of char (PIL image)
         """
         hexchar = hex(ord(char))
+        print(char)
         hexchar = str(hexchar)[2:].zfill(4)
         a = "%s_num" % hexchar
         _num = int(self.cursor.get(a.encode()))
