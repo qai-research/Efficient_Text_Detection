@@ -33,6 +33,7 @@ class HandWritingGenerator:
     """
     Generator text image from font with PyGame and handwriting images
     """
+
     def __init__(self, lmdb_path, fonts_path, read_batch=32, font_size_range=None, char_spacing_range=None,
                  fixed_box=True):
         print("Start")
@@ -75,7 +76,7 @@ class HandWritingGenerator:
             x4 = info['x4']
             y4 = info['y4']
             target_coor = np.float32([[(x1, y1), (x2, y2), (x3, y3), (x4, y4)]])
-            source_img = self.data.random_sample(char)
+            source_img = self.self.char_img(char)(char)
             h, w = np.array(source_img).shape
             source_coor = np.float32([[(0, 0), (w, 0), (w, h), (0, h)]])
             trans_matrix = cv2.getPerspectiveTransform(source_coor, target_coor)
@@ -108,7 +109,7 @@ class HandWritingGenerator:
             x4 = info['x4']
             y4 = info['y4']
             target_coor = np.float32([[(x1, y1), (x2, y2), (x3, y3), (x4, y4)]])
-            source_img = self.data.random_sample(char)
+            source_img = self.char_img(char)
             h, w = np.array(source_img).shape
             source_coor = np.float32([[(0, 0), (w, 0), (w, h), (0, h)]])
             trans_matrix = cv2.getPerspectiveTransform(source_coor, target_coor)
@@ -126,3 +127,10 @@ class HandWritingGenerator:
             target_poss['text'][index]['y3'] = h
             target_poss['text'][index]['y4'] = h
         return results, target_poss
+
+    def char_img(self, char):
+        try:
+            source_img = self.data.random_sample(char)
+        except Exception:
+            source_img, _ = self.generator(char)
+        return source_img

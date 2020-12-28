@@ -84,18 +84,18 @@ def ImageGenerator(fonts_path=None,
 
         # Create font to images generator
         if from_font:
-            text_to_image_gen = TextFontGenerator(fonts_path,
-                                                  font_size_range,
-                                                  fixed_box=fixed_box,
-                                                  random_color=random_color,
-                                                  char_spacing_range=None,
-                                                  font_color=font_color)
+            main_text_to_image_gen = TextFontGenerator(fonts_path,
+                                                       font_size_range,
+                                                       fixed_box=fixed_box,
+                                                       random_color=random_color,
+                                                       char_spacing_range=None,
+                                                       font_color=font_color)
         else:
-            text_to_image_gen = HandWritingGenerator(kwargs.pop('handwriting_path'),
-                                                     fonts_path,
-                                                     read_batch=32,
-                                                     char_spacing_range=None,
-                                                     fixed_box=True)
+            main_text_to_image_gen = HandWritingGenerator(kwargs.pop('handwriting_path'),
+                                                          fonts_path,
+                                                          read_batch=32,
+                                                          char_spacing_range=None,
+                                                          fixed_box=True)
         # Generator new text to replace old text
         source_images = []
         source_chars_coor = []
@@ -103,7 +103,8 @@ def ImageGenerator(fonts_path=None,
             print(word['text'])
             if new_text_gen:
                 # Generator text with out any infomation of source text
-                img, out_json = text_to_image_gen.generator(text_gen.generate())
+                img, out_json = main_text_to_image_gen.generator(text_gen.generate())
+
             else:
                 # Generator text with infomation of source text
                 template = word['text']
@@ -119,10 +120,7 @@ def ImageGenerator(fonts_path=None,
                     if i in template:
                         for _ in range(template.count(i)):
                             template = template.replace(i, random.choice(vocab_dict[i]), 1)
-                try:
-                    img, out_json = text_to_image_gen.generator(template)
-                except TypeError:
-                    img, out_json = text_to_image_gen.generator(template)
+                img, out_json = main_text_to_image_gen.generator(template)
             source_images.append(np.array(img))
             source_chars_coor.append(out_json)
     else:
