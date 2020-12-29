@@ -25,7 +25,7 @@ from .gen.img_gen import ImageGenerator
 from .gen.boxgen import BoxGenerator
 from .gen.text_to_image import TextFontGenerator
 from .pre.perspective import PerspectiveTransform
-from multiprocessing.pool import Pool
+from multiprocessing import Process
 
 
 class BlackList:
@@ -64,7 +64,6 @@ class BlackList:
                                max_size=self.config.max_size
                                )
         out = box_gen.run()
-        print(out)
         for input_json in out:
             ImageGenerator(fonts_path=self.config.fonts_path,
                            font_size_range=self.config.font_size_range,
@@ -107,14 +106,19 @@ class BlackList:
                 os.mkdir(self.output_path)
                 os.mkdir(os.path.join(self.output_path, 'images'))
                 os.mkdir(os.path.join(self.output_path, 'anotations'))
+        sample_set = list(set(self.samples))
         if self.num_cores <= 1:
-            for i in list(set(self.samples)):
+            for i in sample_set:
                 self.gen_img(i)
         else:
-            with Pool(self.num_cores) as pool:
-                pool.map(self.gen_img, list(set(self.samples)))
-                pool.join()
-                pool.close()
+            for i in range(len(sample_set)//self.num_cores):
+                procs = []
+                for j in sample_set[i*self.num_cores:(i+1)*self.num_cores]:
+                    proc = Process(target=self.gen_img,args=(j,))
+                    procs.append(proc)
+                    proc.start()
+                for proc in procs:
+                    proc.join()
         print(self.output_path)
         return self.output_path
 
@@ -151,14 +155,19 @@ class WhiteList:
                 os.mkdir(self.output_path)
                 os.mkdir(os.path.join(self.output_path, 'images'))
                 os.mkdir(os.path.join(self.output_path, 'anotations'))
+        sample_set = list(set(self.samples))
         if self.num_cores <= 1:
-            for i in list(set(self.samples)):
+            for i in sample_set:
                 self.gen_img(i)
         else:
-            with Pool(self.num_cores) as pool:
-                pool.map(self.gen_img, list(set(self.samples)))
-                pool.join()
-                pool.close()
+            for i in range(len(sample_set)//self.num_cores):
+                procs = []
+                for j in sample_set[i*self.num_cores:(i+1)*self.num_cores]:
+                    proc = Process(target=self.gen_img,args=(j,))
+                    procs.append(proc)
+                    proc.start()
+                for proc in procs:
+                    proc.join()
         return self.output_path
 
     def gen_img(self, ind):

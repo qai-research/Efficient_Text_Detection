@@ -32,6 +32,7 @@ def main():
     sys.path.append(config.ocr_path)
     from synthtext.apps.white import whiteapp
     from synthtext.apps.black import blackapp
+    from synthtext.apps.recog import recogapp
     from synthtext.apps.doubleblack import doubleblackapp
     from synthtext.utils.data_loader import lmdb_dataset_loader
     from synthtext.utils.utils_func import check_valid, get_all_valid
@@ -51,6 +52,9 @@ def main():
     empty_font_df.dataframe(font_df)
 
     st.markdown("<h1 style='text-align: center; color: Blue;'>SynthText App</h1>", unsafe_allow_html=True)
+    is_detect = (st.selectbox("Choose the purpose of synthtext", ['For Detect Training',
+                                                                  'For Recog Training']) == 'For Detect Training'
+                 )
     empty_upload = st.empty()
     file_buffer = empty_upload.file_uploader("UPLOAD CONFIG FILES")
     if file_buffer is not None:
@@ -94,7 +98,10 @@ def main():
                         begin_time = time.time()
                         st.warning("Begin running %s Method SynthText with folder %s " % (Method, Backgrounds))
 
-                        if Method == 'white':
+                        if is_detect is True:
+                            local_output_path = recogapp(value)
+
+                        elif Method == 'white':
                             local_output_path = whiteapp(value)
 
                         elif Method == 'black':
@@ -105,14 +112,12 @@ def main():
                         else:
                             local_output_path = None
 
-                        st.write("Time for this process was %s seconds" % int(time.time() - begin_time))
-
                         for path in local_output_path:
                             if not os.path.exists(output_path):
                                 os.mkdir(output_path)
                             if path is not None:
                                 move_folder(path, output_path)
-                        # st.write("Time for this process was %s seconds" % int(time.time() - begin_time))
+                        st.write("Time for this process was %s seconds" % int(time.time() - begin_time))
 
 
 if __name__ == '__main__':

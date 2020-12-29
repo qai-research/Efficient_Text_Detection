@@ -89,7 +89,7 @@ class BlackList:
         """
         Running the blacklist method
         """
-        begin = time.time()
+        
         self.list_background = os.listdir(self.config.backgrounds_path)
         if self.is_random_background:
             self.samples = random.choice(len(self.list_background), size=self.config.num_images)
