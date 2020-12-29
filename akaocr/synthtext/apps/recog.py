@@ -17,11 +17,9 @@ import time
 import config
 import argparse
 import streamlit as st
-from synthtext.main import WhiteList
+from synthtext.main import RecogGen
 from shutil import rmtree as remove_folder
 from synthtext.utils.utils_func import check_valid, get_all_valid
-from synthtext.gen.text_to_image import TextFontGenerator
-from synthtext.gen.handwriting import HandWritingGenerator
 
 
 def recogapp(value):
@@ -68,46 +66,11 @@ def recogapp(value):
                                'v': (0.0, 2.0)
                                }
                       }
-    begin_time = time.time()
-    results = []
+
+    opt.is_object = False
+    opt.source_path = os.path.join(config.source_folder, str(TextSources))
+    runner = RecogGen(opt, out_name='Recog', num_cores=NumCores)
+    output_path = runner.run()
+    return [output_path]
 
     # Create font to images generator
-    if from_font:
-        main_text_to_image_gen = TextFontGenerator(fonts_path,
-                                                   font_size_range,
-                                                   fixed_box=fixed_box,
-                                                   random_color=random_color,
-                                                   char_spacing_range=None,
-                                                   font_color=font_color)
-    else:
-        main_text_to_image_gen = HandWritingGenerator(kwargs.pop('handwriting_path'),
-                                                      fonts_path,
-                                                      read_batch=32,
-                                                      char_spacing_range=None,
-                                                      fixed_box=True)
-    # Generator new text to replace old text
-    source_images = []
-    source_chars_coor = []
-    for word in input_json['words']:
-        if new_text_gen:
-            # Generator text with out any infomation of source text
-            img, out_json = main_text_to_image_gen.generator(text_gen.generate())
-
-        else:
-            # Generator text with infomation of source text
-            template = word['text']
-            vocab_dict = {}
-            if vocab_path is not None:
-                with open(vocab_path, "r", encoding='utf-8-sig') as f:
-                    vocab_group = json.loads(f.read())
-                for group in vocab_group:
-                    for char in group:
-                        if char != '':
-                            vocab_dict[char] = group
-            for i in vocab_dict:
-                if i in template:
-                    for _ in range(template.count(i)):
-                        template = template.replace(i, random.choice(vocab_dict[i]), 1)
-            img, out_json = main_text_to_image_gen.generator(template)
-        source_images.append(np.array(img))
-        source_chars_coor.append(out_json)

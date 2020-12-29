@@ -98,7 +98,7 @@ def main():
                         begin_time = time.time()
                         st.warning("Begin running %s Method SynthText with folder %s " % (Method, Backgrounds))
 
-                        if is_detect is True:
+                        if not is_detect:
                             local_output_path = recogapp(value)
 
                         elif Method == 'white':
