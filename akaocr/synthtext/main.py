@@ -298,7 +298,7 @@ class RecogGen:
         out_h, out_w, _ = np.array(img).shape
         bg_y = random.choice(range(h - out_h))
         bg_x = random.choice(range(w - out_w))
-        out_img = cv2.bitwise_and(bg[bg_y:bg_y + out_h, bg_x:bg_x + out_w], img)
+        out_img = img + bg[bg_y:bg_y + out_h, bg_x:bg_x + out_w,:]
         img_name = str(ind).zfill(self.img_name_length)
         im_path = os.path.join(self.output_path, "/images/%s.jpg" % img_name)
         cv2.imwrite(im_path, out_img)
