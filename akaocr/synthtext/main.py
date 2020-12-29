@@ -113,6 +113,8 @@ class BlackList:
         else:
             with Pool(self.num_cores) as pool:
                 pool.map(self.gen_img, list(set(self.samples)))
+                pool.join()
+                pool.close()
         print(self.output_path)
         return self.output_path
 
@@ -155,6 +157,8 @@ class WhiteList:
         else:
             with Pool(self.num_cores) as pool:
                 pool.map(self.gen_img, list(set(self.samples)))
+                pool.join()
+                pool.close()
         return self.output_path
 
     def gen_img(self, ind):
