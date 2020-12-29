@@ -17,7 +17,7 @@ import torch.nn as nn
 from pathlib import Path
 
 from utils.torchutils import init_weights
-from models.modules.backbones import FpnFeature
+from models.modules.backbones.FpnVgg import FpnFeature
 
 
 class DoubleConv(nn.Module):

@@ -14,7 +14,7 @@ _____________________________________________________________________________
 import torch.nn as nn
 from pathlib import Path
 
-from models.modules.backbones import ResNetFeatureExtractor
+from models.modules.backbones.ResNet50 import ResNet50
 from models.modules.transformation import TPSSpatialTransformerNetwork
 from models.modules.sequence_modeling import BidirectionalLSTM
 from models.modules.prediction import Attention
@@ -42,7 +42,7 @@ class Atten(nn.Module):
         elif config["feature_extraction"] == 'RCNN':
             self.feature_extraction = RCNNFeatureExtractor(config["input_channel"], config["output_channel"])
         elif config["feature_extraction"] == 'ResNet':
-            self.feature_extraction = ResNetFeatureExtractor(config["input_channel"], config["output_channel"])
+            self.feature_extraction = ResNet50(config["input_channel"], config["output_channel"])
         else:
             raise Exception('No FeatureExtraction module specified')
         self.feature_extraction_output = config["output_channel"]  # int(imgH/16-1) * 512

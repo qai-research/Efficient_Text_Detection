@@ -1,4 +1,16 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6
+Created Date: Mon December 25 14:25:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+Utilities function for training process and optimizer(from detectron2)
+_____________________________________________________________________________
+"""
+
 import itertools
 from enum import Enum
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Type, Union

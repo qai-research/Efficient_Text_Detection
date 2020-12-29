@@ -1,4 +1,16 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6
+Created Date: Mon December 25 14:25:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+Learning rate schedule custom class(from detectron2)
+_____________________________________________________________________________
+"""
+
 import math
 from bisect import bisect_right
 from typing import List
