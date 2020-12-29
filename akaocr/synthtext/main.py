@@ -108,10 +108,10 @@ class BlackList:
                 os.mkdir(os.path.join(self.output_path, 'images'))
                 os.mkdir(os.path.join(self.output_path, 'anotations'))
         begin = time.time()
-        # with Pool(self.num_cores) as pool:
-        #     pool.map(self.gen_img, list(set(self.samples)))
-        for i in list(set(self.samples)):
-            self.gen_img(i)
+        with Pool(self.num_cores) as pool:
+            pool.map(self.gen_img, list(set(self.samples)))
+        # for i in list(set(self.samples)):
+        #     self.gen_img(i)
         print(self.output_path)
         return self.output_path
 
@@ -148,10 +148,10 @@ class WhiteList:
                 os.mkdir(self.output_path)
                 os.mkdir(os.path.join(self.output_path, 'images'))
                 os.mkdir(os.path.join(self.output_path, 'anotations'))
-        # with Pool(self.num_cores) as pool:
-        #     pool.map(self.gen_img, list(set(self.samples)))
-        for i in list(set(self.samples)):
-            self.gen_img(i)
+        with Pool(self.num_cores) as pool:
+            pool.map(self.gen_img, list(set(self.samples)))
+        # for i in list(set(self.samples)):
+        #     self.gen_img(i)
         print(self.output_path)
         return self.output_path
 
