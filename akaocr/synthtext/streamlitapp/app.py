@@ -62,20 +62,20 @@ def main():
 
         st.text("The uploaded config")
         st.dataframe(checked_df[key])
-        outpath = st.text_input("Insert Output Path")
+        outpath = st.text_input("Insert Output Name")
         removed = False
         if outpath != '':
             output_path = os.path.join(config.data, 'outputs/%s' % outpath)
-            if not removed:
-                if os.path.exists(output_path):
-                    empty1 = st.empty()
-                    empty2 = st.empty()
-                    empty1.warning(
-                        "This directory already exists. Click submit to delete this, or try with another name.")
-                    if empty2.button("REMOVE"):
-                        remove_folder(output_path)
-                        empty1.empty()
-                        empty2.empty()
+            if not removed and os.path.exists(output_path):
+                empty1 = st.empty()
+                empty2 = st.empty()
+                empty1.warning(
+                    "This directory already exists. Click REMOVE button to delete this directory,\\"
+                    " or try with another name.")
+                if empty2.button("REMOVE"):
+                    remove_folder(output_path)
+                    empty1.empty()
+                    empty2.empty()
             if removed or not os.path.exists(output_path):
                 empty1 = st.empty()
                 empty2 = st.empty()
@@ -102,16 +102,17 @@ def main():
 
                         elif Method == 'double_black':
                             local_output_path = doubleblackapp(value)
-
                         else:
                             local_output_path = None
+
+                        st.write("Time for this process was %s seconds" % int(time.time() - begin_time))
 
                         for path in local_output_path:
                             if not os.path.exists(output_path):
                                 os.mkdir(output_path)
                             if path is not None:
                                 move_folder(path, output_path)
-                        st.write("Time for this process was %s seconds" % int(time.time() - begin_time))
+                        # st.write("Time for this process was %s seconds" % int(time.time() - begin_time))
 
 
 if __name__ == '__main__':
