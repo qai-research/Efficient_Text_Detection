@@ -100,7 +100,6 @@ def ImageGenerator(fonts_path=None,
         source_images = []
         source_chars_coor = []
         for word in input_json['words']:
-            print(word['text'])
             if new_text_gen:
                 # Generator text with out any infomation of source text
                 img, out_json = main_text_to_image_gen.generator(text_gen.generate())
