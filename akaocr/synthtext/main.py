@@ -265,7 +265,7 @@ class RecogGen:
         fw = open(os.path.join(self.output_path, 'labels.txt'), 'w', encoding='utf-8-sig')
         if self.num_cores <= 1:
             for num_images in range(self.config.num_images):
-                template = self.textgen.generate()
+                template = self.text_gen.generate()
                 self.gen_img(template, num_images)
                 fw.write('images/%s.jpg\t' % str(ind).zfill(self.img_name_length))
                 fw.write(template + "\n")
@@ -298,7 +298,8 @@ class RecogGen:
         out_h, out_w, _ = np.array(img).shape
         bg_y = random.choice(range(h - out_h))
         bg_x = random.choice(range(w - out_w))
-        out_img = img + bg[bg_y:bg_y + out_h, bg_x:bg_x + out_w,:]
+        bg = bg[bg_y:bg_y + out_h, bg_x:bg_x + out_w, :]
+        out_img = cv2.addWeighted(np.float32(img), 0.9, np.float32(bg), 0.5, 0)
         img_name = str(ind).zfill(self.img_name_length)
-        im_path = os.path.join(self.output_path, "/images/%s.jpg" % img_name)
+        im_path = os.path.join(self.output_path, "images/%s.jpg" % img_name)
         cv2.imwrite(im_path, out_img)
