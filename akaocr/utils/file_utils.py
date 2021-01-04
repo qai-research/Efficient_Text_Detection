@@ -5,10 +5,17 @@ import configparser
 import numpy as np
 from pathlib import Path
 from PIL import Image
+import logging
+
 from utils.runtime import warn, error
+
 
 class Constants:
     def __init__(self, config_path):
+        """
+        Read config to a namespace
+        :param config_path: path to the config file
+        """
         config_p = Path(config_path)
         if not config_p.is_file():
             raise ValueError("Config file not found")
@@ -19,12 +26,22 @@ class Constants:
 
 
 def read_vocab(file_path):
+    """
+    Read vocab to list of character
+    :param file_path: path to vocab file
+    :return: list of character
+    """
     with open(file_path, "r", encoding='utf-8-sig') as f:
         list_lines = f.read().strip().split("\n")
     return list_lines
 
 
 def read_json_annotation(js_label):
+    """
+    Read word and charboxes from json
+    :param js_label: json variable
+    :return: word_list, charbox_list
+    """
     js_words = js_label["words"]
     character_boxes = []
     words = []
@@ -45,10 +62,11 @@ def read_json_annotation(js_label):
 
 
 class LmdbReader:
-    def __init__(self, root, rgb=False):
+    def __init__(self, root, rgb=False, get_func=None):
         """
         Read lmdb dataset to variable
         :param root: path to lmdb database
+        :param rgb: to use color image
         """
         self.env = lmdb.open(root, max_readers=32, readonly=True, lock=False, readahead=False, meminit=False)
         if not self.env:
@@ -57,16 +75,16 @@ class LmdbReader:
         self.cursor = self.env.begin(write=False)
         try:
             self.num_samples = int(self.cursor.get('num-samples'.encode()))
-        except:
+        except KeyError:
             self.num_samples = int(self.cursor.stat()['entries'] / 2 - 1)
         self.rgb = rgb
+        self.get_func = get_func
 
     def lmdb_loader(self, index):
         """
         read binary image from lmdb file with custom key and convert to PIL image
         :param index: index of item to be fetch
-        :param rgb: type of image color or gray
-        :return:
+        :return: Pillow image, string label
         """
         label_key = 'label-{:09d}'.format(index).encode()
         label = self.cursor.get(label_key).decode('utf-8')
@@ -86,3 +104,9 @@ class LmdbReader:
             print(f'Corrupted image for {index}')
             # return None and ignore in dataloader
             return None
+
+    def get_item(self, index):
+        if self.get_func is None:
+            return self.lmdb_loader(index)
+        else:
+            error("get func type on found")

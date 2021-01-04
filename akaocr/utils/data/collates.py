@@ -11,14 +11,15 @@ from utils.transforms.heatproc import transform2heatmap
 
 
 class LabelHandler:
-    """
-    Class contain all pre-process of label from LMDB database
-    """
-    def __init__(self, type="norm", character=None, sensitive=True, unknown="?"):
+    def __init__(self, label_type="norm", character=None, sensitive=True, unknown="?"):
         """
-        :param type: transformation type of label # norm/json
+        Class contain all pre-process of label from LMDB database
+        :param label_type: transformation type of label # norm/json
+        :param character: character list to clean label
+        :param sensitive: to use uppercase text or not
+        :param unknown: change every unknown char to this
         """
-        self.type = type
+        self.type = label_type
         self.character = character
         self.sensitive = sensitive
         self.unknown = unknown
@@ -53,19 +54,16 @@ class LabelHandler:
         elif self.type == "json":
             return self.load_json(label)
         else:
-            return label
+            raise ValueError(f"mode \"{self.type}\" in LabelHandler not found")
 
 
 class AlignCollate(object):
-    """
-    Resizing batch of raw images then convert them into Tensors, ready to feed into the model.
-    """
     def __init__(self, img_h=32, img_w=254, keep_ratio_with_pad=True):
         """
         Custom collate function for normalize image
         :param img_h: image height
         :param img_w: image width
-        :param keep_ratio_with_pad: pad image with empty
+        :param keep_ratio_with_pad: pad image with 0
         """
         self.img_h = img_h
         self.img_w = img_w
@@ -103,9 +101,12 @@ class AlignCollate(object):
 
 
 class ResizeNormalize(object):
-    """Resizing input images by stretching them"""
-
     def __init__(self, size, interpolation=Image.BICUBIC):
+        """
+        Resizing input images by stretching them
+        :param size: width of output image
+        :param interpolation: type of interpolate
+        """
         self.size = size
         self.interpolation = interpolation
         self.toTensor = transforms.ToTensor()
@@ -118,9 +119,12 @@ class ResizeNormalize(object):
 
 
 class NormalizePAD(object):
-    """Resizing input images by padding with zeros"""
-
     def __init__(self, max_size, pad_type='right'):
+        """
+        Resizing input images by padding with zeros
+        :param max_size: width of output image
+        :param pad_type: direction to pad image
+        """
         self.toTensor = transforms.ToTensor()
         self.max_size = max_size
         self.max_width_half = math.floor(max_size[2] / 2)
@@ -138,20 +142,20 @@ class NormalizePAD(object):
 
 
 class GaussianCollate(object):
-    """
-    Return label in heatmap representation
-    """
     def __init__(self, min_size, max_size, rgb=True):
+        """
+        Return label in heatmap representation
+        :param min_size: min image size
+        :param max_size: max image size
+        :param rgb: check color image
+        """
         self.gaussian_transformer = GaussianTransformer(img_size=512, region_threshold=0.35, affinity_threshold=0.15)
-        # self.toTensor = transforms.ToTensor()
         self.min_size = min_size
         self.max_size = max_size
 
     def __call__(self, batch):
         batch = filter(lambda x: x is not None, batch)
         images, labels = zip(*batch)
-        # img = self.toTensor(img)
-        # img.sub_(0.5).div_(0.5)  # [0, 1] => [-1, 1]
         images_proc = list()
         regions_proc = list()
         affinities_proc = list()

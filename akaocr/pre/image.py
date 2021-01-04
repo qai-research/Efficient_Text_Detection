@@ -1,16 +1,16 @@
-import sys
 import cv2
 import numpy as np
 from skimage import io
 from pathlib import Path
 import random
+import logging
 
-from utils.runtime import warn, error
 
 class ImageProc:
     """
     Contain image pre process functions
     """
+
     @staticmethod
     def binarize(image, maxval=255):
         """
@@ -56,7 +56,8 @@ class ImageProc:
         elif mode == "close":  # noise outside
             img = cv2.morphologyEx(image, cv2.MORPH_CLOSE, kernel, iterations=iteration)
         else:
-            img = image
+            raise ValueError(f"mode \"{mode}\" in morph not found")
+
         return img
 
     @staticmethod
@@ -158,13 +159,12 @@ class ImageProc:
         :return:
         """
         height, width = image.shape[:2]
-        if mode=="max":
+        if mode == "max":
             ratio = size / max(height, width)
-        elif mode=="min":
+        elif mode == "min":
             ratio = size / min(height, width)
         else:
-            warn(f"mode {mode} to resize not found")
-            sys.exit()
+            raise ValueError(f"mode \"{mode}\" in resize_aspect_ratio not found")
 
         target_h, target_w = int(height * ratio), int(width * ratio)
         image = cv2.resize(image, (target_w, target_h), interpolation=interpolation)
