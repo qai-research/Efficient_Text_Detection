@@ -17,5 +17,8 @@ sys.path.append("../")
 from engine.config import setup
 
 # setup("recog")
-setup("detec")
+config = setup("detec")
+# print(type(config.MODEL.RGB))
+# if config.MODEL.RGB:
+#     print("dump")
 # setup("dump")

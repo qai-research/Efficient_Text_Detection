@@ -1,6 +1,8 @@
 _BASE_:
   # for random seed setting, int
   MANUAL_SEED : 1111
+  MODEL_TYPE: HEAT_BASE
+
 
 MODEL:
 
@@ -8,7 +10,7 @@ MODEL:
   MIN_SIZE : 700
 
   # the maximum size of the image's longer dimension, int
-  MAX_SIDE : 1200
+  MAX_SIZE : 1200
 
   # type of image input rgb or gray
   RGB : True

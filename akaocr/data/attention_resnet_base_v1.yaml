@@ -1,6 +1,7 @@
 _BASE_:
   # for random seed setting, int
   MANUAL_SEED : 1111
+  MODEL_TYPE : ATTEN_BASE
 
 MODEL:
   # whether to do fine-tuning only the last layer or not, bool

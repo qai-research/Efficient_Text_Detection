@@ -53,14 +53,14 @@ class LmdbDataset(Dataset):
 
 
 class LoadDataset:
-    def __init__(self, config_path, vocab=None):
+    def __init__(self, config, vocab=None):
         """
         Factory method to load dataset
-        :param config_path: path to the config file
+        :param config: config name space
         :param vocab: path to the vocab file
         """
-        constants = Constants(config_path)
-        self.constants = constants.config
+        # config = Constants(config)
+        self.config = config
         self.vocab = vocab
 
     def load(self, root, load_type="recog", selected_data=None):
@@ -93,20 +93,20 @@ class LoadDataset:
         except TypeError:
             raise Exception(f"vocab path {self.vocab} not found")
         labelproc = label_handler.TextLableHandle(character=chars,
-                                                  sensitive=self.constants.getboolean('sensitive'),
-                                                  unknown=self.constants["unknown"])
+                                                  sensitive=self.config.MODEL.SENSITIVE,
+                                                  unknown=self.config.SOLVER.UNKNOWN)
         try:
-            dataset = LmdbDataset(root, rgb=self.constants.getboolean('rgb'), labelproc=labelproc)
+            dataset = LmdbDataset(root, rgb=self.config.MODEL.RGB, labelproc=labelproc)
         except Exception:
-            logger.warning(colorize(Color.YELLOW, f"can't read recog LMDB database from {root}"))
+            logger.warning(f"can't read recog LMDB database from {root}")
             return None
-        align_collate = collates.AlignCollate(img_h=int(self.constants['img_h']), img_w=int(self.constants['img_w']),
-                                              keep_ratio_with_pad=self.constants.getboolean('pad'))
+        align_collate = collates.AlignCollate(img_h=int(self.config.MODEL.IMG_H), img_w=int(self.config.MODEL.IMG_W),
+                                              keep_ratio_with_pad=self.config.MODEL.PAD)
 
         data_loader = torch.utils.data.DataLoader(
-            dataset, batch_size=int(self.constants['batch_size']),
+            dataset, batch_size=int(self.config.SOLVER.BATCH_SIZE),
             shuffle=True,
-            num_workers=int(self.constants['workers']),
+            num_workers=int(self.config.SOLVER.WORKERS),
             collate_fn=align_collate,
             pin_memory=True)
         return data_loader
@@ -119,16 +119,16 @@ class LoadDataset:
         """
         labelproc = label_handler.JsonLabelHandle()
         try:
-            dataset = LmdbDataset(root, rgb=self.constants.getboolean('rgb'), labelproc=labelproc)
+            dataset = LmdbDataset(root, rgb=self.config.MODEL.RGB, labelproc=labelproc)
         except Exception:
-            logger.warning(colorize(Color.YELLOW, f"can't read detec LMDB database from {root}"))
+            logger.warning(f"can't read detec LMDB database from {root}")
             return None
 
-        gaussian_collate = collates.GaussianCollate(int(self.constants["min_size"]), int(self.constants["max_size"]))
+        gaussian_collate = collates.GaussianCollate(int(self.config.MODEL.MIN_SIZE), int(self.config.MODEL.MAX_SIZE))
         data_loader = torch.utils.data.DataLoader(
-            dataset, batch_size=int(self.constants['batch_size']),
+            dataset, batch_size=int(self.config.SOLVER.BATCH_SIZE),
             shuffle=True,
-            num_workers=int(self.constants['workers']),
+            num_workers=int(self.config.SOLVER.WORKERS),
             collate_fn=gaussian_collate,
             pin_memory=True)
         return data_loader
@@ -156,18 +156,20 @@ class LoadDataset:
 
 
 class LoadDatasetIterator:
-    def __init__(self, root, selected_data=None, load_type="recog", config_path=None, vocab=None):
+    def __init__(self, root, selected_data=None, load_type="recog", config=None, vocab=None):
         """
         Infinite iterator to load multiple dataset
         :param root: path to dataset lake
         :param selected_data: list of selected data from lake
+        :param load_type: type of dataset to load
+        :param config: config namespace
         :param load_type: type of dataset to load
         """
         root_path = Path(root)
         self.list_dataset = list()
         self.list_iterator = list()
         self.selected_data = selected_data
-        loader = LoadDataset(config_path, vocab=vocab)
+        loader = LoadDataset(config, vocab=vocab)
         for dataset_name in selected_data:
             dataset_path = root_path.joinpath(dataset_name)
             if load_type == "recog":

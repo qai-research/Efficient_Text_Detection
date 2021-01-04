@@ -29,63 +29,64 @@ def load_yaml_config(config_path):
 
 
 def parse_args(add_help=True):
-    def str2bool(v):
-        return v.lower() in ("True", "true", "t", "1")
-
     parser = argparse.ArgumentParser(add_help=add_help)
     # params for prediction engine
     parser.add_argument("-e", "--exp", type=str, default="test")
-    parser.add_argument("-c", "--continue_train", type=str2bool, default=True)
     parser.add_argument("--config", type=str, default=None)
     parser.add_argument("-w", "--weight", type=str, default=None)
-    parser.add_argument('-g', '--gpu', nargs='+')
+    parser.add_argument("-g", "--gpu", nargs="+")
     parser.add_argument("--data", type=str, default="../data")
     return parser.parse_args()
 
 
 def setup(tp="recog"):
+    """setup config environment and working space"""
     args = parse_args()
     data_path = Path(args.data)
     exp_exist = True
     if tp == "recog":
-        config = "../data/attention_resnet_base_v1.yaml"
         exp_path = data_path.joinpath("exp_recog", args.exp)
+        exp_config_path = str(exp_path.joinpath(args.exp + "_detec_config.yaml"))
         if not exp_path.exists():
+            config = "../data/attention_resnet_base_v1.yaml"
             logger.info(f"Experiment {args.exp} do not exist.")
             logger.info("Creating new experiment folder")
             exp_exist = False
             exp_path.mkdir(exist_ok=True)
-            exp_config_path = str(exp_path.joinpath(args.exp + "_detec_config.yaml"))
             shutil.copyfile(config, exp_config_path)
         else:
+            config = exp_config_path
             logger.info(f"Experiment {args.exp} exist")
             logger.info(f"Use current experiment folder")
 
     elif tp == "detec":
-        config = "../data/heatmap_1fpn_v1.yaml"
         exp_path = data_path.joinpath("exp_detec", args.exp)
+        exp_config_path = str(exp_path.joinpath(args.exp + "_recog_config.yaml"))
         if not exp_path.exists():
+            config = "../data/heatmap_1fpn_v1.yaml"
             logger.info(f"Experiment {args.exp} do not exist")
             logger.info("Creating new experiment folder")
             exp_exist = False
             exp_path.mkdir(exist_ok=True)
-            exp_config_path = str(exp_path.joinpath(args.exp + "_recog_config.yaml"))
             shutil.copyfile(config, exp_config_path)
         else:
+            config = exp_config_path
             logger.info(f"Experiment {args.exp} exist")
             logger.info(f"Use current experiment folder")
     else:
         logger.error("Training type not in [detec, recog]")
         raise ValueError("Invalid type for setup")
 
+    if exp_exist:
+        model_path, iteration = get_model_weight(str(exp_path))
+    else:
+        model_path, iteration = None, 0
+
     if args.config is not None:
         config = args.config
-        assert not exp_exist, f"Experiment {args.exp} exist so you can not use custom config"
+        assert not (exp_exist and model_path is not None), f"Experiment {args.exp} exist so you can not use custom config"
         shutil.copyfile(config, exp_config_path)
     #########################################
-
-    config_data = load_yaml_config(config)
-    model_path, iteration = get_model_weight(str(exp_path))
 
     if args.weight:
         if model_path is None or Path(args.weight).parent == exp_path:
@@ -93,7 +94,9 @@ def setup(tp="recog"):
             iteration = 0
         else:
             assert not model_path, f"Weight exist for experiment folder: {str(exp_path)}. Please remove old " \
-                                   f"model weight before load new weight"
+                                   f"model weights before load new weight"
+    logger.info(f"Load config from : {config}")
+    config_data = load_yaml_config(config)
     config_data["SOLVER"]["START_ITER"] = iteration
     config_data["SOLVER"]["WEIGHT"] = model_path
     config_data["SOLVER"]["GPU"] = args.gpu
@@ -103,7 +106,13 @@ def setup(tp="recog"):
     return config_data
 
 
-def get_model_weight(exp_path, cp_type="latest"):
+def get_model_weight(exp_path, cp_type="best"):
+    """
+    Extract weight from experiment folder
+    :param exp_path: experiment path
+    :param cp_type: type of weight to extract (best weigth or last weight)
+    :return:
+    """
     exp_path = Path(exp_path)
     best_path = None
     list_cp = list()
@@ -116,16 +125,19 @@ def get_model_weight(exp_path, cp_type="latest"):
             if cpid.isnumeric():
                 list_cp.append(int(cpid))
 
+    if len(list_cp) == 0:
+        logger.info(f"No weight found in {str(exp_path)}")
+        return None, 0
+    max_iter = max(list_cp)
+
     if cp_type == "best":
         if best_path is None:
             logger.warning(f"Best weight not found in {str(exp_path)}. Use latest checkpoint instead")
         else:
-            return str(best_path), 0
+            logger.info(f"Best checkpoint {str(best_path)} found")
+            return str(best_path), max_iter
+
     # if not return best path
-    if len(list_cp) == 0:
-        logger.info(f"No weight found in {str(exp_path)}")
-        return None
-    max_iter = max(list_cp)
     latest_model = exp_path.joinpath("iter_"+str(max_iter) + ".pth")
     logger.info(f"Latest checkpoints {str(latest_model)} found")
     return str(latest_model), max_iter
