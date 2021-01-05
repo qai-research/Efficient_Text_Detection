@@ -20,11 +20,11 @@ logger = initial_logger()
 def build_dataloader(root, config, selected_data=None, vocab=None):
     """
     Build data iterator for training
-    :param root:
-    :param config:
-    :param selected_data:
-    :param vocab:
-    :return:
+    :param root: folder contain Lmdb folder
+    :param config: config Namespace
+    :param selected_data: list target dataset's name want to load(inside root)
+    :param vocab: path to vocab file
+    :return: data iterator
     """
     if config._BASE_.MODEL_TYPE == "HEAT_BASE":
         load_type = "detec"
@@ -41,5 +41,6 @@ def build_dataloader(root, config, selected_data=None, vocab=None):
                                    config=config, vocab=vocab)
     iterator = iter(iterator)
     return iterator
+
 
 

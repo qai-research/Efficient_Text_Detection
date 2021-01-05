@@ -62,6 +62,9 @@ SOLVER:
   # batch size of training default=1, int
   BATCH_SIZE : 15
 
+  # beam size for ocr
+  BEAM_SIZE : 1
+
   # initial learning rate, float
   LR : 3.2768e-3
 
