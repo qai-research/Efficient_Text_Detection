@@ -11,9 +11,12 @@ _____________________________________________________________________________
 """
 from pathlib import Path
 
-from utils.data.dataloader import LmdbDataset, LoadDataset, LoadDatasetIterator
+from utils.data.dataloader import LoadDatasetIterator
+from models.detec.heatmap import HEAT
+from models.recog.atten import Atten
 from engine.config import setup, dict2namespace
 from utils.utility import initial_logger
+
 logger = initial_logger()
 
 
@@ -43,4 +46,13 @@ def build_dataloader(root, config, selected_data=None, vocab=None):
     return iterator
 
 
-
+def build_model(config):
+    """Build model from config"""
+    if config._BASE_.MODEL_TYPE == "HEAT_BASE":
+        model = HEAT()
+    elif config._BASE_.MODEL_TYPE == "ATTEN_BASE":
+        model = Atten(config)
+    else:
+        raise ValueError("invalid _BASE_.MODEL_TYPE in config file(accept HEAT_BASE and ATTEN_BASE)")
+    model.to(device=config.SOLVER.DEVICE)
+    return model

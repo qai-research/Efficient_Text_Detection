@@ -1,28 +1,18 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 _____________________________________________________________________________
 Created By  : Nguyen Viet Bac - Bacnv6
-Created Date: Mon December 25 14:25:00 VNT 2020
+Created Date: Tue January 5 14:01:00 VNT 2021
 Project : AkaOCR core
 _____________________________________________________________________________
 
-Learning rate schedule custom class(from detectron2)
+This file contain learning rate schedulers class
 _____________________________________________________________________________
 """
-
-import math
-from bisect import bisect_right
-from typing import List
+import itertools
+from enum import Enum
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Type, Union
 import torch
-
-# NOTE: PyTorch's LR scheduler interface uses names that assume the LR changes
-# only on epoch boundaries. We typically use iteration based schedules instead.
-# As a result, "epoch" (e.g., as in self.last_epoch) should be understood to mean
-# "iteration" instead.
-
-# FIXME: ideally this would be achieved with a CombinedLRScheduler, separating
-# MultiStepLR with WarmupLR but the current LRScheduler design doesn't allow it.
 
 
 class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):

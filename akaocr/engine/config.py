@@ -16,15 +16,22 @@ import argparse
 from pathlib import Path
 from argparse import Namespace
 
+from engine.solver.default import _C
 from utils.utility import initial_logger
 
 logger = initial_logger()
 
 
+def get_cfg_defaults():
+    """Get a yacs CfgNode object with default values for my_project."""
+    # Return a clone so that the defaults will not be altered
+    # This is for the "local variable" use pattern
+    return _C.clone()
+
+
 def load_yaml_config(config_path):
     with open(config_path, 'r') as f:
         config = yaml.full_load(f)
-
     return config
 
 
@@ -84,7 +91,8 @@ def setup(tp="recog"):
 
     if args.config is not None:
         config = args.config
-        assert not (exp_exist and model_path is not None), f"Experiment {args.exp} exist so you can not use custom config"
+        assert not (
+                    exp_exist and model_path is not None), f"Experiment {args.exp} exist so you can not use custom config"
         shutil.copyfile(config, exp_config_path)
     #########################################
 
@@ -95,15 +103,29 @@ def setup(tp="recog"):
         else:
             assert not model_path, f"Weight exist for experiment folder: {str(exp_path)}. Please remove old " \
                                    f"model weights before load new weight"
+
+    cfg = get_cfg_defaults()
+
     logger.info(f"Load config from : {config}")
-    config_data = load_yaml_config(config)
-    config_data["SOLVER"]["START_ITER"] = iteration
-    config_data["SOLVER"]["WEIGHT"] = model_path
-    config_data["SOLVER"]["GPU"] = args.gpu
-    config_data["SOLVER"]["DATA"] = args.data
-    config_data["SOLVER"]["EXP"] = args.exp
-    config_data = dict2namespace(config_data)
-    return config_data
+    # config_data = load_yaml_config(config)
+    cfg.merge_from_file(config)
+    # config_data["SOLVER"]["START_ITER"] = iteration
+    # config_data["SOLVER"]["WEIGHT"] = model_path
+    # config_data["SOLVER"]["GPU"] = args.gpu
+    # config_data["SOLVER"]["DATA"] = args.data
+    # config_data["SOLVER"]["EXP"] = args.exp
+    # config_data = dict2namespace(config_data)
+
+    cfg.SOLVER.START_ITER = iteration
+    cfg.SOLVER.WEIGHT = model_path
+    cfg.SOLVER.GPU = args.gpu
+    cfg.SOLVER.DATA = args.data
+    cfg.SOLVER.EXP = args.exp
+
+    # merge_from_other_cfg
+    # Merge with default config
+    # config_data = Namespace(**vars(cfg), **vars(_C))
+    return cfg
 
 
 def get_model_weight(exp_path, cp_type="best"):
@@ -138,7 +160,7 @@ def get_model_weight(exp_path, cp_type="best"):
             return str(best_path), max_iter
 
     # if not return best path
-    latest_model = exp_path.joinpath("iter_"+str(max_iter) + ".pth")
+    latest_model = exp_path.joinpath("iter_" + str(max_iter) + ".pth")
     logger.info(f"Latest checkpoints {str(latest_model)} found")
     return str(latest_model), max_iter
 

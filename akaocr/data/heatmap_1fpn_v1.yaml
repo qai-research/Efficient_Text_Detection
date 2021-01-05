@@ -1,8 +1,6 @@
 _BASE_:
   # for random seed setting, int
-  MANUAL_SEED : 1111
   MODEL_TYPE: HEAT_BASE
-
 
 MODEL:
 
@@ -30,9 +28,6 @@ SOLVER:
 
   # initial learning rate, float
   LR : 3.2768e-3
-
-  # Weight decay for SGD, float
-  WEIGHT_DECAY : 5e-4
 
 INFERENCE:
   # threshold for texts heat map, 0 < text_threshold < 1, smaller means fewer text filtered, float

@@ -1,6 +1,5 @@
 _BASE_:
   # for random seed setting, int
-  MANUAL_SEED : 1111
   MODEL_TYPE : ATTEN_BASE
 
 MODEL:
@@ -28,7 +27,7 @@ MODEL:
   # Transformation stage. None|TPS
   TRANSFORMATION : TPS
 
-  # Feature Extraction stage. VGG|RCNN|ResNet
+  # Feature Extraction stage. ResNet
   FEATURE_EXTRACTION : ResNet
 
   # SequenceModeling stage. None|BiLSTM
@@ -49,6 +48,9 @@ MODEL:
   # the size of the LSTM hidden state
   HIDDEN_SIZE : 128
 
+  # name of the vocab file
+  VOCAB : char_jpn_v2.txt
+
 SOLVER:
   # number of data loading workers default=0, int
   WORKERS : 4
@@ -68,26 +70,20 @@ SOLVER:
   # initial learning rate, float
   LR : 3.2768e-3
 
-  # Weight decay for SGD, float
-  WEIGHT_DECAY : 5e-4
-
-  # whether to keep ratio then pad for image resize
-  PAD : True
-
   # for data_filtering mode
   DATA_FILTERING : True
 
   # replace all OOV characters with this character
   UNKNOWN : "?"
 
-INFERENCE:
-  # threshold for texts heat map, 0 < text_threshold < 1, smaller means fewer text filtered, float
-  TEXT_THRESHOLD : 0.7
-
-  # threshold for affinities heat map between characters, 0 < link_threshold < 1, bigger means fewer link filtered, float
-  LINK_THRESHOLD : 0.4
-
-  # threshold for accept a word to be detected, 0 < text_threshold < 1, smaller means fewer text filtered, float
-  LOW_TEXT_SCORE : 0.4
+#INFERENCE:
+#  # threshold for texts heat map, 0 < text_threshold < 1, smaller means fewer text filtered, float
+#  TEXT_THRESHOLD : 0.7
+#
+#  # threshold for affinities heat map between characters, 0 < link_threshold < 1, bigger means fewer link filtered, float
+#  LINK_THRESHOLD : 0.4
+#
+#  # threshold for accept a word to be detected, 0 < text_threshold < 1, smaller means fewer text filtered, float
+#  LOW_TEXT_SCORE : 0.4
 
 VERSION: 0.1
