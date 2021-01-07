@@ -10,6 +10,7 @@ This file contain config methods
 _____________________________________________________________________________
 """
 
+import os
 import yaml
 import shutil
 import argparse
@@ -109,18 +110,14 @@ def setup(tp="recog"):
     logger.info(f"Load config from : {config}")
     # config_data = load_yaml_config(config)
     cfg.merge_from_file(config)
-    # config_data["SOLVER"]["START_ITER"] = iteration
-    # config_data["SOLVER"]["WEIGHT"] = model_path
-    # config_data["SOLVER"]["GPU"] = args.gpu
-    # config_data["SOLVER"]["DATA"] = args.data
-    # config_data["SOLVER"]["EXP"] = args.exp
-    # config_data = dict2namespace(config_data)
 
     cfg.SOLVER.START_ITER = iteration
     cfg.SOLVER.WEIGHT = model_path
     cfg.SOLVER.GPU = args.gpu
     cfg.SOLVER.DATA = args.data
-    cfg.SOLVER.EXP = args.exp
+    cfg.SOLVER.EXP = str(exp_path)
+    if cfg.MODEL.VOCAB is not None:
+        cfg.MODEL.VOCAB = os.path.join(cfg.SOLVER.DATA, "vocabs", cfg.MODEL.VOCAB)
 
     # merge_from_other_cfg
     # Merge with default config

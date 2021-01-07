@@ -9,6 +9,8 @@ _____________________________________________________________________________
 This file contain learning rate schedulers class
 _____________________________________________________________________________
 """
+import math
+from bisect import bisect_right
 import itertools
 from enum import Enum
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Type, Union

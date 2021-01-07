@@ -154,7 +154,9 @@ _C.SOLVER.BIAS_LR_FACTOR = 1.0
 _C.SOLVER.WEIGHT_DECAY_BIAS = _C.SOLVER.WEIGHT_DECAY
 
 # Gradient clipping
-_C.SOLVER.CLIP_GRADIENTS = CN()
+# _C.SOLVER.CLIP_GRADIENTS = CN()
+_C.SOLVER.CLIP_GRADIENTS = CN({"ENABLED": False})
+
 # Type of gradient clipping, currently 2 values are supported:
 # - "value": the absolute values of elements of each gradients are clipped
 # - "norm": the norm of the gradient for each parameter is clipped thus

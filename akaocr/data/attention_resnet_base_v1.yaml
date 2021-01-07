@@ -68,7 +68,7 @@ SOLVER:
   BEAM_SIZE : 1
 
   # initial learning rate, float
-  LR : 3.2768e-3
+  BASE_LR : 3.2768e-3
 
   # for data_filtering mode
   DATA_FILTERING : True

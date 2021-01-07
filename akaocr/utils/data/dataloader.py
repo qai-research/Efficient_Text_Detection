@@ -46,7 +46,7 @@ class LmdbDataset(Dataset):
 
     def __getitem__(self, index):
         assert index <= len(self), 'index range error'
-        image, label = self.lmdbreader.get_item(index)
+        image, label = self.lmdbreader.get_item(index+1)
         if self.labelproc is not None:
             label = self.labelproc(label)
         return image, label
@@ -195,8 +195,8 @@ class LoadDatasetIterator:
                 data = data_loader_iter.next()
                 return data
             except StopIteration:
-                list_iterator[idi] = iter(list_dataset[idi])
-                self.logger.info(f"finish on dataloader from {self.selected_data[idi]}")
+                self.list_iterator[idi] = iter(self.list_dataset[idi])
+                logger.info(f"finish on dataloader from {self.selected_data[idi]}")
             except ValueError:
                 self.logger.warning(f"Getting data from dataloader failed")
 
