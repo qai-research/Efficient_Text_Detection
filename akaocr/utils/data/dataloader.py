@@ -45,42 +45,23 @@ class LmdbDataset(Dataset):
         return self.lmdbreader.num_samples
 
     def __getitem__(self, index):
+        index += 1
         assert index <= len(self), 'index range error'
-        image, label = self.lmdbreader.get_item(index+1)
+        image, label = self.lmdbreader.get_item(index)
         if self.labelproc is not None:
             label = self.labelproc(label)
         return image, label
 
 
 class LoadDataset:
-    def __init__(self, config, vocab=None):
+    def __init__(self, cfg, vocab=None):
         """
-        Factory method to load dataset
-        :param config: config name space
+        Method to load dataset
+        :param cfg: config name space
         :param vocab: path to the vocab file
         """
-        # config = Constants(config)
-        self.config = config
+        self.cfg = cfg
         self.vocab = vocab
-
-    def load(self, root, load_type="recog", selected_data=None):
-        """
-        Load different type of dataset
-        :param root: path to dataset root
-        :param load_type: type of dataset to load
-        :param selected_data: list of dataset to load multiple dataset
-        :return: dataset object(s)
-        """
-        if load_type == "recog":
-            return self._load_dataset_recog_ocr(root)
-        elif load_type == "detec":
-            return self._load_dataset_detec_heatmap(root)
-        elif load_type == "mrecog":
-            return self._load_multiple_dataset(root, selected_data=selected_data, type_dataset="recog")
-        elif load_type == "mdetec":
-            return self._load_multiple_dataset(root, selected_data=selected_data, type_dataset="detec")
-        else:
-            raise ValueError(f"invalid mode load_type : {load_type} in LoadDataset")
 
     def _load_dataset_recog_ocr(self, root):
         """
@@ -93,20 +74,20 @@ class LoadDataset:
         except TypeError:
             raise Exception(f"vocab path {self.vocab} not found")
         labelproc = label_handler.TextLableHandle(character=chars,
-                                                  sensitive=self.config.MODEL.SENSITIVE,
-                                                  unknown=self.config.SOLVER.UNKNOWN)
+                                                  sensitive=self.cfg.MODEL.SENSITIVE,
+                                                  unknown=self.cfg.SOLVER.UNKNOWN)
         try:
-            dataset = LmdbDataset(root, rgb=self.config.MODEL.RGB, labelproc=labelproc)
+            dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc)
         except Exception:
             logger.warning(f"can't read recog LMDB database from {root}")
             return None
-        align_collate = collates.AlignCollate(img_h=int(self.config.MODEL.IMG_H), img_w=int(self.config.MODEL.IMG_W),
-                                              keep_ratio_with_pad=self.config.MODEL.PAD)
+        align_collate = collates.AlignCollate(img_h=int(self.cfg.MODEL.IMG_H), img_w=int(self.cfg.MODEL.IMG_W),
+                                              keep_ratio_with_pad=self.cfg.MODEL.PAD)
 
         data_loader = torch.utils.data.DataLoader(
-            dataset, batch_size=int(self.config.SOLVER.BATCH_SIZE),
+            dataset, batch_size=int(self.cfg.SOLVER.BATCH_SIZE),
             shuffle=True,
-            num_workers=int(self.config.SOLVER.WORKERS),
+            num_workers=int(self.cfg.SOLVER.WORKERS),
             collate_fn=align_collate,
             pin_memory=True)
         return data_loader
@@ -119,84 +100,84 @@ class LoadDataset:
         """
         labelproc = label_handler.JsonLabelHandle()
         try:
-            dataset = LmdbDataset(root, rgb=self.config.MODEL.RGB, labelproc=labelproc)
+            dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc)
         except Exception:
             logger.warning(f"can't read detec LMDB database from {root}")
             return None
 
-        gaussian_collate = collates.GaussianCollate(int(self.config.MODEL.MIN_SIZE), int(self.config.MODEL.MAX_SIZE))
+        gaussian_collate = collates.GaussianCollate(int(self.cfg.MODEL.MIN_SIZE), int(self.cfg.MODEL.MAX_SIZE))
         data_loader = torch.utils.data.DataLoader(
-            dataset, batch_size=int(self.config.SOLVER.BATCH_SIZE),
+            dataset, batch_size=int(self.cfg.SOLVER.BATCH_SIZE),
             shuffle=True,
-            num_workers=int(self.config.SOLVER.WORKERS),
+            num_workers=int(self.cfg.SOLVER.WORKERS),
             collate_fn=gaussian_collate,
             pin_memory=True)
         return data_loader
 
-    def _load_multiple_dataset(self, root, selected_data=None, type_dataset="recog"):
+    def _load_multiple_dataset(self, cfg, selected_data=None):
         """
         Wrapper to load multiple dataset
-        :param root: path to dataset lake
+        :param cfg: config namespace
         :param selected_data: list of selected data from lake
-        :param type_dataset: type of dataset to load
         :return: list of datasets
         """
-        root_path = Path(root)
+        root_path = Path(cfg.SOLVER.DATA_SOURCE)
         list_dataset = list()
         for dataset_name in selected_data:
             dataset_path = root_path.joinpath(dataset_name)
-            if type_dataset == "recog":
+            if cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
                 dataset = self._load_dataset_recog_ocr(str(dataset_path))
-            elif type_dataset == "detec":
+            elif cfg._BASE_.MODEL_TYPE == "HEAT_BASE":
                 dataset = self._load_dataset_detec_heatmap(str(dataset_path))
             else:
-                raise ValueError(f"invalid mode type_dataset : {type_dataset} for _load_multiple_dataset")
+                raise ValueError(f"invalid mode type_dataset : {cfg._BASE_.MODEL_TYPE} for _load_multiple_dataset")
             list_dataset.append(dataset)
         return list_dataset
 
 
 class LoadDatasetIterator:
-    def __init__(self, root, selected_data=None, load_type="recog", config=None, vocab=None):
+    def __init__(self, cfg, selected_data=None):
         """
         Infinite iterator to load multiple dataset
-        :param root: path to dataset lake
+        :param cfg: config namespace
         :param selected_data: list of selected data from lake
-        :param load_type: type of dataset to load
-        :param config: config namespace
-        :param load_type: type of dataset to load
         """
-        root_path = Path(root)
+        root_path = Path(cfg.SOLVER.DATA_SOURCE)
+        self.idi = 0
         self.list_dataset = list()
         self.list_iterator = list()
         self.selected_data = selected_data
-        loader = LoadDataset(config, vocab=vocab)
+        self.filled_selected_data = list()
+        loader = LoadDataset(cfg, vocab=cfg.MODEL.VOCAB)
         for dataset_name in selected_data:
             dataset_path = root_path.joinpath(dataset_name)
-            if load_type == "recog":
+            if cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
                 dataset = loader._load_dataset_recog_ocr(str(dataset_path))
-            elif load_type == "detec":
+            elif cfg._BASE_.MODEL_TYPE == "HEAT_BASE":
                 dataset = loader._load_dataset_detec_heatmap(str(dataset_path))
             else:
-                raise ValueError(f"invalid mode load_type : {load_type} for _load_multiple_dataset")
+                raise ValueError(f"invalid model type : {cfg._BASE_.MODEL_TYPE} in config")
+            print(dataset)
             if dataset is not None:
                 self.list_dataset.append(dataset)
                 self.list_iterator.append(iter(dataset))
+                self.filled_selected_data.append(dataset_name)
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        idi = 0
         while True:
-            if idi > len(self.list_iterator) - 1:
-                idi = 0
+            if self.idi > len(self.list_iterator) - 1:
+                self.idi = 0
             try:
-                data_loader_iter = self.list_iterator[idi]
+                data_loader_iter = self.list_iterator[self.idi]
                 data = data_loader_iter.next()
+                self.idi += 1
                 return data
             except StopIteration:
-                self.list_iterator[idi] = iter(self.list_dataset[idi])
-                logger.info(f"finish on dataloader from {self.selected_data[idi]}")
+                self.list_iterator[self.idi] = iter(self.list_dataset[self.idi])
+                logger.info(f"finish on dataloader from {self.filled_selected_data[self.idi]}")
             except ValueError:
                 self.logger.warning(f"Getting data from dataloader failed")
 

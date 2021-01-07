@@ -20,28 +20,19 @@ from utils.utility import initial_logger
 logger = initial_logger()
 
 
-def build_dataloader(root, config, selected_data=None, vocab=None):
+def build_dataloader(cfg, selected_data=None):
     """
     Build data iterator for training
-    :param root: folder contain Lmdb folder
-    :param config: config Namespace
+    :param cfg: config Namespace
     :param selected_data: list target dataset's name want to load(inside root)
-    :param vocab: path to vocab file
     :return: data iterator
     """
-    if config._BASE_.MODEL_TYPE == "HEAT_BASE":
-        load_type = "detec"
-    elif config._BASE_.MODEL_TYPE == "ATTEN_BASE":
-        load_type = "recog"
-    else:
-        raise ValueError("invalid _BASE_.MODEL_TYPE in config file(accept HEAT_BASE and ATTEN_BASE)")
-    data_path = Path(root, vocab=vocab)
+    data_path = Path(cfg.SOLVER.DATA_SOURCE)
     if selected_data is None:
         datalist = [str(dataset.name) for dataset in data_path.iterdir()]
     else:
         datalist = selected_data
-    iterator = LoadDatasetIterator(root, selected_data=datalist, load_type=load_type,
-                                   config=config, vocab=vocab)
+    iterator = LoadDatasetIterator(cfg, selected_data=datalist)
     iterator = iter(iterator)
     return iterator
 

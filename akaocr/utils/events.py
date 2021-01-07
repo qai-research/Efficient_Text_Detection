@@ -1,12 +1,22 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-import datetime
-import json
-import logging
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6
+Created Date: Thu January 07 10:29:00 VNT 2021
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file events logging borrow from detectron2
+_____________________________________________________________________________
+"""
 import os
+import json
 import time
-from collections import defaultdict
-from contextlib import contextmanager
 import torch
+import logging
+import datetime
+from contextlib import contextmanager
+from collections import defaultdict
 from fvcore.common.history_buffer import HistoryBuffer
 
 from utils.file_utils import PathManager

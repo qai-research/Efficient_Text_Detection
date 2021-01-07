@@ -33,7 +33,7 @@ def test_recog():
     print(config)
     model = Atten(config)
     model.to(device=device)
-    do_train(config, model, resume=False)
+    do_train(config, model, resume=True)
 
 
 def test_detec():
@@ -44,9 +44,9 @@ def test_detec():
     print(config)
     model = HEAT(config)
     model.to(device=device)
-    do_train(config, model, resume=False)
+    do_train(config, model, resume=True)
 
 
 if __name__ == '__main__':
-    # test_recog()
-    test_detec()
+    test_recog()
+    # test_detec()

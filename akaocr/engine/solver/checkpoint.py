@@ -62,7 +62,6 @@ class ModelCheckpointer(Checkpointer):
                     data = data["blobs"]
                 data = {k: v for k, v in data.items() if not k.endswith("_momentum")}
                 return {"model": data, "__author__": "Caffe2", "matching_heuristics": True}
-
         loaded = super()._load_file(filename)  # load native pth checkpoint
         if "model" not in loaded:
             loaded = {"model": loaded}
