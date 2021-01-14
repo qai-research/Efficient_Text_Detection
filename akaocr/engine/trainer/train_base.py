@@ -2,7 +2,7 @@
 """
 _____________________________________________________________________________
 Created By  : Nguyen Viet Bac - Bacnv6
-Created Date: Mon January 1 17:06:00 VNT 2021
+Created Date: Mon January 01 17:06:00 VNT 2021
 Project : AkaOCR core
 _____________________________________________________________________________
 
@@ -26,7 +26,7 @@ from utils.utility import initial_logger
 logger = initial_logger()
 
 
-def do_train(cfg, model, resume=False):
+def do_train(cfg, model, custom_loop=None, resume=False):
     model.train()
     optimizer = build_optimizer(cfg, model)
     scheduler = build_lr_scheduler(cfg, optimizer)
@@ -51,13 +51,14 @@ def do_train(cfg, model, resume=False):
     )
 
     data_loader = build_dataloader(cfg)
-    print(resume)
 
     with EventStorage(cfg.SOLVER.START_ITER) as storage:
         for data, iteration in zip(data_loader, range(cfg.SOLVER.START_ITER, cfg.SOLVER.MAX_ITER)):
             storage.iter = iteration
             # print(data[0].to(device="cuda"))
-            # print(iteration)
+            loss = custom_loop.loop(model, data)
+            print(iteration)
+
 
 
 

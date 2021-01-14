@@ -63,7 +63,7 @@ class LoadDataset:
         self.cfg = cfg
         self.vocab = vocab
 
-    def _load_dataset_recog_ocr(self, root):
+    def load_dataset_recog_ocr(self, root):
         """
         load method for recognition data
         :param root: path to lmdb dataset
@@ -92,7 +92,7 @@ class LoadDataset:
             pin_memory=True)
         return data_loader
 
-    def _load_dataset_detec_heatmap(self, root):
+    def load_dataset_detec_heatmap(self, root):
         """
         load method for detection data
         :param root: path to lmdb dataset
@@ -126,9 +126,9 @@ class LoadDataset:
         for dataset_name in selected_data:
             dataset_path = root_path.joinpath(dataset_name)
             if cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
-                dataset = self._load_dataset_recog_ocr(str(dataset_path))
+                dataset = self.load_dataset_recog_ocr(str(dataset_path))
             elif cfg._BASE_.MODEL_TYPE == "HEAT_BASE":
-                dataset = self._load_dataset_detec_heatmap(str(dataset_path))
+                dataset = self.load_dataset_detec_heatmap(str(dataset_path))
             else:
                 raise ValueError(f"invalid mode type_dataset : {cfg._BASE_.MODEL_TYPE} for _load_multiple_dataset")
             list_dataset.append(dataset)
@@ -152,12 +152,11 @@ class LoadDatasetIterator:
         for dataset_name in selected_data:
             dataset_path = root_path.joinpath(dataset_name)
             if cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
-                dataset = loader._load_dataset_recog_ocr(str(dataset_path))
+                dataset = loader.load_dataset_recog_ocr(str(dataset_path))
             elif cfg._BASE_.MODEL_TYPE == "HEAT_BASE":
-                dataset = loader._load_dataset_detec_heatmap(str(dataset_path))
+                dataset = loader.load_dataset_detec_heatmap(str(dataset_path))
             else:
                 raise ValueError(f"invalid model type : {cfg._BASE_.MODEL_TYPE} in config")
-            print(dataset)
             if dataset is not None:
                 self.list_dataset.append(dataset)
                 self.list_iterator.append(iter(dataset))

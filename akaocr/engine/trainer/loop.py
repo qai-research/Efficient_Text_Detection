@@ -10,14 +10,22 @@ Custom loop for models
 _____________________________________________________________________________
 """
 
-
-class CustomLoop():
-    pass
+from engine.trainer.loss import MapLoss
 
 
-# def custom_loop(model, inputs):
-    real_images, real_gh_label, real_gah_label, real_mask = inputs
-    # images = real_images
-    # gh_label = real_gh_label
-    # gah_label = real_gah_label
-    # mask = real_mask
+class CustomLoopHeat:
+    def __init__(self):
+        self.loss = MapLoss()
+
+    def loop(self, model, inputs):
+        images, char_label, affinity_label, mask = inputs
+        out = model(images)
+        out1 = out[:, :, :, 0]
+        out2 = out[:, :, :, 1]
+        loss = self.loss(char_label, affinity_label, out1, out2, mask)
+        return loss
+
+
+
+
+

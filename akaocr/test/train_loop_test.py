@@ -19,6 +19,7 @@ from models.recog.atten import Atten
 from engine import do_train
 from engine.config import setup
 from engine.config import setup, dict2namespace, load_yaml_config
+from engine.trainer.loop import CustomLoopHeat
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 root_data_recog = "/home/bacnv6/data/train_data/lake_recog"
@@ -44,9 +45,11 @@ def test_detec():
     print(config)
     model = HEAT(config)
     model.to(device=device)
-    do_train(config, model, resume=True)
+
+    lossc = CustomLoopHeat()
+    do_train(config, model, custom_loop=lossc, resume=True)
 
 
 if __name__ == '__main__':
-    test_recog()
-    # test_detec()
+    # test_recog()
+    test_detec()
