@@ -59,7 +59,7 @@ def setup(tp="recog"):
             logger.info(f"Experiment {args.exp} do not exist.")
             logger.info("Creating new experiment folder")
             exp_exist = False
-            exp_path.mkdir(exist_ok=True)
+            exp_path.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(config, exp_config_path)
         else:
             config = exp_config_path
@@ -74,7 +74,7 @@ def setup(tp="recog"):
             logger.info(f"Experiment {args.exp} do not exist")
             logger.info("Creating new experiment folder")
             exp_exist = False
-            exp_path.mkdir(exist_ok=True)
+            exp_path.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(config, exp_config_path)
         else:
             config = exp_config_path
