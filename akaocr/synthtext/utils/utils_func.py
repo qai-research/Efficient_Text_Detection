@@ -84,8 +84,8 @@ def Augmentator(images, points=None, option=None):
         base.add(iaa.Sometimes(option['blur']['p'],
                                iaa.GaussianBlur(sigma=option['blur']['v'])))
 
-    base.add(iaa.Sometimes(0.2,
-                               iaa.ElasticTransformation(alpha=(40,60), sigma=(8,12))))
+    base.add(iaa.Sometimes(0.85,
+                               iaa.ElasticTransformation(alpha=(40,60), sigma=(6,12))))
     if points is not None:
         kps = []
         for img_info in points:
