@@ -153,7 +153,7 @@ class TextFontGenerator:
         width = font_renderer.get_rect('O').w
         heigh = font_renderer.get_rect('Gg').h + 1
         char_spacing = int(char_spacing_factor * width)
-        fsize = (width + char_spacing) * (len(word) + 1), heigh * 2
+        fsize = (width + char_spacing) * (len(word) + 10), heigh * 2
         surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
         surf.fill((255, 255, 255))
         out_json = {"words": word,
