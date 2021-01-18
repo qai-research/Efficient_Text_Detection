@@ -109,12 +109,11 @@ class NormalizePAD(object):
 
 
 class GaussianCollate(object):
-    def __init__(self, min_size, max_size, rgb=True):
+    def __init__(self, min_size, max_size):
         """
         Return label in heatmap representation
         :param min_size: min image size
         :param max_size: max image size
-        :param rgb: check color image
         """
         self.gaussian_transformer = GaussianTransformer(img_size=512, region_threshold=0.35, affinity_threshold=0.15)
         self.min_size = min_size

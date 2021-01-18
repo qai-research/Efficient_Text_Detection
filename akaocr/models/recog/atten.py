@@ -21,49 +21,49 @@ from models.modules.prediction import Attention
 
 
 class Atten(nn.Module):
-    def __init__(self, config):
+    def __init__(self, cfg):
         super(Atten, self).__init__()
-        self.config = config
-        self.stages = {'Trans': config.MODEL.TRANSFORMATION, 'Feat': config.MODEL.FEATURE_EXTRACTION,
-                       'Seq': config.MODEL.SEQUENCE_MODELING, 'Pred': config.MODEL.PREDICTION}
+        self.cfg = cfg
+        self.stages = {'Trans': cfg.MODEL.TRANSFORMATION, 'Feat': cfg.MODEL.FEATURE_EXTRACTION,
+                       'Seq': cfg.MODEL.SEQUENCE_MODELING, 'Pred': cfg.MODEL.PREDICTION}
 
         # Transformation
-        if config.MODEL.TRANSFORMATION == 'TPS':
+        if cfg.MODEL.TRANSFORMATION == 'TPS':
             self.transformation = TPSSpatialTransformerNetwork(
-                F=config.MODEL.NUM_FIDUCIAL, I_size=(config.MODEL.IMG_H, config.MODEL.IMG_W),
-                I_r_size=(config.MODEL.IMG_H, config.MODEL.IMG_W), I_channel_num=config.MODEL.INPUT_CHANNEL,
-                device=self.config.SOLVER.DEVICE)
+                F=cfg.MODEL.NUM_FIDUCIAL, I_size=(cfg.MODEL.IMG_H, cfg.MODEL.IMG_W),
+                I_r_size=(cfg.MODEL.IMG_H, cfg.MODEL.IMG_W), I_channel_num=cfg.MODEL.INPUT_CHANNEL,
+                device=self.cfg.SOLVER.DEVICE)
         else:
             print('No Transformation module specified')
 
         # FeatureExtraction
-        if config.MODEL.FEATURE_EXTRACTION == 'VGG':
-            self.feature_extraction = VGGFeatureExtractor(config.MODEL.INPUT_CHANNEL, config.MODEL.OUTPUT_CHANNEL)
-        elif config.MODEL.FEATURE_EXTRACTION == 'RCNN':
-            self.feature_extraction = RCNNFeatureExtractor(config.MODEL.INPUT_CHANNEL, config.MODEL.OUTPUT_CHANNEL)
-        elif config.MODEL.FEATURE_EXTRACTION == 'ResNet':
-            self.feature_extraction = ResNet50(config.MODEL.INPUT_CHANNEL, config.MODEL.OUTPUT_CHANNEL)
+        if cfg.MODEL.FEATURE_EXTRACTION == 'VGG':
+            self.feature_extraction = VGGFeatureExtractor(cfg.MODEL.INPUT_CHANNEL, cfg.MODEL.OUTPUT_CHANNEL)
+        elif cfg.MODEL.FEATURE_EXTRACTION == 'RCNN':
+            self.feature_extraction = RCNNFeatureExtractor(cfg.MODEL.INPUT_CHANNEL, cfg.MODEL.OUTPUT_CHANNEL)
+        elif cfg.MODEL.FEATURE_EXTRACTION == 'ResNet':
+            self.feature_extraction = ResNet50(cfg.MODEL.INPUT_CHANNEL, cfg.MODEL.OUTPUT_CHANNEL)
         else:
             raise Exception('No FeatureExtraction module specified')
-        self.feature_extraction_output = config.MODEL.OUTPUT_CHANNEL  # int(imgH/16-1) * 512
+        self.feature_extraction_output = cfg.MODEL.OUTPUT_CHANNEL  # int(imgH/16-1) * 512
         self.adaptive_avg_pool = nn.AdaptiveAvgPool2d((None, 1))  # Transform final (imgH/16-1) -> 1
 
         # Sequence modeling
-        if config.MODEL.SEQUENCE_MODELING == 'BiLSTM':
+        if cfg.MODEL.SEQUENCE_MODELING == 'BiLSTM':
             self.sequence_modeling = nn.Sequential(
-                BidirectionalLSTM(self.feature_extraction_output, config.MODEL.HIDDEN_SIZE, config.MODEL.HIDDEN_SIZE),
-                BidirectionalLSTM(config.MODEL.HIDDEN_SIZE, config.MODEL.HIDDEN_SIZE, config.MODEL.HIDDEN_SIZE))
-            self.sequence_modeling_output = config.MODEL.HIDDEN_SIZE
+                BidirectionalLSTM(self.feature_extraction_output, cfg.MODEL.HIDDEN_SIZE, cfg.MODEL.HIDDEN_SIZE),
+                BidirectionalLSTM(cfg.MODEL.HIDDEN_SIZE, cfg.MODEL.HIDDEN_SIZE, cfg.MODEL.HIDDEN_SIZE))
+            self.sequence_modeling_output = cfg.MODEL.HIDDEN_SIZE
         else:
             print('No SequenceModeling module specified')
             self.sequence_modeling_output = self.feature_extraction_output
 
         # Prediction
-        if config.MODEL.PREDICTION == 'CTC':
-            self.prediction = nn.Linear(self.sequence_modeling_output, config.MODEL.NUM_CLASS)
-        elif config.MODEL.PREDICTION == 'Attn':
-            self.prediction = Attention(self.sequence_modeling_output, config.MODEL.HIDDEN_SIZE, config.MODEL.NUM_CLASS,
-                                        device=config.SOLVER.DEVICE, beam_size=config.SOLVER.BEAM_SIZE)
+        if cfg.MODEL.PREDICTION == 'CTC':
+            self.prediction = nn.Linear(self.sequence_modeling_output, cfg.MODEL.NUM_CLASS)
+        elif cfg.MODEL.PREDICTION == 'Attn':
+            self.prediction = Attention(self.sequence_modeling_output, cfg.MODEL.HIDDEN_SIZE, cfg.MODEL.NUM_CLASS,
+                                        device=cfg.SOLVER.DEVICE, beam_size=cfg.SOLVER.BEAM_SIZE)
         else:
             raise Exception('Prediction is neither CTC or Attn')
 
@@ -88,6 +88,6 @@ class Atten(nn.Module):
             prediction = self.prediction(contextual_feature.contiguous())
         else:
             prediction = self.prediction(contextual_feature.contiguous(), text, is_train,
-                                         max_label_length=self.config.MODEL.MAX_LABEL_LENGTH)
+                                         max_label_length=self.cfg.MODEL.MAX_LABEL_LENGTH)
 
         return prediction

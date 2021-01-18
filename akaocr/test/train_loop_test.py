@@ -19,7 +19,8 @@ from models.recog.atten import Atten
 from engine import do_train
 from engine.config import setup
 from engine.config import setup, dict2namespace, load_yaml_config
-from engine.trainer.loop import CustomLoopHeat
+from engine.trainer.loop import CustomLoopHeat, CustomLoopAtten
+from utils.file_utils import read_vocab
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 root_data_recog = "/home/bacnv6/data/train_data/lake_recog"
@@ -27,29 +28,33 @@ root_data_detec = "/home/bacnv6/data/train_data/lake_detec"
 
 
 def test_recog():
-    config = setup("recog")
-    config.MODEL.NUM_CLASS = 3210
-    config.SOLVER.DEVICE = str(device)
-    config.SOLVER.DATA_SOURCE = root_data_recog
-    print(config)
-    model = Atten(config)
+    cfg = setup("recog")
+    cfg.MODEL.NUM_CLASS = 3210
+    cfg.SOLVER.DEVICE = str(device)
+    cfg.SOLVER.DATA_SOURCE = root_data_recog
+    print(cfg)
+    cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
+
+    lossc = CustomLoopAtten(cfg)
+    # print(cfg)
+    model = Atten(cfg)
     model.to(device=device)
-    do_train(config, model, resume=True)
+    do_train(cfg, model, custom_loop=lossc, resume=True)
 
 
 def test_detec():
-    config = setup("detec")
-    config.MODEL.NUM_CLASS = 3210
-    config.SOLVER.DEVICE = str(device)
-    config.SOLVER.DATA_SOURCE = root_data_detec
-    print(config)
-    model = HEAT(config)
+    cfg = setup("detec")
+    cfg.MODEL.NUM_CLASS = 3210
+    cfg.SOLVER.DEVICE = str(device)
+    cfg.SOLVER.DATA_SOURCE = root_data_detec
+    # print(cfg)
+    model = HEAT(cfg)
     model.to(device=device)
 
-    lossc = CustomLoopHeat()
-    do_train(config, model, custom_loop=lossc, resume=True)
+    lossc = CustomLoopHeat(cfg)
+    do_train(cfg, model, custom_loop=lossc, resume=True)
 
 
 if __name__ == '__main__':
-    # test_recog()
-    test_detec()
+    test_recog()
+    # test_detec()

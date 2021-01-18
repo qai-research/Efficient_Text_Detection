@@ -55,10 +55,15 @@ def do_train(cfg, model, custom_loop=None, resume=False):
     with EventStorage(cfg.SOLVER.START_ITER) as storage:
         for data, iteration in zip(data_loader, range(cfg.SOLVER.START_ITER, cfg.SOLVER.MAX_ITER)):
             storage.iter = iteration
-            # print(data[0].to(device="cuda"))
             loss = custom_loop.loop(model, data)
             print(iteration)
 
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            storage.put_scalar("lr", optimizer.param_groups[0]["lr"], smoothing_hint=False)
+            scheduler.step()
+            
 
 
 

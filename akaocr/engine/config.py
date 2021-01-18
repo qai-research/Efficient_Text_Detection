@@ -19,7 +19,6 @@ from argparse import Namespace
 
 from engine.solver.default import _C
 from utils.utility import initial_logger
-
 logger = initial_logger()
 
 
@@ -118,10 +117,6 @@ def setup(tp="recog"):
     cfg.SOLVER.EXP = str(exp_path)
     if cfg.MODEL.VOCAB is not None:
         cfg.MODEL.VOCAB = os.path.join(cfg.SOLVER.DATA, "vocabs", cfg.MODEL.VOCAB)
-
-    # merge_from_other_cfg
-    # Merge with default config
-    # config_data = Namespace(**vars(cfg), **vars(_C))
     return cfg
 
 

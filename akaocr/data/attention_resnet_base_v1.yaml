@@ -19,7 +19,7 @@ MODEL:
   PAD : True
 
   # type of image input rgb or gray
-  RGB : True
+  RGB : False
 
   # Maximum length for words
   MAX_LABEL_LENGTH : 15

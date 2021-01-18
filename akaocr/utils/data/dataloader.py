@@ -69,10 +69,11 @@ class LoadDataset:
         :param root: path to lmdb dataset
         :return: dataloader
         """
-        try:
-            chars = read_vocab(self.vocab)
-        except TypeError:
-            raise Exception(f"vocab path {self.vocab} not found")
+        # try:
+        #     chars = read_vocab(self.vocab)
+        # except TypeError:
+        #     raise Exception(f"vocab path {self.vocab} not found")
+        chars = self.vocab
         labelproc = label_handler.TextLableHandle(character=chars,
                                                   sensitive=self.cfg.MODEL.SENSITIVE,
                                                   unknown=self.cfg.SOLVER.UNKNOWN)
@@ -105,7 +106,7 @@ class LoadDataset:
             logger.warning(f"can't read detec LMDB database from {root}")
             return None
 
-        gaussian_collate = collates.GaussianCollate(int(self.cfg.MODEL.MIN_SIZE), int(self.cfg.MODEL.MAX_SIZE))
+        gaussian_collate = collates.GaussianCollate(self.cfg.MODEL.MIN_SIZE, self.cfg.MODEL.MAX_SIZE)
         data_loader = torch.utils.data.DataLoader(
             dataset, batch_size=int(self.cfg.SOLVER.BATCH_SIZE),
             shuffle=True,
