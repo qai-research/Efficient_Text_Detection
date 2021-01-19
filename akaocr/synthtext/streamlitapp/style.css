@@ -1,0 +1,42 @@
+body {
+    background-image: url("background.jpg"); /* The image used */
+    background-color: #85c4ff; /* Used if the image is unavailable */
+    height: 500px; /* You must set a specified height */
+    background-position: center; /* Center the image */
+    background-repeat: no-repeat; /* Do not repeat the image */
+    background-size: cover; /* Resize the background image to cover the entire container */
+    text-align: center;
+  }
+  
+  .reportview-container .fixed-width {
+    font-family: "Time New Roman",monospace;
+    white-space: pre;
+    font-size: 2.0rem;
+    overflow-x: auto;
+  }
+
+  
+  
+  div.element-container label{
+    color: rgb(1, 15, 204);
+    font-size: 1.5rem;
+  }
+  div.dataframe-container.stDataFrame {
+    margin-left: auto;
+    margin-right: auto;
+    color: blue;
+    overflow: auto;
+  }
+
+  div.dataframe.data {
+      text-align: left;
+  }
+
+  div.dataframe.row-header {
+      text-align: center;
+      color: red;
+  }
+  
+  .st-bo {
+    color: rgb(255 0 24);
+  }

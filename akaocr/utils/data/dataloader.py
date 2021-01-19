@@ -3,6 +3,11 @@ import logging
 from pathlib import Path
 from torch.utils.data import Dataset, ConcatDataset, Subset
 
+import os
+import h5py
+import matplotlib.pyplot as plt
+import numpy as np
+import copy
 from utils.file_utils import LmdbReader
 from utils.file_utils import Constants, read_vocab
 from utils.data import collates
@@ -35,7 +40,32 @@ class LmdbDataset(Dataset):
         image, label = self.lmdbreader.get_item(index)
         if self.labelproc is not None:
             label = self.labelproc.process_label(label)
+<<<<<<< HEAD
         return image, label
+<<<<<<< akaocr/utils/data/dataloader.py
+<<<<<<< HEAD
+
+def get_seg(path):
+    f = h5py.File(path, 'r')
+    for i in range(len(list(f['mask'].keys()))):
+        name = list(f['mask'].keys())[i]
+        val = np.array(f['mask'][name])
+        img_name = name.split('.')[0] + '_seg.jpg'
+        plt.imsave(img_name, val)
+        l=[]
+        m = np.max(val)
+        for j in range(m):
+            num = sum(sum(val==j+1))
+            if num >2000:     
+                tem = copy.deepcopy(val)
+                tem[tem!=j] = 0
+                yield tem
+=======
+>>>>>>> d63f4ed173251eaede0c7c790bf34d09a3712175
+=======
+        return image, label
+>>>>>>> 983e19d5ce27d61d5d708f2b893d039a924fe13d
+=======
 
 
 class LoadDataset:
@@ -135,3 +165,4 @@ class LoadDataset:
         return list_dataset
 
 
+>>>>>>> akaocr/utils/data/dataloader.py
