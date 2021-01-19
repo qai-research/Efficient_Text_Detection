@@ -20,6 +20,9 @@ SOLVER:
   # maximum number of iteration
   MAX_ITER: 300000
 
+  # interval of iteration to do validation
+  EVAL_PERIOD: 5000
+
   # IDs of devices that host the data, model, etc.
   DEVICE_IDS : None
 

@@ -16,8 +16,7 @@ import torch
 sys.path.append("../")
 from models.detec.heatmap import HEAT
 from models.recog.atten import Atten
-from engine import do_train
-from engine.config import setup
+from engine import Trainer
 from engine.config import setup, dict2namespace, load_yaml_config
 from engine.trainer.loop import CustomLoopHeat, CustomLoopAtten
 from utils.file_utils import read_vocab
@@ -29,11 +28,11 @@ root_data_detec = "/home/bacnv6/data/train_data/lake_detec"
 
 def test_recog():
     cfg = setup("recog")
-    cfg.MODEL.NUM_CLASS = 3210
     cfg.SOLVER.DEVICE = str(device)
     cfg.SOLVER.DATA_SOURCE = root_data_recog
     print(cfg)
     cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
+    cfg.MODEL.NUM_CLASS = len(cfg.MODEL.VOCAB)
 
     lossc = CustomLoopAtten(cfg)
     # print(cfg)
@@ -47,14 +46,15 @@ def test_detec():
     cfg.MODEL.NUM_CLASS = 3210
     cfg.SOLVER.DEVICE = str(device)
     cfg.SOLVER.DATA_SOURCE = root_data_detec
-    # print(cfg)
+    print(cfg)
     model = HEAT(cfg)
     model.to(device=device)
 
     lossc = CustomLoopHeat(cfg)
-    do_train(cfg, model, custom_loop=lossc, resume=True)
+    trainer = Trainer(cfg, model, custom_loop=lossc, resume=True)
+    trainer.do_train()
 
 
 if __name__ == '__main__':
-    test_recog()
-    # test_detec()
+    # test_recog()
+    test_detec()

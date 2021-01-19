@@ -97,6 +97,8 @@ _C.SOLVER.UNKNOWN = ''
 _C.SOLVER.WORKERS = 4
 # maximum number of iteration
 _C.SOLVER.MAX_ITER = 300000
+# interval to do validation
+_C.SOLVER.EVAL_PERIOD = 5000
 # IDs of devices that host the data, model, etc.
 _C.SOLVER.DEVICE_IDS = None
 # batch size of training default=1, int

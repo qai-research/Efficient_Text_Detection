@@ -137,17 +137,16 @@ class LoadDataset:
 
 
 class LoadDatasetIterator:
-    def __init__(self, cfg, selected_data=None):
+    def __init__(self, cfg, data, selected_data=None):
         """
         Infinite iterator to load multiple dataset
         :param cfg: config namespace
         :param selected_data: list of selected data from lake
         """
-        root_path = Path(cfg.SOLVER.DATA_SOURCE)
+        root_path = Path(data)
         self.idi = 0
         self.list_dataset = list()
         self.list_iterator = list()
-        self.selected_data = selected_data
         self.filled_selected_data = list()
         loader = LoadDataset(cfg, vocab=cfg.MODEL.VOCAB)
         for dataset_name in selected_data:

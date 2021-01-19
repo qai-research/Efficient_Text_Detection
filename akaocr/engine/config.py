@@ -56,15 +56,15 @@ def setup(tp="recog"):
         exp_config_path = str(exp_path.joinpath(args.exp + "_detec_config.yaml"))
         if not exp_path.exists():
             config = "../data/attention_resnet_base_v1.yaml"
-            logger.info(f"Experiment {args.exp} do not exist.")
-            logger.info("Creating new experiment folder")
+            logger.warning(f"Experiment {args.exp} do not exist.")
+            logger.warning("Creating new experiment folder")
             exp_exist = False
             exp_path.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(config, exp_config_path)
         else:
             config = exp_config_path
-            logger.info(f"Experiment {args.exp} exist")
-            logger.info(f"Use current experiment folder")
+            logger.warning(f"Experiment {args.exp} exist")
+            logger.warning(f"Use current experiment folder")
 
     elif tp == "detec":
         exp_path = data_path.joinpath("exp_detec", args.exp)
