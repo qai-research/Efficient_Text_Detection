@@ -1,0 +1,92 @@
+_BASE_:
+  # for random seed setting, int
+  MODEL_TYPE : ATTEN_BASE
+
+MODEL:
+  # whether to do fine-tuning only the last layer or not, bool
+  FT : False
+
+  # the height of the input image to rectifier', default=64
+  IMG_H : 32
+
+  # the width of the input image to rectifier', default=200
+  IMG_W : 128
+
+  # for sensitive character mode
+  SENSITIVE : True
+
+  # whether to keep ratio then pad for image resize
+  PAD : True
+
+  # type of image input rgb or gray
+  RGB : False
+
+  # Maximum length for words
+  MAX_LABEL_LENGTH : 15
+
+  # Transformation stage. None|TPS
+  TRANSFORMATION : TPS
+
+  # Feature Extraction stage. ResNet
+  FEATURE_EXTRACTION : ResNet
+
+  # SequenceModeling stage. None|BiLSTM
+  SEQUENCE_MODELING : BiLSTM
+
+  # Prediction stage. CTC|Attn
+  PREDICTION : Attn
+
+  # number of fiducial points of TPS-STN
+  NUM_FIDUCIAL : 20
+
+  # the number of input channel of Feature extractor
+  INPUT_CHANNEL : 1
+
+  # the number of output channel of Feature extractor
+  OUTPUT_CHANNEL : 512
+
+  # the size of the LSTM hidden state
+  HIDDEN_SIZE : 128
+
+  # name of the vocab file
+  VOCAB : char_jpn_v2.txt
+
+SOLVER:
+  # number of data loading workers default=0, int
+  WORKERS : 4
+
+  # maximum number of iteration
+  MAX_ITER: 300000
+
+  # interval of iteration to do validation
+  VAL_ITER: 5000
+
+  # IDs of devices that host the data, model, etc.
+  DEVICE_IDS : None
+
+  # batch size of training default=1, int
+  BATCH_SIZE : 15
+
+  # beam size for ocr
+  BEAM_SIZE : 1
+
+  # initial learning rate, float
+  BASE_LR : 3.2768e-3
+
+  # for data_filtering mode
+  DATA_FILTERING : True
+
+  # replace all OOV characters with this character
+  UNKNOWN : "?"
+
+#INFERENCE:
+#  # threshold for texts heat map, 0 < text_threshold < 1, smaller means fewer text filtered, float
+#  TEXT_THRESHOLD : 0.7
+#
+#  # threshold for affinities heat map between characters, 0 < link_threshold < 1, bigger means fewer link filtered, float
+#  LINK_THRESHOLD : 0.4
+#
+#  # threshold for accept a word to be detected, 0 < text_threshold < 1, smaller means fewer text filtered, float
+#  LOW_TEXT_SCORE : 0.4
+
+VERSION: 0.1

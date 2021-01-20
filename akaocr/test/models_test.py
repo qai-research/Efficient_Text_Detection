@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6
+Created Date: Mon November 03 10:00:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contain unit test for models
+_____________________________________________________________________________
+"""
+
 import sys
 
 sys.path.append("../")
@@ -9,6 +22,10 @@ import cv2
 from models.detec.heatmap import HEAT
 from models.recog.atten import Atten
 from models.modules.converters import AttnLabelConverter
+from engine.config import setup, dict2namespace, load_yaml_config
+from engine.build import build_dataloader
+#################################
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -24,28 +41,21 @@ def test_model_detec():
 
 
 def test_model_recog():
-    config = dict()
-    config["transformation"] = "TPS"
-    config["feature_extraction"] = "ResNet"
-    config["sequence_modeling"] = "BiLSTM"
-    config["prediction"] = "Attn"
-    config["beam_size"] = 1
-    config["num_fiducial"] = 20
-    config["input_channel"] = 1
-    config["output_channel"] = 512
-    config["hidden_size"] = 128
-    config["img_h"] = 32
-    config["img_w"] = 128
-    config["device"] = None
-    config["num_class"] = 3120
-    config["max_label_length"] = 15
+    config_recog_yaml = '../data/attention_resnet_base_v1.yaml'
+    config = load_yaml_config(config_recog_yaml)
+    config = dict2namespace(config)
+    config.MODEL.NUM_CLASS = 3210
+    config.SOLVER.DEVICE = device
     model = Atten(config)
+    model.to(device=device)
 
     x = torch.randn(1, 1, 32, 128)
-    # print(x.shape)
+    x = x.cuda()
+    x = x.to(device=device)
+
     text = ["xxx"]
-    converter = AttnLabelConverter(["x", "X", "o"], device=config["device"])
-    text, length = converter.encode(text, max_label_length=config["max_label_length"])
+    converter = AttnLabelConverter(["x", "X", "o"], device=device)
+    text, length = converter.encode(text, max_label_length=config.MODEL.MAX_LABEL_LENGTH)
     y = model(x, text)
     print(y.shape)
     # print(y)

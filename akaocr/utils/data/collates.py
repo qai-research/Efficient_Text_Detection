@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6, Nguyen Minh Trang - Trangnm5
+Created Date: Mon November 03 10:00:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contain collate classes which convert data to torch array and other
+operations.
+_____________________________________________________________________________
+"""
+
 import os
 import json
 import math
@@ -8,53 +22,6 @@ import torchvision.transforms as transforms
 
 from utils.transforms.gaussian import GaussianTransformer
 from utils.transforms.heatproc import transform2heatmap
-
-
-class LabelHandler:
-    def __init__(self, label_type="norm", character=None, sensitive=True, unknown="?"):
-        """
-        Class contain all pre-process of label from LMDB database
-        :param label_type: transformation type of label # norm/json
-        :param character: character list to clean label
-        :param sensitive: to use uppercase text or not
-        :param unknown: change every unknown char to this
-        """
-        self.type = label_type
-        self.character = character
-        self.sensitive = sensitive
-        self.unknown = unknown
-
-    @staticmethod
-    def normalize_label(label, character, sensitive=True, unknown="?"):
-        """
-        pre-process label before training (cleaning + masking)
-        :param label: input label (string)
-        :param character: input vocab (list)
-        :param sensitive: training with upper case data
-        :param unknown: char to replace unknown chars(do not show up in vocab)
-        :return: clean label
-        """
-        if not sensitive:  # case insensitive
-            label = label.lower()
-        if unknown:
-            label = list(label)
-            for i in range(len(label)):
-                if label[i] not in character and label[i] != " ":
-                    label[i] = unknown
-            label = "".join(label)
-        return label
-
-    @staticmethod
-    def load_json(label):
-        return json.loads(label)
-
-    def process_label(self, label):
-        if self.type == "norm":
-            return self.normalize_label(label, self.character, self.sensitive, self.unknown)
-        elif self.type == "json":
-            return self.load_json(label)
-        else:
-            raise ValueError(f"mode \"{self.type}\" in LabelHandler not found")
 
 
 class AlignCollate(object):
@@ -142,12 +109,11 @@ class NormalizePAD(object):
 
 
 class GaussianCollate(object):
-    def __init__(self, min_size, max_size, rgb=True):
+    def __init__(self, min_size, max_size):
         """
         Return label in heatmap representation
         :param min_size: min image size
         :param max_size: max image size
-        :param rgb: check color image
         """
         self.gaussian_transformer = GaussianTransformer(img_size=512, region_threshold=0.35, affinity_threshold=0.15)
         self.min_size = min_size

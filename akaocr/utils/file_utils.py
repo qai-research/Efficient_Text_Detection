@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6
+Created Date: Mon November 03 10:00:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contain read, write func of various data type
+_____________________________________________________________________________
+"""
+
 import six
 import lmdb
 import json
@@ -5,9 +18,43 @@ import configparser
 import numpy as np
 from pathlib import Path
 from PIL import Image
-import logging
+from iopath.common.file_io import HTTPURLHandler, OneDrivePathHandler, PathHandler
+from iopath.common.file_io import PathManager as PathManagerBase
 
-from utils.runtime import warn, error
+from utils.utility import initial_logger
+logger = initial_logger()
+
+
+PathManager = PathManagerBase()
+"""
+This is a detectron2 project-specific PathManager.
+We try to stay away from global PathManager in fvcore as it
+introduces potential conflicts among other libraries.
+"""
+
+
+class CustomHandler(PathHandler):
+    """borrow handler from detectron2"""
+
+    # PREFIX = "detectron2://"
+    # S3_PREFIX = "https://dl.fbaipublicfiles.com/detectron2/"
+    PREFIX = "dump"
+    S3_PREFIX = "dump"
+
+    def _get_supported_prefixes(self):
+        return [self.PREFIX]
+
+    def _get_local_path(self, path):
+        name = path[len(self.PREFIX) :]
+        return PathManager.get_local_path(self.S3_PREFIX + name)
+
+    def _open(self, path, mode="r", **kwargs):
+        return PathManager.open(self._get_local_path(path), mode, **kwargs)
+
+
+# PathManager.register_handler(HTTPURLHandler())
+# PathManager.register_handler(OneDrivePathHandler())
+PathManager.register_handler(CustomHandler())
 
 
 class Constants:
@@ -69,8 +116,6 @@ class LmdbReader:
         :param rgb: to use color image
         """
         self.env = lmdb.open(root, max_readers=32, readonly=True, lock=False, readahead=False, meminit=False)
-        if not self.env:
-            warn('cannot create lmdb from {}'.format(root))
 
         self.cursor = self.env.begin(write=False)
         try:
@@ -101,7 +146,7 @@ class LmdbReader:
                 img = Image.open(buf).convert('L')
             return img, label
         except IOError:
-            print(f'Corrupted image for {index}')
+            logger.warning(f'Corrupted image for {index}')
             # return None and ignore in dataloader
             return None
 
@@ -109,4 +154,4 @@ class LmdbReader:
         if self.get_func is None:
             return self.lmdb_loader(index)
         else:
-            error("get func type on found")
+            logger.error("get func type on found")

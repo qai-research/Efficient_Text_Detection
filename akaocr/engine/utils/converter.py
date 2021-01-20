@@ -1,13 +1,12 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 _____________________________________________________________________________
 Created By  : Nguyen Minh Trang - Trangnm5
-Created Date: Mon November 03 10:00:00 VNT 2020
+Created Date: Fri January 15 14:50:00 VNT 2021
 Project : AkaOCR core
 _____________________________________________________________________________
 
-This file contain utilities for label converter of recognition model
+Custom converters for recognition model
 _____________________________________________________________________________
 """
 

@@ -1,10 +1,23 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6
+Created Date: Mon November 03 10:00:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contain heatmap models for text detection
+_____________________________________________________________________________
+"""
+
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
 from pathlib import Path
 
 from utils.torchutils import init_weights
-from models.modules.backbones import FpnFeature
+from models.modules.backbones.FpnVgg import FpnFeature
 
 
 class DoubleConv(nn.Module):

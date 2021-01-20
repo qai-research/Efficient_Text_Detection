@@ -1,9 +1,21 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Viet Bac - Bacnv6, Nguyen Minh Trang - Trangnm5
+Created Date: Mon November 03 10:00:00 VNT 2020
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contain utilities for image transformation
+_____________________________________________________________________________
+"""
+
 import cv2
 import numpy as np
 from skimage import io
 from pathlib import Path
 import random
-import logging
 
 
 class ImageProc:
