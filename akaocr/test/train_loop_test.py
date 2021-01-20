@@ -19,6 +19,8 @@ from models.recog.atten import Atten
 from engine import Trainer
 from engine.config import setup, dict2namespace, load_yaml_config
 from engine.trainer.loop import CustomLoopHeat, CustomLoopAtten
+from engine.build import build_dataloader
+
 from utils.file_utils import read_vocab
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -34,11 +36,13 @@ def test_recog():
     cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
     cfg.MODEL.NUM_CLASS = len(cfg.MODEL.VOCAB)
 
-    lossc = CustomLoopAtten(cfg)
-    # print(cfg)
     model = Atten(cfg)
     model.to(device=device)
-    do_train(cfg, model, custom_loop=lossc, resume=True)
+
+    lossc = CustomLoopAtten(cfg)
+    data_loader = build_dataloader(cfg, root_data_recog)
+    trainer = Trainer(cfg, model, data_loader, custom_loop=lossc, resume=True)
+    trainer.do_train()
 
 
 def test_detec():
@@ -47,14 +51,16 @@ def test_detec():
     cfg.SOLVER.DEVICE = str(device)
     cfg.SOLVER.DATA_SOURCE = root_data_detec
     print(cfg)
+
     model = HEAT(cfg)
     model.to(device=device)
 
     lossc = CustomLoopHeat(cfg)
-    trainer = Trainer(cfg, model, custom_loop=lossc, resume=True)
+    data_loader = build_dataloader(cfg, root_data_detec)
+    trainer = Trainer(cfg, model, data_loader, custom_loop=lossc, resume=True)
     trainer.do_train()
 
 
 if __name__ == '__main__':
-    # test_recog()
+    test_recog()
     test_detec()

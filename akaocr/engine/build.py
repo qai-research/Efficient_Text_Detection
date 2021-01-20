@@ -20,20 +20,20 @@ from utils.utility import initial_logger
 logger = initial_logger()
 
 
-def build_dataloader(cfg, data, selected_data=None):
+def build_dataloader(cfg, source, selected_data=None):
     """
     Build data iterator for training
     :param cfg: config Namespace
-    :param data: source folder for dataloader
+    :param source: source folder for dataloader
     :param selected_data: list target dataset's name want to load(inside root)
     :return: data iterator
     """
-    data_path = Path(data)
+    data_path = Path(source)
     if selected_data is None:
         datalist = [str(dataset.name) for dataset in data_path.iterdir()]
     else:
         datalist = selected_data
-    iterator = LoadDatasetIterator(cfg, data, selected_data=datalist)
+    iterator = LoadDatasetIterator(cfg, source, selected_data=datalist)
     iterator = iter(iterator)
     return iterator
 

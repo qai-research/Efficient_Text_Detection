@@ -13,7 +13,7 @@ import os
 
 from engine.solver import ModelCheckpointer, PeriodicCheckpointer
 from engine.solver import build_lr_scheduler, build_optimizer
-from engine.build import build_dataloader
+# from engine.build import build_dataloader
 from utils.events import (
     CommonMetricPrinter,
     EventStorage,
@@ -27,9 +27,10 @@ logger = initial_logger()
 
 
 class Trainer:
-    def __init__(self, cfg, model, custom_loop=None, resume=False):
+    def __init__(self, cfg, model, data_loader=None, custom_loop=None, resume=False):
         self.cfg = cfg
         self.model = model
+        self.data_loader = data_loader
         self.custom_loop = custom_loop
         self.resume = resume
 
@@ -60,10 +61,8 @@ class Trainer:
             ]
         )
 
-        data_loader = build_dataloader(self.cfg)
-        # exit()
         with EventStorage(self.cfg.SOLVER.START_ITER) as storage:
-            for data, iteration in zip(data_loader, range(self.cfg.SOLVER.START_ITER, self.cfg.SOLVER.MAX_ITER)):
+            for data, iteration in zip(self.data_loader, range(self.cfg.SOLVER.START_ITER, self.cfg.SOLVER.MAX_ITER)):
                 storage.iter = iteration
                 loss = self.custom_loop.loop(self.model, data)
                 # print(iteration)
