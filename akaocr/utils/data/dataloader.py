@@ -176,7 +176,7 @@ class LoadDatasetIterator:
                 return data
             except StopIteration:
                 self.list_iterator[self.idi] = iter(self.list_dataset[self.idi])
-                logger.info(f"finish on dataloader from {self.filled_selected_data[self.idi]}")
+                logger.info(f"exhaust dataloader from {self.filled_selected_data[self.idi]} : reload")
             except ValueError:
                 self.logger.warning(f"Getting data from dataloader failed")
 

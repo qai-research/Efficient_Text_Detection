@@ -40,8 +40,9 @@ def test_recog():
     model.to(device=device)
 
     lossc = CustomLoopAtten(cfg)
-    data_loader = build_dataloader(cfg, root_data_recog)
-    trainer = Trainer(cfg, model, data_loader, custom_loop=lossc, resume=True)
+    train_loader = build_dataloader(cfg, root_data_recog)
+    test_loader = build_dataloader(cfg, root_data_recog, selected_data=["CR_sample3"])
+    trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, resume=True)
     trainer.do_train()
 
 
@@ -56,8 +57,9 @@ def test_detec():
     model.to(device=device)
 
     lossc = CustomLoopHeat(cfg)
-    data_loader = build_dataloader(cfg, root_data_detec)
-    trainer = Trainer(cfg, model, data_loader, custom_loop=lossc, resume=True)
+    train_loader = build_dataloader(cfg, root_data_detec)
+    test_loader = build_dataloader(cfg, root_data_detec, selected_data=["ST_Demo_1"])
+    trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, resume=True)
     trainer.do_train()
 
 
