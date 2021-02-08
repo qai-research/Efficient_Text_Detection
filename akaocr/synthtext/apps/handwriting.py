@@ -20,13 +20,34 @@ import streamlit as st
 from synthtext.main import BlackList, WhiteList
 
 
-def white_handwriting(value):
+def white_handwriting(input_dict):
     """
     Gen data with white method
     """
-    Method, NumCores, Fonts, Backgrounds, ObjectSources, TextSources, num_images, max_num_box = value[:8]
-    char_spacing, min_size, max_size, min_text_len, max_text_len, random_color = value[8:-7]
-    max_height, max_width, shear_p, dropout_p, blur_p, status, detail = value[-7:]
+    Method = input_dict['Method']
+    NumCores = input_dict['NumCores']
+    Fonts = input_dict['Fonts']
+    Backgrounds = input_dict['Backgrounds']
+    ObjectSources = input_dict['ObjectSource']
+    TextSources = input_dict['Textsources']
+    ImageSources = input_dict['ImageSources']
+    GenType = input_dict['GenType']
+    num_images = input_dict['NumImages']
+    max_num_box = input_dict['MaxNumBox']
+    min_char_spacing = input_dict['MinCharSpacing']
+    max_char_spacing = input_dict['MaxCharSpacing']
+    min_size = input_dict['MinSize']
+    max_size = input_dict['MaxSize']
+    min_text_len = input_dict['MinTextLengh']
+    max_text_len = input_dict['MaxTextLengh']
+    max_height = input_dict['MaxHeigh']
+    max_width = input_dict['MaxWidth']
+    elastic_p = input_dict['ElasticP']
+    shear_p = input_dict['ShearP']
+    dropout_p = input_dict['DropoutP']
+    blur_p = input_dict['BlurP']
+    status = input_dict['STATUS']
+    detail = input_dict['DETAIL']
     parser = argparse.ArgumentParser()
     opt = parser.parse_args()
 

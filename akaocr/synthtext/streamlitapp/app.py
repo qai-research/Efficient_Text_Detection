@@ -90,9 +90,12 @@ def main():
         st.dataframe(checked_df[key])
         outpath = st.text_input("Insert Output Name")
         removed = False
-        input_config_dict  = {}
+        # Convert input dataframe to dictionanry
+        input_config_dict  = []
         for ind, values in enumerate(checked_df.values):
-            input_config_dict[ind] = {k:v for k,v in zip(checked_df.columns, values)}  
+            input_config_dict.append({k:v for k,v in zip(checked_df.columns, values)}  )
+
+        # Check out path and remove if existed
         if outpath != '':
             output_path = os.path.join(config.data, 'outputs/%s' % outpath)
             if not removed and os.path.exists(output_path):
@@ -113,27 +116,24 @@ def main():
                 if st.button("START GEN"):
                     empty1.empty()
                     empty2.empty()
-                    for index, value in enumerate(checked_df.values):
-
-                        Method = value[0]
-                        status = value[-2]
-                        Backgrounds = value[5]
-                        if status is "INVALID":
+                    for input_dict in input_config_dict:
+                        
+                        if input_dict['STATUS'] is "INVALID":
                             continue
                         begin_time = time.time()
-                        st.warning("Begin running %s Method SynthText with folder %s " % (Method, Backgrounds))
+                        st.warning("Begin running %s Method SynthText with folder %s " % (Method, input_dict["Backgrounds"]))
 
                         if not is_detect:
-                            local_output_path = recogapp(value)
+                            local_output_path = recogapp(input_dict)
 
                         elif Method == 'white':
-                            local_output_path = whiteapp(value)
+                            local_output_path = whiteapp(input_dict)
 
                         elif Method == 'black':
-                            local_output_path = blackapp(value)
+                            local_output_path = blackapp(input_dict)
 
                         elif Method == 'double_black':
-                            local_output_path = doubleblackapp(value)
+                            local_output_path = doubleblackapp(input_dict)
                         else:
                             local_output_path = None
 
