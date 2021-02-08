@@ -66,20 +66,28 @@ def ImageGenerator(fonts_path=None,
             new_text_gen = True
             # Create new text generator
             try:
+                gen_type = kwargs.pop('gen_type')
+            except KeyError:
+                gen_type = 'random'    
+
+            try:
                 text_gen = TextGenerator(source_path,
                                          vocab_group_path=vocab_path,
                                          min_text_length=kwargs.pop('min_text_length'),
                                          max_text_length=kwargs.pop('max_text_length'),
+                                         gen_type = gen_type,
                                          replace_percentage=1)
             except KeyError:
                 try:
                     text_gen = TextGenerator(source_path,
                                              vocab_group_path=vocab_path,
                                              min_text_length=kwargs.pop('min_text_length'),
+                                             gen_type = gen_type,
                                              replace_percentage=1)
                 except KeyError:
                     text_gen = TextGenerator(source_path,
                                              vocab_group_path=vocab_path,
+                                             gen_type=gen_type,
                                              replace_percentage=1)
 
         # Create font to images generator
