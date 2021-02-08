@@ -74,9 +74,22 @@ def whiteapp(input_dict):
     opt.char_spacing_range = (float(min_char_spacing), float(max_char_spacing))
     opt.max_size = (max_height, max_width)
     opt.input_json = os.path.join(config.background_folder, Backgrounds, 'anotations')
-    opt.aug_option = {'shear': {'p': shear_p,'v': {"x": (-15, 15),"y": (-15, 15)}},
-                      'dropout': {'p': dropout_p,'v': (0.2, 0.3)},
-                      'blur': {'p': blur_p,'v': (0.0, 2.0)}
+    opt.aug_option = {'shear': {'p': shear_p,
+                                'v': {"x": (-15, 15),
+                                      "y": (-15, 15)
+                                      }
+                                },
+                      'elastic': {'p': elastic_p,
+                                'v': {"x": (-15, 15),
+                                      "y": (-15, 15)
+                                      }
+                                },
+                      'dropout': {'p': dropout_p,
+                                  'v': (0.2, 0.3)
+                                  },
+                      'blur': {'p': blur_p,
+                               'v': (0.0, 2.0)
+                               }
                       }
     begin_time = time.time()
     results = []

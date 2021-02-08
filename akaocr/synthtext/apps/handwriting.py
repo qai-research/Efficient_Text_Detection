@@ -72,6 +72,11 @@ def white_handwriting(input_dict):
                                       "y": (-15, 15)
                                       }
                                 },
+                      'elastic': {'p': elastic_p,
+                                'v': {"x": (-15, 15),
+                                      "y": (-15, 15)
+                                      }
+                                },
                       'dropout': {'p': dropout_p,
                                   'v': (0.2, 0.3)
                                   },
