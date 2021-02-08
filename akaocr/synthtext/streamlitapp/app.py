@@ -16,7 +16,6 @@ import os
 import io
 import sys
 import time
-import config
 import argparse
 import pandas as pd
 import streamlit as st
@@ -29,15 +28,38 @@ def main():
     The main function define the flow of streamlit app
     """
 
-    sys.path.append(config.ocr_path)
+    # get abspath of synthtext and data_folder, add them to sys.path
+    current_path = os.path.abspath('')
+    tree = current_path.split("/")
+    i = 1
+    while True:
+        data = os.path.join("/".join(tree[:-i]), 'data')
+        i += 1
+        if os.path.exists(data) and 'backgrounds' in os.listdir(data):
+            break
+    i = 1
+    while True:
+        ocr_path = os.path.join("/".join(tree[:-i]), 'akaocr')
+        i += 1
+        if os.path.exists(ocr_path) and 'synthtext' in os.listdir(ocr_path):
+            break        
+    css_path = os.path.join(ocr_path, 'synthtext/streamlitapp/style.css')
+    background_folder = os.path.join(data, 'backgrounds')
+    source_folder = os.path.join(data, 'sources')
+    font_folder = os.path.join(data, 'fonts')
+    object_folder = os.path.join(data, 'objects')
+    outputs_folder = os.path.join(data, 'outputs')
+    sys.path.append(ocr_path)
+    # Add libary of synthtext app
     from synthtext.apps.white import whiteapp
     from synthtext.apps.black import blackapp
     from synthtext.apps.recog import recogapp
     from synthtext.apps.doubleblack import doubleblackapp
     from synthtext.utils.data_loader import lmdb_dataset_loader
     from synthtext.utils.utils_func import check_valid, get_all_valid
-
-    bg_df, source_df, font_df = get_all_valid(config)
+    from synthtext.utils.input_config_loader import InputConfigLoader 
+    
+    bg_df, source_df, font_df = get_all_valid(background_folder, source_folder, font_folder)
 
     st.markdown("<h3 style='text-align: left; color: Blue;'>Backgrounds List</h3>", unsafe_allow_html=True)
     empty_bg_df = st.empty()
@@ -58,9 +80,9 @@ def main():
     empty_upload = st.empty()
     file_buffer = empty_upload.file_uploader("UPLOAD CONFIG FILES")
     if file_buffer is not None:
-        config_file = pd.read_csv(file_buffer)
-        key = config_file.columns
-        checked_df = check_valid(config_file, bg_df, source_df, font_df)
+        input_config_file = pd.read_csv(file_buffer)
+        key = input_config_file.columns
+        checked_df = config.check_valid(input_config_file, bg_df, source_df, font_df)
         key = key.insert(0, 'DETAIL')
         key = key.insert(0, 'STATUS')
 
@@ -68,6 +90,9 @@ def main():
         st.dataframe(checked_df[key])
         outpath = st.text_input("Insert Output Name")
         removed = False
+        input_config_dict  = {}
+        for ind, values in enumerate(checked_df.values):
+            input_config_dict[ind] = {k:v for k,v in zip(checked_df.columns, values)}  
         if outpath != '':
             output_path = os.path.join(config.data, 'outputs/%s' % outpath)
             if not removed and os.path.exists(output_path):

@@ -115,40 +115,13 @@ def Augmentator(images, points=None, option=None):
     return [255 - np.array(img) for img in images_aug], points
 
 
-def check_valid(dataframe, bg_df, source_df, fonts_df):
-    """
-    Check if the valid of input dataframe
-    """
-    df = dataframe.copy()
-    results = {}
-    for index, value in enumerate(dataframe.values):
-        results[index] = {"Status": "valid", "Error": []}
-        Method, NumCores, Fonts, Backgrounds, ObjectSources, Textsources, ImageSources = value[:7]
-        if Backgrounds not in bg_df['NAME'].values:
-            results[index]['Error'].append('Invalid Backgrounds Folder')
-        else:
-            info = bg_df[bg_df['NAME'] == Backgrounds]
-            if Method == 'white' and 'white' not in info['METHOD'].values:
-                results[index]['Error'].append('Invalid Method')
-            if Fonts not in fonts_df['NAME'].values:
-                results[index]['Error'].append('Fonts Folder Is Not Existed.')
-            if str(Textsources) != '0' and Textsources not in source_df['NAME'].values:
-                results[index]['Error'].append('The TextSources Is Not Existed.')
-            if str(ObjectSources) != '0' and ObjectSources not in source_df['NAME'].values:
-                results[index]['Error'].append('The ObjectSources Is Not Existed.')
-            if str(ImageSources) != '0' and ImageSources not in source_df['NAME'].values:
-                results[index]['Error'].append('The ObjectSources Is Not Existed.')
-        if len(results[index]['Error']) is not 0:
-            results[index]["Status"] = "INVALID"
-    df['STATUS'] = [results[i]["Status"] for i in range(len(results))]
-    df['DETAIL'] = [results[i]["Error"] for i in range(len(results))]
-    return df
 
 
-def get_all_valid(config):
+
+def get_all_valid(background_folder, source_folder, font_folder):
     # CREATE BACKGROUND DATAFRAME
     existed_background = sorted(
-        [os.path.join(config.background_folder, name) for name in os.listdir(config.background_folder)])
+        [os.path.join(background_folder, name) for name in os.listdir(background_folder)])
     whitelist_background = [path for path in existed_background if
                             os.path.isdir(path) and 'anotations' in os.listdir(path)]
     blacklist_background = [path for path in existed_background if os.path.isdir(path)]
@@ -177,7 +150,7 @@ def get_all_valid(config):
     bg_df = pd.DataFrame(bg_df, columns=["NAME", "METHOD", "SIZE", "PATH"])
 
     # CREATE SOURCE DATAFRAME
-    existed_source = sorted([os.path.join(config.source_folder, name) for name in os.listdir(config.source_folder)])
+    existed_source = sorted([os.path.join(source_folder, name) for name in os.listdir(source_folder)])
     source_df = {"NAME": [],
                  "SIZE": [],
                  "PATH": [],
@@ -208,7 +181,7 @@ def get_all_valid(config):
     source_df = pd.DataFrame(source_df, columns=["NAME", "TYPE", "SIZE", "PATH"])
 
     # CREATE FONT DATAFRAME
-    existed_font = sorted([os.path.join(config.font_folder, name) for name in os.listdir(config.font_folder)])
+    existed_font = sorted([os.path.join(font_folder, name) for name in os.listdir(font_folder)])
 
     font_df = {"NAME": [],
                "SIZE": [],

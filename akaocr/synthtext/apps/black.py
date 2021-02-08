@@ -22,7 +22,7 @@ from shutil import rmtree as remove_folder
 from synthtext.utils.utils_func import check_valid, get_all_valid
 
 
-def blackapp(value):
+def blackapp(config):
     """
     Gen data with black method
     """
