@@ -86,7 +86,7 @@ class BlackList:
                            aug_option=self.config.aug_option,
                            from_font=not self.config.is_handwriting,
                            handwriting_path=self.config.handwriting_path,
-                           gen_type = self.config.GenType,
+                           text_gen_type = self.config.TextGenType,
                            )
 
     def run(self):
@@ -203,7 +203,7 @@ class WhiteList:
                        aug_option=self.config.aug_option,
                        from_font=not self.config.is_handwriting,
                        handwriting_path=self.config.handwriting_path,
-                       gen_type = self.config.GenType,
+                       text_gen_type = self.config.TextGenType,
                        )
 
 
@@ -234,7 +234,7 @@ class RecogGen:
                                       min_text_length=self.config.min_text_length,
                                       max_text_length=self.config.max_text_length,
                                       replace_percentage=1,
-                                      gen_type=self.config.GenType,)
+                                      gen_type = self.config.TextGenType,)
 
         if not self.config.is_handwriting:
             self.main_text_to_image_gen = TextFontGenerator(self.config.fonts_path,

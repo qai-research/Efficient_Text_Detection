@@ -34,6 +34,7 @@ def whiteapp(input_dict):
     TextSources = input_dict['Textsources']
     ImageSources = input_dict['ImageSources']
     GenType = input_dict['GenType']
+    TextGenType = input_dict['TextGenType']
     num_images = input_dict['NumImages']
     max_num_box = input_dict['MaxNumBox']
     min_char_spacing = input_dict['MinCharSpacing']
