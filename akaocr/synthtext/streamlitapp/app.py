@@ -154,5 +154,5 @@ if __name__ == '__main__':
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 
-    local_css(config.css_path)
+    local_css('/home/vietvh9/Project/OCR_Components/ocr-components/akaocr/synthtext/streamlitapp/style.css')
     main()

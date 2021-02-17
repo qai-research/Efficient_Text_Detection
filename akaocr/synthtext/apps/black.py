@@ -14,7 +14,7 @@ import os
 import io
 import sys
 import time
-import config
+from . import config
 import argparse
 import streamlit as st
 from synthtext.main import BlackList
