@@ -1,13 +1,13 @@
 import sys
 sys.path.append("../")
 
-from engine.utils import imgproc, tedeval
+from engine.utils import tedeval
 from engine.infer.heat2boxes import Heat2boxes
-from engine.infer import image
+from pre.image import ImageProc
 import torch
 import cv2
 
-class evaluation:
+class Evaluation:
     """This module contains evaluation methods for detec and recog models"""
 
     def __init__(self, cfg, model, test_loader, num_samples = None):
@@ -49,10 +49,11 @@ class evaluation:
                 box = [x1, y1, x2, y2, x3, y3, x4, y4]
                 gt_box.append(box)
     
-            img_resized, target_ratio, size_heatmap = image.resize_aspect_ratio(
-                img, self.max_size, interpolation=cv2.INTER_LINEAR)
+            img_resized, target_ratio = ImageProc.resize_aspect_ratio(
+                img, self.max_size, interpolation=cv2.INTER_LINEAR
+            )
             ratio_h = ratio_w = 1 / target_ratio
-            x = image.normalize_mean_variance(img_resized)
+            x = ImageProc.normalize_mean_variance(img_resized)
             x = torch.from_numpy(x).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
             x = (x.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
             y, feature = self.model(x)

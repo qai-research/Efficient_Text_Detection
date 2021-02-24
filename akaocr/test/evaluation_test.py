@@ -7,7 +7,7 @@ import cv2
 from utils.utility import initial_logger
 logger = initial_logger()
 
-from engine.utils.evaluation import evaluation
+from engine.utils.evaluation import Evaluation
 from engine.config import setup
 from utils.data.dataloader import load_test_dataset_detec
 
@@ -16,7 +16,7 @@ def detec_test_evaluation(model_path, data_path):
     model = HEAT()
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     test_loader = load_test_dataset_detec(data_path)
-    evaluate = evaluation(cfg, model, test_loader, num_samples=1)
+    evaluate = Evaluation(cfg, model, test_loader, num_samples=1)
     evaluate.detec_evaluation()
     
 def recog_test_evaluation(model_path, data_path):

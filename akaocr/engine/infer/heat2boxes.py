@@ -10,7 +10,7 @@ This file contain method convert heatmap to bounding boxes.
 _____________________________________________________________________________
 """
 
-from engine.utils import craft_utils
+from engine.utils import heat_utils
 import numpy as np
 from functools import cmp_to_key
 
@@ -51,12 +51,12 @@ class Heat2boxes:
         text_threshold = self.cfg.INFERENCE.TEXT_THRESHOLD
         link_threshold = self.cfg.INFERENCE.LINK_THRESHOLD
         low_text_score = self.cfg.INFERENCE.LOW_TEXT_SCORE
-        boxes, polys = craft_utils.get_det_boxes(score_text, score_link, text_threshold, link_threshold,
+        boxes, polys = heat_utils.get_det_boxes(score_text, score_link, text_threshold, link_threshold,
                                                         low_text_score, False)
 
         # coordinate adjustment
-        boxes = craft_utils.adjust_result_coordinates(boxes, self.ratio_w, self.ratio_h)
-        polys = craft_utils.adjust_result_coordinates(polys, self.ratio_w, self.ratio_h)
+        boxes = heat_utils.adjust_result_coordinates(boxes, self.ratio_w, self.ratio_h)
+        polys = heat_utils.adjust_result_coordinates(polys, self.ratio_w, self.ratio_h)
         rects = list()
 
         for k in range(len(polys)):

@@ -25,7 +25,7 @@ from utils.utility import initial_logger
 
 logger = initial_logger()
 
-from engine.utils.evaluation import evaluation
+from engine.utils.evaluation import Evaluation
 
 
 class Trainer:
@@ -41,7 +41,7 @@ class Trainer:
             logger.warning(f"Validation data not found, training without checkpoint validation")
 
     def do_test(self, cfg, model):
-        evaluate = evaluation(cfg, model, self.test_loader, num_samples=1)
+        evaluate = Evaluation(cfg, model, self.test_loader, num_samples=1)
         evaluate.detec_evaluation()
 
     def do_train(self):
