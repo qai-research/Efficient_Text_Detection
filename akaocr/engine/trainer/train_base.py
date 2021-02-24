@@ -25,6 +25,8 @@ from utils.utility import initial_logger
 
 logger = initial_logger()
 
+from engine.utils.evaluation import evaluation
+
 
 class Trainer:
     def __init__(self, cfg, model, train_loader=None, test_loader=None, custom_loop=None, resume=False):
@@ -39,7 +41,8 @@ class Trainer:
             logger.warning(f"Validation data not found, training without checkpoint validation")
 
     def do_test(self, cfg, model):
-        pass
+        evaluate = evaluation(cfg, model, self.test_loader, num_samples=1)
+        evaluate.detec_evaluation()
 
     def do_train(self):
         self.model.train()
@@ -69,8 +72,7 @@ class Trainer:
             for data, iteration in zip(self.train_loader, range(self.cfg.SOLVER.START_ITER, self.cfg.SOLVER.MAX_ITER)):
                 storage.iter = iteration
                 loss = self.custom_loop.loop(self.model, data)
-                # print(iteration)
-
+                print(iteration)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -81,4 +83,5 @@ class Trainer:
                         iteration % self.cfg.SOLVER.EVAL_PERIOD == 0
                         and iteration != self.cfg.SOLVER.MAX_ITER - 1
                 ):
-                    pass
+                    # pass
+                    self.do_test(self.cfg, self.model)
