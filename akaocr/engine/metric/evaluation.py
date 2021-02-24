@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../")
 
-from engine.utils import tedeval
+from engine.metric import tedeval
 from engine.infer.heat2boxes import Heat2boxes
 from pre.image import ImageProc
 import torch

@@ -7,7 +7,7 @@ import cv2
 from utils.utility import initial_logger
 logger = initial_logger()
 
-from engine.utils.evaluation import Evaluation
+from engine.metric.evaluation import Evaluation
 from engine.config import setup
 from utils.data.dataloader import load_test_dataset_detec
 

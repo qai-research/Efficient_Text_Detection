@@ -25,7 +25,7 @@ from utils.utility import initial_logger
 
 logger = initial_logger()
 
-from engine.utils.evaluation import Evaluation
+from engine.metric.evaluation import Evaluation
 
 
 class Trainer:
