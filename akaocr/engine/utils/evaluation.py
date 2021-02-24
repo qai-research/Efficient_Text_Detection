@@ -3,11 +3,21 @@ sys.path.append("../")
 
 from engine.utils import imgproc, tedeval
 from engine.infer.heat2boxes import Heat2boxes
+from engine.infer import image
 import torch
 import cv2
 
 class evaluation:
+    """This module contains evaluation methods for detec and recog models"""
+
     def __init__(self, cfg, model, test_loader, num_samples = None):
+        """
+        Args:
+            model: model for evaluation
+            test_loader: data for evaluation
+            num_samples: number of sample will be evaluated
+        """
+
         self.cfg = cfg
         self.max_size = self.cfg.MODEL.MAX_SIZE
         self.model = model
@@ -17,6 +27,7 @@ class evaluation:
         else:
             self.num_samples = num_samples
 
+    """Evaluate detec model"""
     def detec_evaluation(self):
         pre_box_list = list()       #list of predicted boxes from model
         gt_box_list = list()        #list of ground truth boxes in labels
@@ -38,10 +49,10 @@ class evaluation:
                 box = [x1, y1, x2, y2, x3, y3, x4, y4]
                 gt_box.append(box)
     
-            img_resized, target_ratio, size_heatmap = imgproc.resize_aspect_ratio(
+            img_resized, target_ratio, size_heatmap = image.resize_aspect_ratio(
                 img, self.max_size, interpolation=cv2.INTER_LINEAR)
             ratio_h = ratio_w = 1 / target_ratio
-            x = imgproc.normalize_mean_variance(img_resized)
+            x = image.normalize_mean_variance(img_resized)
             x = torch.from_numpy(x).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
             x = (x.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
             y, feature = self.model(x)
@@ -61,5 +72,6 @@ class evaluation:
         detec_eval = tedeval.Evaluate(pre_box_list, gt_box_list, word_list, confidence_point_list)
         detec_eval.do_eval()
 
+    """Evaluate recog model"""
     def recog_evaluation(self):
         pass

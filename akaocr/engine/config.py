@@ -108,6 +108,7 @@ def setup(tp="recog"):
 
     logger.info(f"Load config from : {config}")
     # config_data = load_yaml_config(config)
+    print(config)
     cfg.merge_from_file(config)
 
     cfg.SOLVER.START_ITER = iteration
