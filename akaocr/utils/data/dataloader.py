@@ -190,7 +190,6 @@ class load_test_dataset_detec():
         return self.lmdbreader.num_samples
 
     def get_item(self, index):
-       
         img, label = self.lmdbreader.get_item(index)
         img = np.array(img)
         label = json.loads(label)

@@ -15,9 +15,7 @@ def detec_test_evaluation(model_path, data_path):
     cfg = setup("detec")
     model = HEAT()
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-    logger.info(f"load model from : {model_path}")
     test_loader = load_test_dataset_detec(data_path)
-    logger.info(f"load test data from : {data_path}")
     evaluate = evaluation(cfg, model, test_loader, num_samples=1)
     evaluate.detec_evaluation()
     
