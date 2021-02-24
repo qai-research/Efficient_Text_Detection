@@ -24,9 +24,15 @@ from engine.build import build_dataloader
 from utils.file_utils import read_vocab
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-root_data_recog = "/home/bacnv6/data/train_data/lake_recog"
-root_data_detec = "/home/bacnv6/data/train_data/lake_detec"
 
+from utils.data.dataloader import load_test_dataset_detec
+
+# root_data_recog = "/home/bacnv6/data/train_data/lake_recog"
+# root_data_detec = "/home/bacnv6/data/train_data/lake_detec"
+
+root_data_recog = "/home/nghianguyen/train_data/lake_recog"
+root_data_detec = "/home/nghianguyen/train_data/lake_detec"
+data_test_path = '/home/nghianguyen/train_data/lake_detec/ST_Demo_1'
 
 def test_recog():
     cfg = setup("recog")
@@ -58,11 +64,12 @@ def test_detec():
 
     lossc = CustomLoopHeat(cfg)
     train_loader = build_dataloader(cfg, root_data_detec)
-    test_loader = build_dataloader(cfg, root_data_detec, selected_data=["ST_Demo_1"])
+    # test_loader = build_dataloader(cfg, root_data_detec, selected_data=["ST_Demo_1"])
+    test_loader = load_test_dataset_detec(data_test_path)
     trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, resume=True)
     trainer.do_train()
 
 
 if __name__ == '__main__':
-    test_recog()
+    # test_recog()
     test_detec()

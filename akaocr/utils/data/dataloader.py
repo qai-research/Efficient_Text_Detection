@@ -23,6 +23,8 @@ from utils.runtime import Color, colorize
 from utils.utility import initial_logger
 logger = initial_logger()
 
+import numpy as np
+import json
 
 class LmdbDataset(Dataset):
     """
@@ -180,3 +182,15 @@ class LoadDatasetIterator:
             except ValueError:
                 self.logger.warning(f"Getting data from dataloader failed")
 
+class load_test_dataset_detec():
+    def __init__(self, data):
+        self.lmdbreader = LmdbReader(data, rgb=True)
+
+    def get_length(self):
+        return self.lmdbreader.num_samples
+
+    def get_item(self, index):
+        img, label = self.lmdbreader.get_item(index)
+        img = np.array(img)
+        label = json.loads(label)
+        return img, label
