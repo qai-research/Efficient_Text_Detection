@@ -57,7 +57,6 @@ def main():
     from synthtext.apps.doubleblack import doubleblackapp
     from synthtext.utils.data_loader import lmdb_dataset_loader
     from synthtext.utils.utils_func import check_valid, get_all_valid
-    from synthtext.utils.input_config_loader import InputConfigLoader 
     
     bg_df, source_df, font_df = get_all_valid(background_folder, source_folder, font_folder)
 
@@ -82,7 +81,7 @@ def main():
     if file_buffer is not None:
         input_config_file = pd.read_csv(file_buffer)
         key = input_config_file.columns
-        checked_df = config.check_valid(input_config_file, bg_df, source_df, font_df)
+        checked_df = check_valid(input_config_file, bg_df, source_df, font_df)
         key = key.insert(0, 'DETAIL')
         key = key.insert(0, 'STATUS')
 
@@ -97,7 +96,7 @@ def main():
 
         # Check out path and remove if existed
         if outpath != '':
-            output_path = os.path.join(config.data, 'outputs/%s' % outpath)
+            output_path = os.path.join(data, 'outputs/%s' % outpath)
             if not removed and os.path.exists(output_path):
                 empty1 = st.empty()
                 empty2 = st.empty()
@@ -121,6 +120,7 @@ def main():
                         if input_dict['STATUS'] is "INVALID":
                             continue
                         begin_time = time.time()
+                        Method = input_dict['Method']
                         st.warning("Begin running %s Method SynthText with folder %s " % (Method, input_dict["Backgrounds"]))
 
                         if not is_detect:

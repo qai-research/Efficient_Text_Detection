@@ -124,7 +124,7 @@ def check_valid(dataframe, bg_df, source_df, fonts_df):
     results = {}
     for index, value in enumerate(dataframe.values):
         results[index] = {"Status": "valid", "Error": []}
-        Method, NumCores, Fonts, Backgrounds, ObjectSources, Textsources, ImageSources = value[:7]
+        Method, NumCores, Fonts, Backgrounds, ObjectSources, Textsources, _, ImageSources = value[:8]
         if Backgrounds not in bg_df['NAME'].values:
             results[index]['Error'].append('Invalid Backgrounds Folder')
         else:
@@ -138,7 +138,7 @@ def check_valid(dataframe, bg_df, source_df, fonts_df):
             if str(ObjectSources) != '0' and ObjectSources not in source_df['NAME'].values:
                 results[index]['Error'].append('The ObjectSources Is Not Existed.')
             if str(ImageSources) != '0' and ImageSources not in source_df['NAME'].values:
-                results[index]['Error'].append('The ObjectSources Is Not Existed.')
+                results[index]['Error'].append('The ImagesSource Is Not Existed.')
         if len(results[index]['Error']) is not 0:
             results[index]["Status"] = "INVALID"
     df['STATUS'] = [results[i]["Status"] for i in range(len(results))]

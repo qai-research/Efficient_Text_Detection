@@ -34,6 +34,7 @@ def blackapp(input_dict):
     TextSources = input_dict['Textsources']
     ImageSources = input_dict['ImageSources']
     GenType = input_dict['GenType']
+    TextGenType = input_dict['TextGenType']
     num_images = input_dict['NumImages']
     max_num_box = input_dict['MaxNumBox']
     min_char_spacing = input_dict['MinCharSpacing']
@@ -55,6 +56,7 @@ def blackapp(input_dict):
     opt = parser.parse_args()
 
     opt.method = Method
+    opt.TextGenType = TextGenType
     opt.backgrounds_path = os.path.join(config.background_folder, Backgrounds, 'images')
 
     opt.fonts_path = os.path.join(config.font_folder, Fonts)

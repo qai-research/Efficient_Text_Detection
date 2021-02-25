@@ -66,7 +66,7 @@ def ImageGenerator(fonts_path=None,
             new_text_gen = True
             # Create new text generator
             try:
-                gen_type = kwargs.pop('gen_type')
+                gen_type = kwargs.pop('text_gen_type')
             except KeyError:
                 gen_type = 'random'    
 

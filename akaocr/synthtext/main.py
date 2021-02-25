@@ -303,30 +303,8 @@ class RecogGen:
         bg_y = random.choice(range(h - out_h))
         bg_x = random.choice(range(w - out_w))
         bg = bg[bg_y:bg_y + out_h, bg_x:bg_x + out_w, :]
-        # out_img = cv2.addWeighted(np.float32(img), 0.5, np.float32(bg), 0.9, 0)
 
         out_img = cv2.bitwise_and(np.float32(img), np.float32(bg))
-
-        # img1 = bg.copy()
-        # img2 = img.copy()
-        # rows, cols, channels = img2.shape
-        # roi = img1[0:rows, 0:cols]
-        #
-        # # Now create a mask of logo and create its inverse mask also
-        # img2gray = cv2.cvtColor(img2, cv2.COLOR_RGB2GRAY)
-        # ret, mask = cv2.threshold(img2gray, 127, 255, cv2.THRESH_BINARY )
-        # mask_inv = cv2.bitwise_not(mask)
-        #
-        # # Now black-out the area of logo in ROI
-        # img1_bg = cv2.bitwise_and(roi, roi, mask=mask_inv)
-        #
-        # # Take only region of logo from logo image.
-        # img2_fg = cv2.bitwise_and(img2, img2, mask=mask)
-        #
-        # # Put logo in ROI and modify the main image
-        # dst = cv2.add(img1_bg, img2_fg)
-        # img1[0:rows, 0:cols] = dst
-        # out_img = img1.copy()
 
         img_name = str(ind).zfill(self.img_name_length)
         im_path = os.path.join(self.output_path, "images/%s.jpg" % img_name)
