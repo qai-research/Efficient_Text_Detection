@@ -32,6 +32,7 @@ def recogapp(input_dict):
     Backgrounds = input_dict['Backgrounds']
     ObjectSources = input_dict['ObjectSource']
     TextSources = input_dict['Textsources']
+    TextGenType = input_dict['TextGenType']
     ImageSources = input_dict['ImageSources']
     GenType = input_dict['GenType']
     num_images = input_dict['NumImages']
@@ -44,14 +45,13 @@ def recogapp(input_dict):
     max_text_len = input_dict['MaxTextLengh']
     max_height = input_dict['MaxHeigh']
     max_width = input_dict['MaxWidth']
+    random_color = input_dict['RandomColor']
     elastic_p = input_dict['ElasticP']
     shear_p = input_dict['ShearP']
     dropout_p = input_dict['DropoutP']
     blur_p = input_dict['BlurP']
     status = input_dict['STATUS']
     detail = input_dict['DETAIL']
-    random_color = input_dict['RandomColor']
-    TextGenType = input_dict['TextGenType']
     
     parser = argparse.ArgumentParser()
     opt = parser.parse_args()
@@ -65,10 +65,10 @@ def recogapp(input_dict):
     opt.fixed_box = True
     opt.num_images = num_images
     opt.output_path = os.path.join(config.outputs_folder, Backgrounds)
-    opt.source_path = os.path.join(config.source_folder, TextSources)
+    opt.source_path = os.path.join(config.source_folder, str(TextSources))
     #############
     opt.is_handwriting = (GenType != 'font')
-    opt.handwriting_path = os.path.join(config.source_folder, ImageSources)
+    opt.handwriting_path = os.path.join(config.source_folder, str(ImageSources))
     #############
     opt.random_color = (random_color == 1)
     opt.font_color = (0, 0, 0)

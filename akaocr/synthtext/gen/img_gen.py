@@ -47,6 +47,7 @@ def ImageGenerator(fonts_path=None,
                    is_return=False,
                    aug_option=None,
                    from_font=True,
+                   text_gen_type = 'randoms'
                    **kwargs):
     """
     The image generator with each background and bounding box
@@ -66,28 +67,23 @@ def ImageGenerator(fonts_path=None,
             new_text_gen = True
             # Create new text generator
             try:
-                gen_type = kwargs.pop('text_gen_type')
-            except KeyError:
-                gen_type = 'random'    
-
-            try:
                 text_gen = TextGenerator(source_path,
                                          vocab_group_path=vocab_path,
                                          min_text_length=kwargs.pop('min_text_length'),
                                          max_text_length=kwargs.pop('max_text_length'),
-                                         gen_type = gen_type,
+                                         text_gen_type = text_gen_type,
                                          replace_percentage=1)
             except KeyError:
                 try:
                     text_gen = TextGenerator(source_path,
                                              vocab_group_path=vocab_path,
                                              min_text_length=kwargs.pop('min_text_length'),
-                                             gen_type = gen_type,
+                                             text_gen_type = text_gen_type,
                                              replace_percentage=1)
                 except KeyError:
                     text_gen = TextGenerator(source_path,
                                              vocab_group_path=vocab_path,
-                                             gen_type=gen_type,
+                                             text_gen_type=text_gen_type,
                                              replace_percentage=1)
 
         # Create font to images generator

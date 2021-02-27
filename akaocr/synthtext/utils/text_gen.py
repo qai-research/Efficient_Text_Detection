@@ -43,13 +43,13 @@ class Numberic:
                 new_m = 0
         else:
             min_p = len(str(int(self.low)))
-            max_p = len(str(int(self.high)))+1
+            max_p = len(str(int(self.high)))
             out = np.random.randint(min_p, max_p)
             new_M = min(10**out, self.high)
             new_m = max(10**(out-1), self.low)
             
-        rand = np.random.random_sample()            
-        results = (new_M - new_m)*rand+new_m
+        rand = np.random.random_sample()           
+        results = np.random.randint(new_m, new_M)+rand
         txt = "{value:.%sf}"%max(0,(opt_len - len(str(int(results)))))
         txt = txt.format(value = results)
         return txt
@@ -60,7 +60,7 @@ class Text:
     Text Generator with different options
     """
     def __init__(self, source_text_path, vocab_group_path=None, min_text_length=1, max_text_length=15,
-                 replace_percentage=0.5, gen_type = 'randoms'):
+                 replace_percentage=0.5, text_gen_type = 'randoms'):
 
         with open(source_text_path, "r", encoding='utf-8-sig') as f:
             self.source_sentences = f.read().strip().split("\n")
@@ -78,15 +78,18 @@ class Text:
         self.max_text_length = max_text_length
         self.replace_percentage = replace_percentage
         self.short_percentage = 0.8
-        self.gen_type = gen_type
+        self.text_gen_type = text_gen_type
 
     def gen(self, opt_len = None):
-        if self.gen_type == 'randoms':
+        if self.text_gen_type == 'randoms':
             return self.random_generate(opt_len)
-        elif self.gen_type == 'words':
+        elif self.text_gen_type == 'words':
             return self.word_generate(opt_len)
+        elif self.text_gen_type == 'numberics':
+            self.vocab_dict = {str(i):[str(j) for j in range(10)] for i in range(10)}
+            return self.random_generate(opt_len)
         else:
-            raise ValueError("Text gen type must be 'ramdoms' or 'words'")
+            raise ValueError("Text gen type must be 'ramdoms', 'words' or 'numberics'.")
 
     def random_generate(self, opt_len=None):
         """
@@ -114,10 +117,10 @@ class Text:
                 length_text = random.randint(min_text_length, int(max_text_length / 2))
             template = template[start_chars:start_chars + length_text]
         elif len(template) < min_text_length:
-            template = self.generate(min_text_length)
+            template = self.random_generate(min_text_length)
 
         if not template.replace(" ", ''):
-            template = self.generate(min_text_length)
+            template = self.random_generate(min_text_length)
 
         if random.random() < self.replace_percentage:
             for i in self.vocab_dict:
@@ -158,8 +161,8 @@ class Text:
 class TextGenerator:
 
     def __init__(self, source_text_path, vocab_group_path=None, min_text_length=1, max_text_length=15,
-                 replace_percentage=0.5, gen_type = 'words'):
-        if gen_type == 'numberic':
+                 replace_percentage=0.5, text_gen_type = 'words'):
+        if not os.path.exists(source_text_path):
             self.generator = Numberic(low = 10**(min_text_length//2),
                                        high = 10**(max_text_length//2))
         else:
@@ -168,7 +171,7 @@ class TextGenerator:
                                 min_text_length, 
                                 max_text_length, 
                                 replace_percentage,
-                                gen_type)
+                                text_gen_type)
 
-    def gen(self, opt_len = None):
+    def generate(self, opt_len = None):
         return self.generator.gen(opt_len = opt_len)

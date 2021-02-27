@@ -32,29 +32,32 @@ def whiteapp(input_dict):
     Backgrounds = input_dict['Backgrounds']
     ObjectSources = input_dict['ObjectSource']
     TextSources = input_dict['Textsources']
+    TextGenType = input_dict['TextGenType']
     ImageSources = input_dict['ImageSources']
     GenType = input_dict['GenType']
-    TextGenType = input_dict['TextGenType']
     num_images = input_dict['NumImages']
     max_num_box = input_dict['MaxNumBox']
     min_char_spacing = input_dict['MinCharSpacing']
     max_char_spacing = input_dict['MaxCharSpacing']
-    min_size = input_dict['MinSize']
-    max_size = input_dict['MaxSize']
+    min_size = input_dict['MinFontSize']
+    max_size = input_dict['MaxFontSize']
     min_text_len = input_dict['MinTextLengh']
     max_text_len = input_dict['MaxTextLengh']
     max_height = input_dict['MaxHeigh']
     max_width = input_dict['MaxWidth']
+    random_color = input_dict['RandomColor']
     elastic_p = input_dict['ElasticP']
     shear_p = input_dict['ShearP']
     dropout_p = input_dict['DropoutP']
     blur_p = input_dict['BlurP']
     status = input_dict['STATUS']
     detail = input_dict['DETAIL']
+    
     parser = argparse.ArgumentParser()
     opt = parser.parse_args()
 
     opt.method = Method
+    opt.TextGenType = TextGenType
     opt.backgrounds_path = os.path.join(config.background_folder, Backgrounds, 'images')
 
     opt.fonts_path = os.path.join(config.font_folder, Fonts)
@@ -62,10 +65,10 @@ def whiteapp(input_dict):
     opt.fixed_box = True
     opt.num_images = num_images
     opt.output_path = os.path.join(config.outputs_folder, Backgrounds)
-    opt.source_path = os.path.join(config.source_folder, TextSources)
+    opt.source_path = os.path.join(config.source_folder, str(TextSources))
     #############
     opt.is_handwriting = (GenType != 'font')
-    opt.handwriting_path = os.path.join(config.source_folder, ImageSources)
+    opt.handwriting_path = os.path.join(config.source_folder, str(ImageSources))
     #############
     opt.random_color = (random_color == 1)
     opt.font_color = (0, 0, 0)

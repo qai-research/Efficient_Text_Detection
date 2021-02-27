@@ -67,7 +67,7 @@ class HandWrittenGan:
         optimizerG = optim.Adam(netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
         criterion = nn.BCELoss()
         for epoch in epochs:
-            for i, labels, input_imgs, real_imgs in enumerate(data_loader()):
+            for i, labels, input_imgs, real_imgs in enumerate(self.data_loader()):
                 if i >= self.max_iter:
                     break
                 self.discriminator.zero_grad()
