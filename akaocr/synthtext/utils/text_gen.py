@@ -50,7 +50,7 @@ class Numberic:
             
         rand = np.random.random_sample()           
         results = np.random.randint(new_m, new_M)+rand
-        txt = "{value:.%sf}"%max(0,(opt_len - len(str(int(results)))))
+        txt = "{value:.%sf}"%max(0,(np.random.randint(len(str(rand)))))
         txt = txt.format(value = results)
         return txt
 

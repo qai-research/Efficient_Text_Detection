@@ -47,7 +47,7 @@ def ImageGenerator(fonts_path=None,
                    is_return=False,
                    aug_option=None,
                    from_font=True,
-                   text_gen_type = 'randoms'
+                   text_gen_type = 'randoms',
                    **kwargs):
     """
     The image generator with each background and bounding box

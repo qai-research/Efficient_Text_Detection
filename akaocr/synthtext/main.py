@@ -275,9 +275,8 @@ class RecogGen:
         else:
             for i in range(self.config.num_images // self.num_cores):
                 procs = []
-                for j in range(i * self.num_cores, (i + 1) * self.num_cores):
+                for ind in range(i * self.num_cores, (i + 1) * self.num_cores):
                     template = self.text_gen.generate()
-                    ind = i * self.num_cores + j
                     proc = Process(target=self.gen_img, args=(template, ind,))
                     fw.write('images/%s.jpg\t' % str(ind).zfill(self.img_name_length))
                     fw.write(template + "\n")
@@ -300,12 +299,16 @@ class RecogGen:
         img, _ = self.main_text_to_image_gen.generator(template)
         img[img!=255] = 0
         out_h, out_w, _ = np.array(img).shape
-        bg_y = random.choice(range(h - out_h))
-        bg_x = random.choice(range(w - out_w))
-        bg = bg[bg_y:bg_y + out_h, bg_x:bg_x + out_w, :]
+        try:
+            bg_y = random.choice(range(h - out_h))
+            bg_x = random.choice(range(w - out_w))
 
-        out_img = cv2.bitwise_and(np.float32(img), np.float32(bg))
+            bg = bg[bg_y:bg_y + out_h, bg_x:bg_x + out_w, :]
 
-        img_name = str(ind).zfill(self.img_name_length)
-        im_path = os.path.join(self.output_path, "images/%s.jpg" % img_name)
-        cv2.imwrite(im_path, out_img)
+            out_img = cv2.bitwise_and(np.float32(img), np.float32(bg))
+
+            img_name = str(ind).zfill(self.img_name_length)
+            im_path = os.path.join(self.output_path, "images/%s.jpg" % img_name)
+            cv2.imwrite(im_path, out_img)
+        except ValueError:
+            self.gen_img(template, ind)
