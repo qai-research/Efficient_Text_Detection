@@ -15,21 +15,21 @@ from collections import namedtuple
 import torch
 import torch.nn as nn
 from torchvision import models
-
 from utils.torchutils import init_weights
-
+from models.modules.backbones.Vgg_model import vgg
 
 class FpnFeature(torch.nn.Module):
-    def __init__(self, freeze=False):
+    # def __init__(self, freeze=False):
+    def __init__(self):
         super(FpnFeature, self).__init__()
-        vgg_features = models.vgg16_bn().features
-
+        vgg_features = vgg(batch_norm=True).features
+        print(vgg_features, 'vgg')
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
         self.slice3 = torch.nn.Sequential()
         self.slice4 = torch.nn.Sequential()
         self.slice5 = torch.nn.Sequential()
-        for x in range(12):  # conv2_2
+        for x in range(7,12):  # conv2_2
             self.slice1.add_module(str(x), vgg_features[x])
         for x in range(12, 19):  # conv3_3
             self.slice2.add_module(str(x), vgg_features[x])
@@ -49,12 +49,11 @@ class FpnFeature(torch.nn.Module):
         init_weights(self.slice2.modules())
         init_weights(self.slice3.modules())
         init_weights(self.slice4.modules())
-
         init_weights(self.slice5.modules())  # no pre-trained model for fc6 and fc7
 
-        if freeze:
-            for param in self.slice1.parameters():  # only first conv
-                param.requires_grad = False
+        # if freeze:
+        #     for param in self.slice1.parameters():  # only first conv
+        #         param.requires_grad = False
 
     def forward(self, X):
         h = self.slice1(X)

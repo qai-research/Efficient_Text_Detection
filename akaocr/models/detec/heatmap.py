@@ -18,7 +18,7 @@ from pathlib import Path
 
 from utils.torchutils import init_weights
 from models.modules.backbones.FpnVgg import FpnFeature
-
+from models.modules.backbones.ResNet50 import ResNet50_Extractor
 
 class DoubleConv(nn.Module):
     def __init__(self, in_ch, mid_ch, out_ch):
@@ -36,13 +36,13 @@ class DoubleConv(nn.Module):
         x = self.conv(x)
         return x
 
-
 class HEAT(nn.Module):
     def __init__(self, freeze=False):
         super(HEAT, self).__init__()
 
         # Base network
-        self.basenet = FpnFeature(freeze)
+        self.resnet_base = ResNet50_Extractor(input_channel=3, output_channel=16)
+        self.basenet = FpnFeature()
 
         # U network
         self.upconv1 = DoubleConv(1024, 512, 256)
@@ -67,12 +67,12 @@ class HEAT(nn.Module):
 
     def forward(self, x):
         """ Base network """
-        sources = self.basenet(x)
+        sources = self.resnet_base(x)        
+        sources = self.basenet(sources)
 
         """ U network """
         y = torch.cat([sources[0], sources[1]], dim=1)
         y = self.upconv1(y)
-
         y = F.interpolate(y, size=sources[2].size()[2:], mode='bilinear', align_corners=False)
         y = torch.cat([y, sources[2]], dim=1)
         y = self.upconv2(y)
@@ -84,7 +84,6 @@ class HEAT(nn.Module):
         y = F.interpolate(y, size=sources[4].size()[2:], mode='bilinear', align_corners=False)
         y = torch.cat([y, sources[4]], dim=1)
         feature = self.upconv4(y)
-
         y = self.conv_cls(feature)
 
         return y.permute(0, 2, 3, 1), feature
