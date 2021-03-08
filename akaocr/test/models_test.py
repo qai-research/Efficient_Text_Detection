@@ -63,4 +63,4 @@ def test_model_recog():
 
 if __name__ == '__main__':
     test_model_detec()
-    test_model_recog()
+    # test_model_recog()

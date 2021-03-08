@@ -17,8 +17,8 @@ import torch.nn as nn
 from pathlib import Path
 
 from utils.torchutils import init_weights
-from models.modules.backbones.FpnVgg import FpnFeature
-from models.modules.backbones.ResNet50 import ResNet50_Extractor
+# from models.modules.backbones.FpnVgg import FpnFeature
+from models.modules.backbones.resnet import resnet
 
 class DoubleConv(nn.Module):
     def __init__(self, in_ch, mid_ch, out_ch):
@@ -41,24 +41,24 @@ class HEAT(nn.Module):
         super(HEAT, self).__init__()
 
         # Base network
-        self.resnet_base = ResNet50_Extractor(input_channel=3, output_channel=16)
-        self.basenet = FpnFeature()
+        self.resnet = resnet()
 
         # U network
-        self.upconv1 = DoubleConv(1024, 512, 256)
-        self.upconv2 = DoubleConv(512, 256, 128)
+        # output chanel of resnet = [2048, 1024, 512, 256, 64]
+        self.upconv1 = DoubleConv(2048, 1024, 512)
+        self.upconv2 = DoubleConv(512, 512, 128)
         self.upconv3 = DoubleConv(256, 128, 64)
-        self.upconv4 = DoubleConv(128, 64, 32)
+        self.upconv4 = DoubleConv(64, 64, 16)
 
         num_class = 2
         self.conv_cls = nn.Sequential(
-            nn.Conv2d(32, 32, kernel_size=3, padding=1), nn.ReLU(inplace=True),
-            nn.Conv2d(32, 32, kernel_size=3, padding=1), nn.ReLU(inplace=True),
-            nn.Conv2d(32, 16, kernel_size=3, padding=1), nn.ReLU(inplace=True),
-            nn.Conv2d(16, 16, kernel_size=1), nn.ReLU(inplace=True),
-            nn.Conv2d(16, num_class, kernel_size=1),
+            nn.Conv2d(16, 16, kernel_size=3, padding=1), nn.ReLU(inplace=True),
+            nn.Conv2d(16, 16, kernel_size=3, padding=1), nn.ReLU(inplace=True),
+            nn.Conv2d(16, 8, kernel_size=3, padding=1), nn.ReLU(inplace=True),
+            nn.Conv2d(8, 8, kernel_size=1), nn.ReLU(inplace=True),
+            nn.Conv2d(8, num_class, kernel_size=1),
         )
-
+        
         init_weights(self.upconv1.modules())
         init_weights(self.upconv2.modules())
         init_weights(self.upconv3.modules())
@@ -67,21 +67,25 @@ class HEAT(nn.Module):
 
     def forward(self, x):
         """ Base network """
-        sources = self.resnet_base(x)        
-        sources = self.basenet(sources)
-
+        sources = self.resnet(x)
         """ U network """
-        y = torch.cat([sources[0], sources[1]], dim=1)
+        y = sources[0]
+        y = F.interpolate(y, size=sources[1].size()[2:], mode='bilinear', align_corners=False)
+        # print(y.shape, 'y1')
+        y = torch.cat([y, sources[1]], dim=1)
         y = self.upconv1(y)
         y = F.interpolate(y, size=sources[2].size()[2:], mode='bilinear', align_corners=False)
+        # print(y.shape, 'y2')
         y = torch.cat([y, sources[2]], dim=1)
         y = self.upconv2(y)
 
         y = F.interpolate(y, size=sources[3].size()[2:], mode='bilinear', align_corners=False)
+        # print(y.shape, 'y3')
         y = torch.cat([y, sources[3]], dim=1)
         y = self.upconv3(y)
 
         y = F.interpolate(y, size=sources[4].size()[2:], mode='bilinear', align_corners=False)
+        # print(y.shape, 'y4')
         y = torch.cat([y, sources[4]], dim=1)
         feature = self.upconv4(y)
         y = self.conv_cls(feature)
