@@ -18,7 +18,7 @@ from pathlib import Path
 
 from utils.torchutils import init_weights
 # from models.modules.backbones.FpnVgg import FpnFeature
-from models.modules.backbones.resnet import resnet
+from models.modules.backbones.Resnet_Extractor import Resnet
 
 class DoubleConv(nn.Module):
     def __init__(self, in_ch, mid_ch, out_ch):
@@ -41,7 +41,7 @@ class HEAT(nn.Module):
         super(HEAT, self).__init__()
 
         # Base network
-        self.resnet = resnet()
+        self.resnet = Resnet()
 
         # U network
         # output chanel of resnet = [2048, 1024, 512, 256, 64]

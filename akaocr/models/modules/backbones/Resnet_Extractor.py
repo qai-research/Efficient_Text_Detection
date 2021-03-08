@@ -9,9 +9,9 @@ _____________________________________________________________________________
 from torch import nn
 from torchvision.models import resnet152
 import torch
-class resnet(torch.nn.Module):
+class Resnet(torch.nn.Module):
     def __init__(self):
-        super(resnet, self).__init__()
+        super(Resnet, self).__init__()
         self.resnet = resnet152()
         self.resnet = nn.Sequential(*list(self.resnet.children())[:-2])
         print(self.resnet)
