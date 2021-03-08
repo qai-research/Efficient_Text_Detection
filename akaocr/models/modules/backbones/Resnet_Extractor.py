@@ -9,6 +9,8 @@ _____________________________________________________________________________
 from torch import nn
 from torchvision.models import resnet152
 import torch
+from utils.torchutils import init_weights
+
 class Resnet_Extractor(torch.nn.Module):
     def __init__(self):
         super(Resnet_Extractor, self).__init__()
@@ -27,7 +29,13 @@ class Resnet_Extractor(torch.nn.Module):
         self.slice2.add_module('5', self.resnet[5])     # layer 2 (output size: 512 x H/8 x W/8)
         self.slice3.add_module('6', self.resnet[6])     # layer 3 (output size: 1024 x H/16 x W/16)
         self.slice4.add_module('7', self.resnet[7])     # layer 4 (output size: 2048 x H/32 x W/32)
-    
+        
+        init_weights(self.slice0.modules())
+        init_weights(self.slice1.modules())
+        init_weights(self.slice2.modules())
+        init_weights(self.slice3.modules())
+        init_weights(self.slice4.modules())
+
     def forward(self, x):
         x = self.slice0(x)
         y_level1 = x
