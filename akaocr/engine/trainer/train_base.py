@@ -83,5 +83,5 @@ class Trainer:
                         iteration % self.cfg.SOLVER.EVAL_PERIOD == 0
                         and iteration != self.cfg.SOLVER.MAX_ITER - 1
                 ):
-                    # pass
+                    pass
                     self.do_test(self.cfg, self.model)

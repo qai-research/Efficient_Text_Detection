@@ -542,11 +542,11 @@ class Evaluate:
         evalData = evaluate_method_fn(evalParams)
         resDict.update(evalData)
 
-        if show_result:
-            sys.stdout.write("Evaluate: ")
-            sys.stdout.write(json.dumps(resDict['method'])+'\n')
+        # if show_result:
+        #     sys.stdout.write("Evaluate: ")
+        #     sys.stdout.write(json.dumps(resDict['method'])+'\n')
         return resDict
 
     def do_eval(self):
-        self.main_evaluation(None,self.default_evaluation_params,self.evaluate_method)
+        return self.main_evaluation(None,self.default_evaluation_params,self.evaluate_method)
 
