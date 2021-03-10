@@ -34,9 +34,6 @@ class Evaluation:
         hmean = 0
         AP = 0
         for i in range(1, self.num_samples+1):
-            pre_box_list = list()       #list of predicted boxes from model
-            gt_box_list = list()        #list of ground truth boxes in labels
-            word_list = list()          #list of words in labels
             img, label = self.test_loader.get_item(i)
             gt_box = list()
             words = list()
@@ -66,17 +63,10 @@ class Evaluation:
             del y       # delete variable y to save memory
             box_list,_ = box_list.convert(evaluation=True)
 
-            pre_box_list.append(box_list)
-            gt_box_list.append(gt_box)
-            word_list.append(words)
-            
-            confidence_point_list = list()            
-            for k in range(len(pre_box_list)):
-                confidence_point = list()
-                for j in range(len(pre_box_list[k])):
-                    confidence_point.append(0.0)
-                confidence_point_list.append(confidence_point)
-            detec_eval = tedeval.Evaluate(pre_box_list, gt_box_list, word_list, confidence_point_list)
+            confidence_point = list()
+            for j in range(len(box_list)):
+                confidence_point.append(0.0)
+            detec_eval = tedeval.Evaluate(box_list, gt_box, words, confidence_point)
             resdict = detec_eval.do_eval()
             recall += resdict['method']['recall']
             precision += resdict['method']['precision']
@@ -86,6 +76,7 @@ class Evaluation:
         print('precision:', precision/self.num_samples)
         print('hmean:', hmean/self.num_samples)
         print('AP:', AP/self.num_samples)
+    
     """Evaluate recog model"""
     def recog_evaluation(self):
         pass

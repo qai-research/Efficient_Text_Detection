@@ -80,8 +80,9 @@ class Trainer:
                 scheduler.step()
 
                 if (
-                        iteration % self.cfg.SOLVER.EVAL_PERIOD == 0
+                        (iteration+1) % self.cfg.SOLVER.EVAL_PERIOD == 0
                         and iteration != self.cfg.SOLVER.MAX_ITER - 1
                 ):
-                    pass
+                    # pass
                     self.do_test(self.cfg, self.model)
+                    periodic_checkpointer.step(iteration)
