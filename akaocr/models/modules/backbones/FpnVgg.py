@@ -18,7 +18,6 @@ from torchvision import models
 
 from utils.torchutils import init_weights
 
-
 class FpnFeature(torch.nn.Module):
     def __init__(self, freeze=False):
         super(FpnFeature, self).__init__()
