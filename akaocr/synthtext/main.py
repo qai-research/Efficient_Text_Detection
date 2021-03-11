@@ -85,7 +85,8 @@ class BlackList:
                            method=self.config.method,
                            aug_option=self.config.aug_option,
                            from_font=not self.config.is_handwriting,
-                           handwriting_path=self.config.handwriting_path
+                           handwriting_path=self.config.handwriting_path,
+                           text_gen_type = self.config.TextGenType,
                            )
 
     def run(self):
@@ -201,7 +202,8 @@ class WhiteList:
                        method=self.config.method,
                        aug_option=self.config.aug_option,
                        from_font=not self.config.is_handwriting,
-                       handwriting_path=self.config.handwriting_path
+                       handwriting_path=self.config.handwriting_path,
+                       text_gen_type = self.config.TextGenType,
                        )
 
 
@@ -231,7 +233,8 @@ class RecogGen:
         self.text_gen = TextGenerator(self.config.source_path,
                                       min_text_length=self.config.min_text_length,
                                       max_text_length=self.config.max_text_length,
-                                      replace_percentage=1)
+                                      replace_percentage=1,
+                                      text_gen_type = self.config.TextGenType,)
 
         if not self.config.is_handwriting:
             self.main_text_to_image_gen = TextFontGenerator(self.config.fonts_path,
@@ -272,9 +275,8 @@ class RecogGen:
         else:
             for i in range(self.config.num_images // self.num_cores):
                 procs = []
-                for j in range(i * self.num_cores, (i + 1) * self.num_cores):
+                for ind in range(i * self.num_cores, (i + 1) * self.num_cores):
                     template = self.text_gen.generate()
-                    ind = i * self.num_cores + j
                     proc = Process(target=self.gen_img, args=(template, ind,))
                     fw.write('images/%s.jpg\t' % str(ind).zfill(self.img_name_length))
                     fw.write(template + "\n")
@@ -297,34 +299,16 @@ class RecogGen:
         img, _ = self.main_text_to_image_gen.generator(template)
         img[img!=255] = 0
         out_h, out_w, _ = np.array(img).shape
-        bg_y = random.choice(range(h - out_h))
-        bg_x = random.choice(range(w - out_w))
-        bg = bg[bg_y:bg_y + out_h, bg_x:bg_x + out_w, :]
-        # out_img = cv2.addWeighted(np.float32(img), 0.5, np.float32(bg), 0.9, 0)
+        try:
+            bg_y = random.choice(range(h - out_h))
+            bg_x = random.choice(range(w - out_w))
 
-        out_img = cv2.bitwise_and(np.float32(img), np.float32(bg))
+            bg = bg[bg_y:bg_y + out_h, bg_x:bg_x + out_w, :]
 
-        # img1 = bg.copy()
-        # img2 = img.copy()
-        # rows, cols, channels = img2.shape
-        # roi = img1[0:rows, 0:cols]
-        #
-        # # Now create a mask of logo and create its inverse mask also
-        # img2gray = cv2.cvtColor(img2, cv2.COLOR_RGB2GRAY)
-        # ret, mask = cv2.threshold(img2gray, 127, 255, cv2.THRESH_BINARY )
-        # mask_inv = cv2.bitwise_not(mask)
-        #
-        # # Now black-out the area of logo in ROI
-        # img1_bg = cv2.bitwise_and(roi, roi, mask=mask_inv)
-        #
-        # # Take only region of logo from logo image.
-        # img2_fg = cv2.bitwise_and(img2, img2, mask=mask)
-        #
-        # # Put logo in ROI and modify the main image
-        # dst = cv2.add(img1_bg, img2_fg)
-        # img1[0:rows, 0:cols] = dst
-        # out_img = img1.copy()
+            out_img = cv2.bitwise_and(np.float32(img), np.float32(bg))
 
-        img_name = str(ind).zfill(self.img_name_length)
-        im_path = os.path.join(self.output_path, "images/%s.jpg" % img_name)
-        cv2.imwrite(im_path, out_img)
+            img_name = str(ind).zfill(self.img_name_length)
+            im_path = os.path.join(self.output_path, "images/%s.jpg" % img_name)
+            cv2.imwrite(im_path, out_img)
+        except ValueError:
+            self.gen_img(template, ind)
