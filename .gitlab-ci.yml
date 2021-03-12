@@ -24,6 +24,7 @@ test:
     - .requires-build-image-commit-message
   stage: test
   tags:
+    - akaocr
     - dvc
   script:
     - conda activate akaocr
