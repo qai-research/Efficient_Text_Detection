@@ -1,7 +1,5 @@
 # .gitlab-ci.yml
 stages: 
-  - build_train_image
-  - train
   - test
 
 .requires-build-image-commit-message:
@@ -12,12 +10,12 @@ stages:
 .requires-trigger-training-commit-message:
   only:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^Trigger training
+      - $CI_COMMIT_MESSAGE =~ /^Trigger training/
 
 .requires-trigger-testing-commit-message:
   only:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^Trigger testing
+      - $CI_COMMIT_MESSAGE =~ /^Trigger testing/
 
 test:
   extends:
