@@ -57,7 +57,6 @@ def test_model_recog():
     converter = AttnLabelConverter(["x", "X", "o"], device=device)
     text, length = converter.encode(text, max_label_length=config.MODEL.MAX_LABEL_LENGTH)
     y = model(x, text)
-    #print shape of y for checking
     print(y.shape)
     # print(y)
 
