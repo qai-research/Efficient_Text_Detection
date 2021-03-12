@@ -1,7 +1,5 @@
 # .gitlab-ci.yml
 stages: 
-  - build_train_image
-  - train
   - test
 
 .requires-build-image-commit-message:
