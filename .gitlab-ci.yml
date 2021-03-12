@@ -2,7 +2,7 @@
 stages: 
   - test
 
-.requires-build-image-commit-message:
+.requires-trigger-building-image-commit-message:
   only:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Trigger building image/
@@ -19,7 +19,7 @@ stages:
 
 test:
   extends:
-    - .requires-build-image-commit-message
+    - .requires-trigger-testing-commit-message
   stage: test
   tags:
     - akaocr
