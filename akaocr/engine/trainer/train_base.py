@@ -73,6 +73,7 @@ class Trainer:
                 storage.iter = iteration
                 loss = self.custom_loop.loop(self.model, data)
                 print(iteration)
+                print(loss)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -84,5 +85,6 @@ class Trainer:
                         and iteration != self.cfg.SOLVER.MAX_ITER - 1
                 ):
                     # pass
-                    self.do_test(self.cfg, self.model)
                     periodic_checkpointer.step(iteration)
+                    self.do_test(self.cfg, self.model)
+                    

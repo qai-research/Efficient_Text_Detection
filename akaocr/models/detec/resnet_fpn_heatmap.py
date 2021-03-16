@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 _____________________________________________________________________________
+Created By  : Nguyen Ngoc Nghia - Nghiann3
+Created Date: Fri March 12 13:00:00 VNT 2021
+Project : AkaOCR core
+_____________________________________________________________________________
 
-This file contain heatmap models for text detection
+This file contains heatmap model with resnet backbone for text detection
 _____________________________________________________________________________
 """
 
