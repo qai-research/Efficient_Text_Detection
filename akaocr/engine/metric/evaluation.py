@@ -19,7 +19,6 @@ from engine.infer.heat2boxes import Heat2boxes
 from pre.image import ImageProc
 import torch
 import cv2
-
 from models.modules.converters import AttnLabelConverter, Averager
 import time
 import torch.nn.functional as F
@@ -108,7 +107,7 @@ class Evaluation:
         self.model.eval()
         with torch.no_grad():
             _, accuracy_by_best_model, _, _, _, _, _, _ = self.validation(self.model, self.criterion, self.test_loader, self.converter, self.cfg)
-            print(f'{accuracy_by_best_model:0.3f}')
+            print(f'Accuracy: {accuracy_by_best_model:0.3f}')
 
     def validation(self, model, criterion, evaluation_loader, converter, config):
         """ validation or evaluation """

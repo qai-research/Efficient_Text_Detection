@@ -31,7 +31,7 @@ def detec_test_evaluation(model_path, data_path):
     model = HEAT()
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     test_loader = load_test_dataset_detec(data_path)
-    evaluate = Evaluation(cfg, model, test_loader, num_samples=4)
+    evaluate = Evaluation(cfg, model, test_loader, num_samples=2)
     evaluate.do_eval()
     
 def recog_test_evaluation(model_path, data_path):
@@ -46,7 +46,7 @@ def recog_test_evaluation(model_path, data_path):
 if __name__=='__main__':
     model_detec_path = '/home/nghianguyen/smz_detec/best_accuracy.pth'
     data_detec_path = '/home/nghianguyen/train_data/lake_detec/ST_Demo_1'
-    # detec_test_evaluation(model_detec_path, data_detec_path)
+    detec_test_evaluation(model_detec_path, data_detec_path)
 
     model_recog_path = '/home/nghianguyen/ocr_compare/ocr_new/data/saved_models_recog/smz_recog/best_accuracy.pth'
     data_recog_path = '/home/nghianguyen/train_data/lake_recog'

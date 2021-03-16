@@ -60,7 +60,6 @@ def test_detec():
     trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, resume=True)
     trainer.do_train()
 
-
 if __name__ == '__main__':
     test_recog()
-    # test_detec()
+    test_detec()
