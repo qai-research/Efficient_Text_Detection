@@ -102,11 +102,33 @@ class Evaluation:
     
     """Evaluate recog model"""
     def recog_evaluation(self):
+        best_accuracy = -1
+        best_norm_ED = -1
         self.model.eval()
         with torch.no_grad():
-            _, accuracy_by_best_model, _, _, _, _, _, _ = recog_eval.validation(self.model, self.criterion, self.test_loader, self.converter, self.cfg)
-            print(f'Accuracy: {accuracy_by_best_model:0.3f}')
+            valid_loss, current_accuracy, current_norm_ED, preds, \
+            confidence_score, labels, infer_time, length_of_data = recog_eval.validation(self.model, self.criterion, self.test_loader, self.converter, self.cfg)
+            # print(f'Accuracy: {accuracy_by_best_model:0.3f}')
+            current_model_log = f'{"Current_accuracy":17s}: {current_accuracy:0.3f}, {"Current_norm_ED":17s}: {current_norm_ED:0.2f}'
+            if current_accuracy > best_accuracy:
+                best_accuracy = current_accuracy
+            if current_norm_ED > best_norm_ED:
+                best_norm_ED = current_norm_ED
+            best_model_log = f'{"Best_accuracy":17s}: {best_accuracy:0.3f}, {"Best_norm_ED":17s}: {best_norm_ED:0.2f}'
+            loss_model_log = f'\n{current_model_log}\n{best_model_log}'
+            print(loss_model_log)
 
+            # show some predicted results
+            dashed_line = '-' * 80
+            head = f'{"Ground Truth":25s} | {"Prediction":25s} | Confidence Score & T/F'
+            predicted_result_log = f'{dashed_line}\n{head}\n{dashed_line}\n'
+            for gt, pred, confidence in zip(labels[:5], preds[:5], confidence_score[:5]):
+                if 'Attn' in self.cfg.MODEL.PREDICTION:
+                    gt = gt[:gt.find('[s]')]
+                    pred = pred[:pred.find('[s]')]
+                predicted_result_log += f'{gt:25s} | {pred:25s} | {confidence:0.4f}\t{str(pred == gt)}\n'
+            predicted_result_log += f'{dashed_line}'
+            print(predicted_result_log)
     def do_eval(self):
         if self.cfg._BASE_.MODEL_TYPE == "HEAT_BASE":
             self.detec_evaluation()

@@ -42,7 +42,7 @@ class Trainer:
 
     def do_test(self, cfg, model):
         evaluate = Evaluation(cfg, model, self.test_loader, num_samples=1)
-        evaluate.detec_evaluation()
+        evaluate.do_eval()
 
     def do_train(self):
         self.model.train()

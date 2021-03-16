@@ -13,8 +13,7 @@ import torch
 
 from utils.file_utils import read_vocab
 from engine.trainer.loss import MapLoss
-from engine.utils.converter import CTCLabelConverter, AttnLabelConverter, Averager
-
+from models.modules.converters import CTCLabelConverter, AttnLabelConverter, Averager
 
 class CustomLoopHeat:
     def __init__(self, cfg):
