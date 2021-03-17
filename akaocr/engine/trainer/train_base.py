@@ -55,7 +55,7 @@ class Trainer:
         self.cfg.SOLVER.START_ITER = (
                 checkpointer.resume_or_load(self.cfg.SOLVER.WEIGHT, resume=self.resume).get("iteration", -1) + 1
         )
-
+        
         periodic_checkpointer = PeriodicCheckpointer(
             checkpointer, self.cfg.SOLVER.CHECKPOINT_PERIOD, max_iter=self.cfg.SOLVER.MAX_ITER
         )
@@ -87,4 +87,3 @@ class Trainer:
                     # pass
                     periodic_checkpointer.step(iteration)
                     self.do_test(self.cfg, self.model)
-                    

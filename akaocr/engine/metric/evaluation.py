@@ -108,7 +108,6 @@ class Evaluation:
         with torch.no_grad():
             valid_loss, current_accuracy, current_norm_ED, preds, \
             confidence_score, labels, infer_time, length_of_data = recog_eval.validation(self.model, self.criterion, self.test_loader, self.converter, self.cfg)
-            # print(f'Accuracy: {accuracy_by_best_model:0.3f}')
             current_model_log = f'{"Current_accuracy":17s}: {current_accuracy:0.3f}, {"Current_norm_ED":17s}: {current_norm_ED:0.2f}'
             if current_accuracy > best_accuracy:
                 best_accuracy = current_accuracy
@@ -129,6 +128,7 @@ class Evaluation:
                 predicted_result_log += f'{gt:25s} | {pred:25s} | {confidence:0.4f}\t{str(pred == gt)}\n'
             predicted_result_log += f'{dashed_line}'
             print(predicted_result_log)
+        self.model.train()
     def do_eval(self):
         if self.cfg._BASE_.MODEL_TYPE == "HEAT_BASE":
             self.detec_evaluation()
