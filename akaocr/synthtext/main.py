@@ -109,7 +109,7 @@ class BlackList:
             if not os.path.exists(output_path):
                 os.mkdir(self.output_path)
                 os.mkdir(os.path.join(self.output_path, 'images'))
-                os.mkdir(os.path.join(self.output_path, 'anotations'))
+                os.mkdir(os.path.join(self.output_path, 'annotations'))
         sample_set = list(set(self.samples))
         if self.num_cores <= 1:
             for i in sample_set:
@@ -158,7 +158,7 @@ class WhiteList:
             if not os.path.exists(output_path):
                 os.mkdir(self.output_path)
                 os.mkdir(os.path.join(self.output_path, 'images'))
-                os.mkdir(os.path.join(self.output_path, 'anotations'))
+                os.mkdir(os.path.join(self.output_path, 'annotations'))
         sample_set = list(set(self.samples))
         if self.num_cores <= 1:
             for i in sample_set:
@@ -185,7 +185,7 @@ class WhiteList:
         img_name = os.path.splitext(os.path.basename(target_image))[0]
         ano_path = target_image.split("/")
         ano_folder_path = "/".join(ano_path[:-2])
-        ano_path = os.path.join(ano_folder_path, 'anotations', '%s.json' % img_name)
+        ano_path = os.path.join(ano_folder_path, 'annotations', '%s.json' % img_name)
         ImageGenerator(fonts_path=self.config.fonts_path,
                        font_size_range=self.config.font_size_range,
                        input_json=ano_path,

@@ -124,8 +124,8 @@ class HandWritingGenerator:
             results = cv2.bitwise_and(img2, results)
             target_poss['text'][index]['y1'] = 0
             target_poss['text'][index]['y2'] = 0
-            target_poss['text'][index]['y3'] = h
-            target_poss['text'][index]['y4'] = h
+            target_poss['text'][index]['y3'] = H
+            target_poss['text'][index]['y4'] = H
         return results, target_poss
 
     def char_img(self, char):

@@ -77,7 +77,7 @@ def whiteapp(input_dict):
     opt.max_num_text = None
     opt.char_spacing_range = (float(min_char_spacing), float(max_char_spacing))
     opt.max_size = (max_height, max_width)
-    opt.input_json = os.path.join(config.background_folder, Backgrounds, 'anotations')
+    opt.input_json = os.path.join(config.background_folder, Backgrounds, 'annotations')
     opt.aug_option = {'shear': {'p': shear_p,
                                 'v': {"x": (-15, 15),
                                       "y": (-15, 15)

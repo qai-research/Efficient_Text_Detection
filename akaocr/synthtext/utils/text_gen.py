@@ -28,11 +28,13 @@ class Numberic:
     def __init__(self, low, high = None):
         self.low = low
         self.high = high
+        self.min_text_length = len(str(self.low**2))
+        self.max_text_length = len(str(self.high**2))
     
     def gen(self, opt_len):
-        
         if self.high == None:
             if self.low>=10:
+                min_p = 1
                 max_p = len(str(int(self.low)))+1
                 out = np.random.randint(1,max_p)
                 new_M = min(10**out, self.low)
@@ -48,9 +50,14 @@ class Numberic:
             new_M = min(10**out, self.high)
             new_m = max(10**(out-1), self.low)
             
-        rand = np.random.random_sample()           
-        results = np.random.randint(new_m, new_M)+rand
-        txt = "{value:.%sf}"%max(0,(np.random.randint(len(str(rand)))))
+        rand = np.random.random_sample()    
+        integer = np.random.randint(new_m, new_M)      
+        results = integer+rand
+        if type(opt_len) == str:
+            text_len = len(opt_len)-len(str(integer))
+        else:
+            text_len = (np.random.randint(self.min_text_length,self.max_text_length)-len(str(integer)))
+        txt = "{value:.%sf}"%max(0,text_len)
         txt = txt.format(value = results)
         return txt
 
@@ -81,13 +88,15 @@ class Text:
         self.text_gen_type = text_gen_type
 
     def gen(self, opt_len = None):
+        if type(opt_len) == str:
+            text_len = len(opt_len)
         if self.text_gen_type == 'randoms':
-            return self.random_generate(opt_len)
+            return self.random_generate(text_len)
         elif self.text_gen_type == 'words':
-            return self.word_generate(opt_len)
+            return self.word_generate(text_len)
         elif self.text_gen_type == 'numberics':
             self.vocab_dict = {str(i):[str(j) for j in range(10)] for i in range(10)}
-            return self.random_generate(opt_len)
+            return self.random_generate(text_len)
         else:
             raise ValueError("Text gen type must be 'ramdoms', 'words' or 'numberics'.")
 

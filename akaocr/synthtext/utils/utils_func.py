@@ -151,7 +151,7 @@ def get_all_valid(background_folder, source_folder, font_folder):
     existed_background = sorted(
         [os.path.join(background_folder, name) for name in os.listdir(background_folder)])
     whitelist_background = [path for path in existed_background if
-                            os.path.isdir(path) and 'anotations' in os.listdir(path)]
+                            os.path.isdir(path) and 'annotations' in os.listdir(path)]
     blacklist_background = [path for path in existed_background if os.path.isdir(path)]
     bg_df = {"NAME": [],
              "METHOD": [],
