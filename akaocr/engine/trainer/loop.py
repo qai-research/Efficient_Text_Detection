@@ -10,7 +10,6 @@ Custom loop for models
 _____________________________________________________________________________
 """
 import torch
-
 from utils.file_utils import read_vocab
 from engine.trainer.loss import MapLoss
 from models.modules.converters import CTCLabelConverter, AttnLabelConverter, Averager
@@ -19,8 +18,7 @@ class CustomLoopHeat:
     def __init__(self, cfg):
         self.loss_func = MapLoss()
         self.cfg = cfg
-
-    def loop(self, model, inputs):
+    def loop(self, model, inputs, accuracy = None):
         images, char_label, affinity_label, mask = inputs
         images = images.to(device=self.cfg.SOLVER.DEVICE)
         char_label = char_label.to(device=self.cfg.SOLVER.DEVICE)
@@ -30,8 +28,8 @@ class CustomLoopHeat:
         out1 = out[:, :, :, 0]
         out2 = out[:, :, :, 1]
         loss = self.loss_func(char_label, affinity_label, out1, out2, mask)
-        return loss
-
+        acc = accuracy.run(model, inputs)
+        return loss, acc
 
 class CustomLoopAtten:
     def __init__(self, cfg):
@@ -47,7 +45,7 @@ class CustomLoopAtten:
             raise ValueError(f"invalid model prediction type")
         self.cfg = cfg
 
-    def loop(self, model, inputs):
+    def loop(self, model, inputs, accuracy = None):
         images, labels = inputs
         images = images.to(self.cfg.SOLVER.DEVICE)
         text, length = self.converter.encode(labels, max_label_length=self.cfg.MODEL.MAX_LABEL_LENGTH)
@@ -69,6 +67,5 @@ class CustomLoopAtten:
             loss = self.loss_func(preds.view(-1, preds.shape[-1]), target.contiguous().view(-1))
         else:
             raise ValueError(f"invalid model prediction type")
-        return loss
-
-
+        acc = accuracy.run(model, inputs)
+        return loss, acc

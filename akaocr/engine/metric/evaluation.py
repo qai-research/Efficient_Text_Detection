@@ -21,45 +21,21 @@ import torch
 import cv2
 from models.modules.converters import AttnLabelConverter
 
-
-class Evaluation:
-    """This module contains evaluation methods for detec and recog models"""
-
-    def __init__(self, cfg, model, test_loader, num_samples = None):
-        """
-        Args:
-            model: model for evaluation
-            test_loader: data for evaluation
-            num_samples: number of sample will be evaluated
-        """
-
+"""Evaluate detec model"""
+class DetecEvaluation:
+    def __init__(self, cfg, model, test_loader):
         self.cfg = cfg
-        self.model = model
-        self.test_loader = test_loader
-        if self.cfg._BASE_.MODEL_TYPE == "HEAT_BASE":
-            self.max_size = self.cfg.MODEL.MAX_SIZE
-            if num_samples is None:
-                self.num_samples = self.test_loader.get_length()
-            else:
-                self.num_samples = num_samples
-        elif self.cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
-            if 'CTC' in self.cfg.MODEL.PREDICTION:
-                self.criterion = torch.nn.CTCLoss(zero_infinity=True).to(self.cfg.SOLVER.DEVICE)
-                self.converter = CTCLabelConverter(self.cfg["character"])
-            else:
-                self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0).to(self.cfg.SOLVER.DEVICE)  # ignore [GO] token = ignore index 0
-                self.converter = AttnLabelConverter(self.cfg["character"], device=self.cfg.SOLVER.DEVICE)
-        else:
-            raise Exception("MODEL_TYPE is not supported, MODEL_TYPE is HEAT_BASE or ATTEN_BASE")
-
-    """Evaluate detec model"""
-    def detec_evaluation(self):
+        self.max_size = self.cfg.MODEL.MAX_SIZE
+   
+    def run(self, model, test_loader, num_samples=None):
+        model.eval()
         recall = 0
         precision = 0
         hmean = 0
         AP = 0
-        for i in range(1, self.num_samples+1):
-            img, label = self.test_loader.get_item(i)
+        num_samples = test_loader.get_length()
+        for i in range(1, num_samples+1):
+            img, label = test_loader.get_item(i)
             gt_box = list()
             words = list()
             for j in range(len(label['words'])):
@@ -82,7 +58,7 @@ class Evaluation:
             img = ImageProc.normalize_mean_variance(img)
             img = torch.from_numpy(img).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
             img = (img.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
-            y,_ = self.model(img)
+            y,_ = model(img)
             del img     # delete variable img to save memory
             box_list = Heat2boxes(self.cfg, y, ratio_w, ratio_h)
             del y       # delete variable y to save memory
@@ -97,17 +73,36 @@ class Evaluation:
             precision += resdict['method']['precision']
             hmean += resdict['method']['hmean']
             AP += resdict['method']['AP']
-        print('recall:', recall/self.num_samples, 'precision:', precision/self.num_samples)
-        print('hmean:', hmean/self.num_samples, 'AP:', AP/self.num_samples)
+        
+        print('recall:', recall/num_samples, 'precision:', precision/num_samples)
+        print('hmean:', hmean/num_samples, 'AP:', AP/num_samples)
+        model.train()
     
-    """Evaluate recog model"""
-    def recog_evaluation(self):
+"""Evaluate recog model"""
+class RecogEvaluation():
+    def __init__(self, cfg):
+        """
+        Args:
+            model: model for evaluation
+            test_loader: data for evaluation
+            num_samples: number of sample will be evaluated
+        """
+
+        self.cfg = cfg
+        if 'CTC' in self.cfg.MODEL.PREDICTION:
+            self.criterion = torch.nn.CTCLoss(zero_infinity=True).to(self.cfg.SOLVER.DEVICE)
+            self.converter = CTCLabelConverter(self.cfg["character"])
+        else:
+            self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0).to(self.cfg.SOLVER.DEVICE)  # ignore [GO] token = ignore index 0
+            self.converter = AttnLabelConverter(self.cfg["character"], device=self.cfg.SOLVER.DEVICE)
+
+    def run(self, model, test_loader):
         best_accuracy = -1
         best_norm_ED = -1
-        self.model.eval()
+        model.eval()
         with torch.no_grad():
             valid_loss, current_accuracy, current_norm_ED, preds, \
-            confidence_score, labels, infer_time, length_of_data = recog_eval.validation(self.model, self.criterion, self.test_loader, self.converter, self.cfg)
+            confidence_score, labels, infer_time, length_of_data = recog_eval.validation(model, self.criterion, test_loader, self.converter, self.cfg)
             current_model_log = f'{"Current_accuracy":17s}: {current_accuracy:0.3f}, {"Current_norm_ED":17s}: {current_norm_ED:0.2f}'
             if current_accuracy > best_accuracy:
                 best_accuracy = current_accuracy
@@ -128,9 +123,4 @@ class Evaluation:
                 predicted_result_log += f'{gt:25s} | {pred:25s} | {confidence:0.4f}\t{str(pred == gt)}\n'
             predicted_result_log += f'{dashed_line}'
             print(predicted_result_log)
-        self.model.train()
-    def do_eval(self):
-        if self.cfg._BASE_.MODEL_TYPE == "HEAT_BASE":
-            self.detec_evaluation()
-        elif self.cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
-            self.recog_evaluation()
+        model.train()
