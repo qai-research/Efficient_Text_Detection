@@ -19,7 +19,7 @@ import torch
 from utils.utility import initial_logger
 logger = initial_logger()
 
-from engine.metric.evaluation import DetecEvaluation, RecogEvaluation
+from engine.metric.evaluation import Evaluation
 from engine.config import setup
 from utils.data.dataloader import load_test_dataset_detec
 
@@ -31,8 +31,8 @@ def detec_test_evaluation(model_path, data_path):
     model = HEAT()
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     test_loader = load_test_dataset_detec(data_path)
-    evaluation = DetecEvaluation(cfg)
-    evaluation.run(model, test_loader)
+    evaluate = Evaluation(cfg, model, test_loader, num_samples=1)
+    evaluate.do_eval()
     
 def recog_test_evaluation(model_path, data_path):
     cfg = setup("recog")
@@ -40,14 +40,17 @@ def recog_test_evaluation(model_path, data_path):
     model = torch.nn.DataParallel(model).to(device)
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')), strict=False)
     test_loader = build_dataloader(cfg, data_path, selected_data=["CR_sample1"])
-    evaluation = RecogEvaluation(cfg)
-    evaluation.run(model, test_loader)
+    evaluate = Evaluation(cfg, model, test_loader, num_samples=4)
+    evaluate.do_eval()
         
 if __name__=='__main__':
-    model_detec_path = '/home/nghianguyen/smz_detec/best_accuracy.pth'
-    data_detec_path = '/home/nghianguyen/train_data/lake_detec/ST_Demo_1'
-    # detec_test_evaluation(model_detec_path, data_detec_path)
+    model_detec_path = '/home/tanhv1/kleentext/akaocr/data/saved_models_detec/smz_detec/best_accuracy.pth'
+    data_detec_path = '/home/tanhv1/kleentext/akaocr/data/data_detec/train/'
+    detec_test_evaluation(model_detec_path, data_detec_path)
 
-    model_recog_path = '/home/nghianguyen/ocr_compare/ocr_new/data/saved_models_recog/smz_recog/best_accuracy.pth'
-    data_recog_path = '/home/nghianguyen/train_data/lake_recog'
+    model_recog_path = '/home/bacnv6/nghiann3/ocr-old/data/saved_models_recog/test1/best_accuracy.pth'
+    data_recog_path = '/home/bacnv6/nghiann3/data/RECOG/'
     recog_test_evaluation(model_recog_path, data_recog_path)
+
+    root_data_recog = "/home/bacnv6/nghiann3/data/RECOG/"
+    root_data_detec = "/home/tanhv1/kleentext/akaocr/data/data_detec/train/"

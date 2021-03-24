@@ -1,86 +1,176 @@
-# .gitlab-ci.yml
-stages: 
+# _____________________________________________________________________________
+# Created By: Nguyen Huu Kim - Kimnh3
+# Created Date: Mar 12, 2021 2:42pm GMT+0700
+# Project: AkaOCR core
+# _____________________________________________________________________________
+
+# Define test jobs for pipeline in CI-CD
+# _____________________________________________________________________________
+
+stages:
   - test
 
 .requires-trigger-building-image-commit-message:
   only:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^Trigger building image/
+      - $CI_COMMIT_MESSAGE =~ /^Trigger build image/
 
 .requires-trigger-training-commit-message:
   only:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^Trigger training/
+      - $CI_COMMIT_MESSAGE =~ /^Trigger train/
 
-.requires-trigger-testing-commit-message:
+.requires-trigger-merge-commit-message:
   only:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^Trigger testing/
+      - $CI_COMMIT_MESSAGE =~ /^Trigger merge/ #test before merge
 
-test:
+test-model:
   extends:
-    - .requires-trigger-testing-commit-message
+    - .requires-trigger-merge-commit-message
   stage: test
   tags:
-    - akaocr
-    - dvc
+    - testocr
   script:
+    #    - export CUDA_VISIBLE_DEVICES=1
     - conda activate akaocr
     - cd akaocr
     - pip install -r requirements.txt
     - pip install torch==1.8.0+cu111 torchvision==0.9.0+cu111 torchaudio===0.8.0 -f https://download.pytorch.org/whl/torch_stable.html
+    - pip install anybadge
     - cd test
-    - python models_test.py
+    - export exit_code=0 #success by default
+    - export result=""
+    - python models_test.py || export exit_code=1
+    - echo $exit_code
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="test model" --value=${result} --file=test_model.svg passed=green failed=red
+    
+  artifacts:
+    paths:
+      - akaocr/test/test_model.svg
+    when: always
+  # allow_failure: true
 
+test-config:
+  extends:
+    - .requires-trigger-merge-commit-message
+  stage: test
+  tags:
+    - testocr
+  script:
+    - conda activate akaocr
+    - cd akaocr
+    - cd test
+    - export exit_code=0 #success by default
+    - export result=""
+    - python config_test.py || export exit_code=1
+    - echo $exit_code
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="test config" --value=${result} --file=test_config.svg passed=green failed=red
+  artifacts:
+    paths:
+      - akaocr/test/test_config.svg
+    when: always
+  # allow_failure: true
 
-#### [Refer: old experiment CI steps] ####
-# build_train_image:
-#   extends:
-#     - .requires-build-image-commit-message
-#   stage: build_train_image
-#   image:
-#     name: ecpe4s/ubuntu18.04-spack
-#   tags:
-#     - docker
-#     - dvc
-#   script:
-#     - pip3 install -r requirements.txt
+test-dataloader:
+  extends:
+    - .requires-trigger-merge-commit-message
+  stage: test
+  tags:
+    - testocr
+  script:
+    - conda activate akaocr
+    - cd akaocr
+    - cd test
+    - export exit_code=0 #success by default
+    - export result=""
+    - python test_dataloader.py || export exit_code=1
+    - echo $exit_code
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="test dataloader" --value=${result} --file=test_dataloader.svg passed=green failed=red
+  artifacts:
+    paths:
+      - akaocr/test/test_dataloader.svg
+    when: always
+  # allow_failure: true
 
-# train:
-#   extends:
-#     - .requires-trigger-training-commit-message
-#   stage: train
-#   #1. Update base Docker image
-#   image: ecpe4s/ubuntu18.04-spack:latest
-#   before_script:
-#     - mkdir -p ~/.ssh
-#     - echo "$SSH" | tr -d '\r' > ~/.ssh/id_rsa
-#     - ls ~/.ssh
-#     - chmod 600 ~/.ssh/id_rsa
-#     - cat ~/.ssh/id_rsa
-#     - ssh-keyscan  -t rsa -p 2022 git3.fsoft.com.vn  >> ~/.ssh/known_hosts
-#     #2. Update (ssh) remote git3 repo, email, user
-#     - git remote set-url origin ssh://git@git3.fsoft.com.vn:2022/GROUP/DPS/rnd/cvlib.git
-#     - git config --global user.email "kimnh3@fsoft.com.vn"
-#     - git config --global user.name "kimnh3"
-#   tags:
-#     - docker
-#     - dvc
-#   script:
-#     - pip install "dvc[ssh]"
-#     - pip3 install -r requirements.txt
-#     - dvc remote modify --local storage password $DVC_PASSWORD
-#     - dvc pull data
-#     - dvc pull model
-#     #3. Update necessary scripts (train, eval, test...)
-#     - python3 train.py
-#     - dvc add model
-#     - dvc commit -f
-#     - dvc push
-#     - git add .
-#     - git status
-#     - echo "$(cat ~/.ssh/known_hosts)"
-#     - git commit -m "CI-COMMIT:($CI_COMMIT_MESSAGE)"
-#     - branch=$(git rev-parse --short HEAD)
-#     - echo $branch
-#     - git push origin HEAD:${CI_COMMIT_REF_NAME}
+test-eval:
+  extends:
+    - .requires-trigger-merge-commit-message
+  stage: test
+  tags:
+    - testocr
+  script:
+    - conda activate akaocr
+    - cd akaocr
+    - cd test
+    - export exit_code=0 #success by default
+    - export result=""
+    - python evaluation_test.py || export exit_code=1
+    - echo $exit_code
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="test evaluation" --value=${result} --file=test_evaluation.svg passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/test/test_evaluation.svg
+    when: always
+  allow_failure:
+    exit_codes: 1
+
+test-train-loop:
+  extends:
+    - .requires-trigger-merge-commit-message
+  stage: test
+  tags:
+    - testocr
+  script:
+    - conda activate akaocr
+    - cd akaocr
+    - cd test
+    - export exit_code=0 #success by default
+    - export result=""
+    - python train_loop_test.py || export exit_code=1
+    - echo $exit_code
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="test training loop" --value=${result} --file=test_train_loop.svg passed=green failed=red
+  artifacts:
+    paths:
+      - akaocr/test/test_train_loop.svg
+    when: always
+  # allow_failure: true
