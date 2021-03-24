@@ -108,6 +108,9 @@ _C.SOLVER.LR = 3.2768e-3
 
 ############################
 # See detectron2/solver/build.py for LR scheduler options
+# List of LR scheduler options from detectron2 [WarmupMultiStepLR, WarmupCosineLR]
+# List of LR scheduler options from pytorch [CosineAnnealingLR, ReduceLROnPlateau, CosineAnnealingWarmRestarts]
+# List of LR scheduler options from akaOCR [WarmupDecayCosineLR]
 _C.SOLVER.LR_SCHEDULER_NAME = "WarmupDecayCosineLR"
 
 _C.SOLVER.MAX_ITER = 40000

@@ -30,7 +30,7 @@ class LmdbDataset(Dataset):
     """
     Base loader for lmdb type dataset
     """
-    def __init__(self, root, rgb=False, labelproc=None):
+    def __init__(self, root, cfg, labelproc=None):
         """
         :param root: path to lmdb dataset
         :param rgb: process color image
@@ -41,13 +41,12 @@ class LmdbDataset(Dataset):
         logger.info(f"load dataset from : {root}")
 
         self.labelproc = labelproc
-        self.lmdbreader = LmdbReader(root, rgb)
+        self.lmdbreader = LmdbReader(root, cfg)
 
     def __len__(self):
         return self.lmdbreader.num_samples
 
     def __getitem__(self, index):
-        index += 1
         assert index <= len(self), 'index range error'
         image, label = self.lmdbreader.get_item(index)
         if self.labelproc is not None:
@@ -80,7 +79,7 @@ class LoadDataset:
                                                   sensitive=self.cfg.MODEL.SENSITIVE,
                                                   unknown=self.cfg.SOLVER.UNKNOWN)
         try:
-            dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc)
+            dataset = LmdbDataset(root, self.cfg, labelproc=labelproc)
         except Exception:
             logger.warning(f"can't read recog LMDB database from {root}")
             return None
@@ -103,7 +102,7 @@ class LoadDataset:
         """
         labelproc = label_handler.JsonLabelHandle()
         try:
-            dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc)
+            dataset = LmdbDataset(root, self.cfg, labelproc=labelproc)
         except Exception:
             logger.warning(f"can't read detec LMDB database from {root}")
             return None
@@ -184,7 +183,7 @@ class LoadDatasetIterator:
 
 class load_test_dataset_detec():
     def __init__(self, data):
-        self.lmdbreader = LmdbReader(data, rgb=True)
+        self.lmdbreader = LmdbReader(data, cfg)
 
     def get_length(self):
         return self.lmdbreader.num_samples

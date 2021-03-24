@@ -25,8 +25,13 @@ def validation(model, criterion, evaluation_loader, converter, config):
     norm_ED = 0
 
     num_batches = 0
-    for i in range(len(evaluation_loader.list_iterator)):
-        num_batches += len(evaluation_loader.list_iterator[i])
+    if type(evaluation_loader) is not tuple:
+        for i in range(len(evaluation_loader.list_iterator)):
+            num_batches += len(evaluation_loader.list_iterator[i])
+    else:
+        num_batches=1
+        evaluation_loader = zip([evaluation_loader[0]], [evaluation_loader[1]])
+        
     for i, (image_tensors, labels) in enumerate(evaluation_loader):
         batch_size = image_tensors.size(0)
         length_of_data = length_of_data + batch_size
