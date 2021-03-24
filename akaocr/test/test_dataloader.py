@@ -119,35 +119,24 @@ def test_build_dataset():
 
 
 if __name__ == '__main__':
-    root_data_recog = "/home/bacnv6/data/train_data/lake_recog"
-    root_data_detec = "/home/bacnv6/data/train_data/lake_detec"
-    root_recog = "/home/bacnv6/data/train_data/recog/CR_DOC_WL_v4_30000"
-    root_detec = '/home/bacnv6/data/train_data/detec/ST_DOC_WL_v4_30000'
+    # root_data_recog = "/home/nghianguyen/train_data/lake_recog"
+    # root_data_detec = "/home/nghianguyen/train_data/lake_detec"
+    root_data_recog = "/home/bacnv6/nghiann3/data/RECOG/"
+    root_data_detec = "/home/tanhv1/kleentext/akaocr/data/data_detec/train/"
+    # root_recog = "/home/bacnv6/data/train_data/recog/CR_DOC_WL_v4_30000"
+    # root_detec = '/home/bacnv6/data/train_data/detec/ST_DOC_WL_v4_30000'
     # config_recog = '../data/recog_constants.ini'
-    config_recog_yaml = '../data/attention_resnet_base_v1.yaml'
+    # config_recog_yaml = '../data/attention_resnet_base_v1.yaml'
     # config_detec = '../data/detec_constants.ini'
-    config_detec_yaml = '../data/heatmap_1fpn_v1.yaml'
-    vocab = '../data/vocabs/char_jpn_v2.txt'
-    # test_dataloader_detec(root_detec, config_detec, vocab)
-    # test_dataloader_recog(root_recog, config_recog, vocab)
-    #
-    # test_load_dataset(root_recog, config_recog, load_type="recog", vocab=vocab)
-    # test_load_dataset(root_detec, config_detec, load_type="detec", vocab=vocab)
-    # test_load_dataset(root_data_recog, config_recog, load_type="mrecog", vocab=vocab)
-    # test_load_dataset(root_data_detec, config_detec, load_type="mdetec", vocab=vocab)
-    #
-    # test_load_iterator(root_data_recog, config_recog, load_type="recog", vocab=vocab)
-    # test_load_iterator(root_data_detec, config_detec, load_type="detec", vocab=vocab)
+    # config_detec_yaml = '../data/heatmap_1fpn_v1.yaml'
+    # vocab = '../data/vocabs/char_jpn_v2.txt'
+   
     from engine.config import setup, dict2namespace, load_yaml_config
     from engine.build import build_dataloader
-    #################################
-    config = load_yaml_config(config_detec_yaml)
-    config = dict2namespace(config)
-    # print(config)
-    build_dataloader(root_data_detec, config, vocab=None)
-    # ##################################
-    config = load_yaml_config(config_recog_yaml)
-    config = dict2namespace(config)
-    # print(config)
-    build_dataloader(root_data_recog, config, vocab=vocab)
-    # ##################################
+  
+    config = setup("detec")
+    print(config)
+    build_dataloader(config, root_data_detec)
+  
+    config = setup("recog")
+    build_dataloader(config, root_data_recog)
