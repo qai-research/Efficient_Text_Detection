@@ -28,7 +28,12 @@ class CustomLoopHeat:
         out1 = out[:, :, :, 0]
         out2 = out[:, :, :, 1]
         loss = self.loss_func(char_label, affinity_label, out1, out2, mask)
-        acc = accuracy.run(model, inputs)
+        if accuracy is not None:
+            model.eval()
+            acc = accuracy.run(model, inputs)
+            model.train()
+        else:
+            acc = None
         return loss, acc
 
 class CustomLoopAtten:
@@ -67,5 +72,10 @@ class CustomLoopAtten:
             loss = self.loss_func(preds.view(-1, preds.shape[-1]), target.contiguous().view(-1))
         else:
             raise ValueError(f"invalid model prediction type")
-        acc = accuracy.run(model, inputs)
+        if accuracy is not None:
+            model.eval()
+            acc = accuracy.run(model, inputs)
+            model.train()
+        else:
+            acc = None
         return loss, acc

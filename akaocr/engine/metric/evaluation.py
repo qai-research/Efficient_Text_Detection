@@ -11,9 +11,6 @@ This file contains evaluation methods for both detec and recog model
 _____________________________________________________________________________
 """
 
-import sys
-sys.path.append("../")
-
 from engine.metric import tedeval, recog_eval
 from engine.infer.heat2boxes import Heat2boxes
 from pre.image import ImageProc
@@ -23,7 +20,7 @@ from models.modules.converters import AttnLabelConverter
 
 """Evaluate detec model"""
 class DetecEvaluation:
-    def __init__(self, cfg, model, test_loader):
+    def __init__(self, cfg):
         self.cfg = cfg
         self.max_size = self.cfg.MODEL.MAX_SIZE
    

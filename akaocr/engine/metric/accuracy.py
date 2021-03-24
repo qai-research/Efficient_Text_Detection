@@ -27,10 +27,8 @@ class RecogAccuracy():
             raise ValueError(f"invalid model prediction type")
        
     def run(self, model, inputs):
-        model.eval()
         with torch.no_grad():
             _,accuracy,_,_,_,_,_,_ = recog_eval.validation(model, self.criterion, inputs, self.converter, self.cfg)
-        model.train()
         return accuracy
     
 class DetecAccuracy():

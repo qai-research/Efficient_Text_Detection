@@ -109,7 +109,7 @@ def read_json_annotation(js_label):
 
 
 class LmdbReader:
-    def __init__(self, root, cfg, get_func=None):
+    def __init__(self, root, rgb=False, get_func=None):
         """
         Read lmdb dataset to variable
         :param root: path to lmdb database
@@ -122,34 +122,8 @@ class LmdbReader:
             self.num_samples = int(self.cursor.get('num-samples'.encode()))
         except KeyError:
             self.num_samples = int(self.cursor.stat()['entries'] / 2 - 1)
-        self.max_indx = self.num_samples
-        self.rgb = cfg.MODEL.RGB
+        self.rgb = rgb
         self.get_func = get_func
-        self.max_length = cfg.MODEL.MAX_LABEL_LENGTH
-        self.filtering_data = cfg.SOLVER.DATA_FILTERING
-        if self.filtering_data is False:
-            # for fast check or benchmark evaluation with no filtering
-            self.filtered_index_list = [index + 1 for index in range(self.num_samples)]
-        else:  # filtering part
-            self.filtered_index_list = []
-            for index in range(self.num_samples):
-                index += 1  # lmdb starts with 1
-                label_key = 'label-{:09d}'.format(index).encode()
-                label = self.cursor.get(label_key).decode('utf-8')
-                if len(label) > self.max_length:
-                    # print(f'The length of the label is longer than max_length: length
-                    # {len(label)}, {label} in dataset {self.root}')
-                    continue
-                valid_label = False
-                for c in label:
-                    if c is not cfg.SOLVER.UNKNOWN:
-                        valid_label = True
-                        break
-                if not valid_label:
-                    continue
-                self.filtered_index_list.append(index)
-            self.num_samples = len(self.filtered_index_list)
-
 
     def lmdb_loader(self, index):
         """
@@ -157,7 +131,6 @@ class LmdbReader:
         :param index: index of item to be fetch
         :return: Pillow image, string label
         """
-
         label_key = 'label-{:09d}'.format(index).encode()
         label = self.cursor.get(label_key).decode('utf-8')
         img_key = 'image-{:09d}'.format(index).encode()
@@ -178,8 +151,6 @@ class LmdbReader:
             return None
 
     def get_item(self, index):
-        index = self.filtered_index_list[index]
-
         if self.get_func is None:
             return self.lmdb_loader(index)
         else:

@@ -130,5 +130,5 @@ if __name__ == '__main__':
 
     # Load data recog
     config = setup("recog")
-    print(config)
+    # print(config)
     build_dataloader(config, root_data_recog)
