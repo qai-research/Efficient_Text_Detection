@@ -16,11 +16,13 @@ import shutil
 import argparse
 from pathlib import Path
 from argparse import Namespace
-
+import torch
 from engine.solver.default import _C
 from utils.utility import initial_logger
 logger = initial_logger()
-
+from utils.file_utils import read_vocab
+from models.modules.converters import AttnLabelConverter
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def get_cfg_defaults():
     """Get a yacs CfgNode object with default values for my_project."""
@@ -107,7 +109,6 @@ def setup(tp="recog"):
     cfg = get_cfg_defaults()
 
     logger.info(f"Load config from : {config}")
-    # config_data = load_yaml_config(config)
     cfg.merge_from_file(config)
 
     cfg.SOLVER.START_ITER = iteration
@@ -116,7 +117,25 @@ def setup(tp="recog"):
     cfg.SOLVER.DATA = args.data
     cfg.SOLVER.EXP = str(exp_path)
     if cfg.MODEL.VOCAB is not None:
-        cfg.MODEL.VOCAB = os.path.join(cfg.SOLVER.DATA, "vocabs", cfg.MODEL.VOCAB)
+        cfg.MODEL.VOCAB = os.path.join(cfg.SOLVER.DATA, "vocabs", cfg.MODEL.VOCAB)   
+    if cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
+        print(cfg)
+        cfg.SOLVER.DEVICE = str(device)
+        if cfg.MODEL.VOCAB:  # vocabulary is given
+            with open(cfg.MODEL.VOCAB, "r", encoding='utf-8-sig') as f:   
+                chars = f.read().strip().split("\n")
+                cfg["character"] = chars
+        else:  # use character list instead
+            cfg["character"] = list(cfg["character"])
+        if cfg.SOLVER.UNKNOWN:
+            cfg["character"].append(cfg.SOLVER.UNKNOWN)
+        cfg["character"].sort()
+        if 'CTC' in cfg.MODEL.PREDICTION:
+            converter = CTCLabelConverter(cfg["character"])
+        else:
+            converter = AttnLabelConverter(cfg["character"], device=cfg.SOLVER.DEVICE)
+        cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
+        cfg.MODEL.NUM_CLASS = len(converter.character)
     return cfg
 
 
@@ -155,7 +174,6 @@ def get_model_weight(exp_path, cp_type="best"):
     latest_model = exp_path.joinpath("iter_" + str(max_iter) + ".pth")
     logger.info(f"Latest checkpoints {str(latest_model)} found")
     return str(latest_model), max_iter
-
 
 def dict2namespace(di):
     for d in di:

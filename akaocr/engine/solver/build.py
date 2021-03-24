@@ -16,12 +16,12 @@ from enum import Enum
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Type, Union
 import torch
 
-from .lr_scheduler import WarmupCosineLR, WarmupMultiStepLR
+from .lr_scheduler import WarmupCosineLR, WarmupMultiStepLR, WarmupDecayCosineLR
 
 _GradientClipperInput = Union[torch.Tensor, Iterable[torch.Tensor]]
 _GradientClipper = Callable[[_GradientClipperInput], None]
 
-
+from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau, CosineAnnealingWarmRestarts
 class GradientClipType(Enum):
     VALUE = "value"
     NORM = "norm"
@@ -220,6 +220,13 @@ def build_lr_scheduler(
             warmup_iters=cfg.SOLVER.WARMUP_ITERS,
             warmup_method=cfg.SOLVER.WARMUP_METHOD,
         )
+    elif name == "WarmupDecayCosineLR":
+        return WarmupDecayCosineLR(
+            optimizer,
+            cfg.SOLVER.STEPS,
+            warmup_factor=cfg.SOLVER.WARMUP_FACTOR,
+            warmup_iters=cfg.SOLVER.WARMUP_ITERS,
+        )
     elif name == "WarmupCosineLR":
         return WarmupCosineLR(
             optimizer,
@@ -228,5 +235,11 @@ def build_lr_scheduler(
             warmup_iters=cfg.SOLVER.WARMUP_ITERS,
             warmup_method=cfg.SOLVER.WARMUP_METHOD,
         )
+    elif name == "CosineAnnealingLR":
+        return CosineAnnealingLR(optimizer, cfg.SOLVER.MAX_ITER, eta_min=10**-6)
+    elif name == "ReduceLROnPlateau":
+        return ReduceLROnPlateau(optimizer, mode='min', factor=0.2, threshold=0.01, patience=5)
+    elif name == "CosineAnnealingWarmRestarts":
+        return CosineAnnealingWarmRestarts(optimizer, T_0=2000, T_mult=2)
     else:
         raise ValueError("Unknown LR scheduler: {}".format(name))

@@ -28,7 +28,6 @@ from engine.build import build_dataloader
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
 def test_model_detec():
     model = HEAT()
 
