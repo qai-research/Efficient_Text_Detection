@@ -21,7 +21,7 @@ class TPSSpatialTransformerNetwork(nn.Module):
     """
     Rectification Network of RARE, namely TPS based STN
     """
-    def __init__(self, F, I_size, I_r_size, I_channel_num=1, device=torch.device(device)):
+    def __init__(self, F, I_size, I_r_size, I_channel_num=1, device=torch.device('cpu')):
         """Based on RARE TPS
 
         Parameters
