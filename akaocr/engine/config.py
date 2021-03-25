@@ -37,7 +37,7 @@ def load_yaml_config(config_path):
     return config
 
 
-def parse_args(add_help=True):
+def parse_base(add_help=True):
     parser = argparse.ArgumentParser(add_help=add_help)
     # params for prediction engine
     parser.add_argument("-e", "--exp", type=str, default="test")
@@ -45,12 +45,12 @@ def parse_args(add_help=True):
     parser.add_argument("-w", "--weight", type=str, default=None)
     parser.add_argument("-g", "--gpu", nargs="+")
     parser.add_argument("--data", type=str, default="../data")
-    return parser.parse_args()
+    # return parser.parse_args()
+    return parser
 
 
-def setup(tp="recog"):
+def setup(tp="recog", args=None):
     """setup config environment and working space"""
-    args = parse_args()
     data_path = Path(args.data)
     exp_exist = True
     if tp == "recog":
@@ -119,12 +119,10 @@ def setup(tp="recog"):
     if cfg.MODEL.VOCAB is not None:
         cfg.MODEL.VOCAB = os.path.join(cfg.SOLVER.DATA, "vocabs", cfg.MODEL.VOCAB)   
     if cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
-        print(cfg)
         cfg.SOLVER.DEVICE = str(device)
         if cfg.MODEL.VOCAB:  # vocabulary is given
-            with open(cfg.MODEL.VOCAB, "r", encoding='utf-8-sig') as f:   
-                chars = f.read().strip().split("\n")
-                cfg["character"] = chars
+            cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
+            cfg["character"] = cfg.MODEL.VOCAB
         else:  # use character list instead
             cfg["character"] = list(cfg["character"])
         if cfg.SOLVER.UNKNOWN:
@@ -134,7 +132,7 @@ def setup(tp="recog"):
             converter = CTCLabelConverter(cfg["character"])
         else:
             converter = AttnLabelConverter(cfg["character"], device=cfg.SOLVER.DEVICE)
-        cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
+        # cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
         cfg.MODEL.NUM_CLASS = len(converter.character)
     return cfg
 
