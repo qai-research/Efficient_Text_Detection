@@ -13,14 +13,14 @@
 
 <!-- PROJECT LOGO -->
 ### CI Test Pipeline status
-[![Overall Testing Pipeline](https://gitlab.com/cuongvt/ocr-components/badges/cicd/pipeline.svg)](https://gitlab.com/cuongvt/ocr-components/-/jobs)\
-Test jobs in detail: 
+[![Overall Testing Pipeline](https://gitlab.com/cuongvt/ocr-components/badges/develop/pipeline.svg)](https://gitlab.com/cuongvt/ocr-components/-/jobs)\
+Test jobs in detail (see in Pipeline for correctly status, may not real time: 
 <br />
-[![model test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/cicd/raw/akaocr/test/test_model.svg?job=test-model)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
-[![config test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/cicd/raw/akaocr/test/test_config.svg?job=test-config)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
-[![dataloader test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/cicd/raw/akaocr/test/test_dataloader.svg?job=test-dataloader)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
-[![evaluation test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/cicd/raw/akaocr/test/test_evaluation.svg?job=test-eval)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
-[![training loop test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/cicd/raw/akaocr/test/test_train_loop.svg?job=test-train-loop)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
+[![model test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/cicd/develop/akaocr/test/test_model.svg?job=test-model)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
+[![config test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/cicd/develop/akaocr/test/test_config.svg?job=test-config)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
+[![dataloader test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/cicd/develop/akaocr/test/test_dataloader.svg?job=test-dataloader)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
+[![evaluation test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/cicd/develop/akaocr/test/test_evaluation.svg?job=test-eval)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
+[![training loop test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/cicd/develop/akaocr/test/test_train_loop.svg?job=test-train-loop)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
 
 # AkaOCR
 OCR pre-train for japanese + custom process to create OCR engine for new project
