@@ -10,21 +10,24 @@ _____________________________________________________________________________
 This file contains unit test for model evaluation
 _____________________________________________________________________________
 """
-import argparse
 import sys
+
 sys.path.append("../")
 from models.detec.heatmap import HEAT
 from models.recog.atten import Atten
 import torch
 from utils.utility import initial_logger
+
 logger = initial_logger()
 
 from engine.metric.evaluation import DetecEvaluation, RecogEvaluation
-from engine.config import setup
+from engine.config import setup, parse_base
 from utils.data.dataloader import LoadTestDetecDataset
 
 from engine.build import build_dataloader
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 def detec_test_evaluation(model_path, data_path):
     cfg = setup("detec")
@@ -33,7 +36,8 @@ def detec_test_evaluation(model_path, data_path):
     test_loader = LoadTestDetecDataset(data_path, cfg)
     evaluation = DetecEvaluation(cfg)
     evaluation.run(model, test_loader)
-    
+
+
 def recog_test_evaluation(model_path, data_path):
     cfg = setup("recog")
     model = Atten(cfg)
@@ -43,25 +47,21 @@ def recog_test_evaluation(model_path, data_path):
     evaluation = RecogEvaluation(cfg)
     evaluation.run(model, test_loader)
 
+
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model_detec_path', type=str, help='path to detect model',
-                        default='/home/tanhv1/kleentext/akaocr/data/saved_models_detec/smz_detec/best_accuracy.pth')
-    parser.add_argument('--data_detec_path', type=str, help='path to detect data',
-                        default='/home/tanhv1/kleentext/akaocr/data/data_detec/train/')
-    parser.add_argument('--model_recog_path', type=str, help='path to test detect data',
-                        default='/home/bacnv6/nghiann3/ocr-old/data/saved_models_recog/test1/best_accuracy.pth')
-    parser.add_argument('--data_recog_path', type=str, help='path to test detect data',
-                        default='/home/bacnv6/nghiann3/data/RECOG/')
-    opt = parser.parse_args()
+    parser = parse_base()
+    parser.add_argument('--w_detec', type=str, help='path to detect model')
+    parser.add_argument('--data_detec', type=str, help='path to detect data')
+    parser.add_argument('--w_recog_', type=str, help='path to test detect data')
+    parser.add_argument('--data_recog', type=str, help='path to test detect data')
+    args = parser.parse_args()
 
-    # model_detec_path = '/home/tanhv1/kleentext/akaocr/data/saved_models_detec/smz_detec/best_accuracy.pth'
-    # data_detec_path = '/home/tanhv1/kleentext/akaocr/data/data_detec/train/'
-    detec_test_evaluation(opt.model_detec_path, opt.data_detec_path)
+    if args.w_detec is not None and args.data_detec is not None:
+        detec_test_evaluation(args.model_detec_path, args.data_detec_path)
 
-    # model_recog_path = '/home/bacnv6/nghiann3/ocr-old/data/saved_models_recog/test1/best_accuracy.pth'
-    # data_recog_path = '/home/bacnv6/nghiann3/data/RECOG/'
-    recog_test_evaluation(opt.model_recog_path, opt.data_recog_path)
+    if args.w_recog is not None and args.data_recog is not None:
+        recog_test_evaluation(args.model_recog_path, args.data_recog_path)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()

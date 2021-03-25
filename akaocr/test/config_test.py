@@ -14,13 +14,12 @@ _____________________________________________________________________________
 import sys
 sys.path.append("../")
 
-from engine.config import setup
+from engine.config import setup, parse_base
 
-config = setup("recog")
+
+parse = parse_base()
+args = parse.parse_args()
+config = setup("recog", args)
 print(config)
-config = setup("detec")
+config = setup("detec", args)
 print(config)
-# print(type(config.MODEL.RGB))
-# if config.MODEL.RGB:
-#     print("dump")
-# setup("dump")

@@ -11,9 +11,7 @@ _____________________________________________________________________________
 """
 import argparse
 import sys
-import os
 import torch
-import numpy as np
 import cv2
 from pathlib import Path
 
@@ -21,13 +19,13 @@ sys.path.append("../")
 from utils.data.dataloader import LmdbDataset, LoadDataset, LoadDatasetIterator
 from utils.file_utils import Constants, read_vocab
 from utils.data import collates, label_handler
-from utils.visproc import visualizer, json2contour
 from utils.visproc import save_heatmap
 from pre.image import ImageProc
-from engine.config import setup, dict2namespace, load_yaml_config
+from engine.config import setup, parse_base
 from engine.build import build_dataloader
 
-def test_dataloader_detec(root, config_path, vocab=None, image_name="demo_single_dataset_load"):
+
+def test_dataloader_detec(root, config_path, image_name="demo_single_dataset_load"):
     """Test LmdbDataset for detec"""
     constants = Constants(config_path)
     constants = constants.config
@@ -115,21 +113,23 @@ def save_vis_heatmap_from_model(x, image_name="demo"):
 def test_build_dataset():
     pass
 
+
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--root_data_recog', type=str, help='path to recog data', default='/home/bacnv6/nghiann3/data/RECOG/')
-    parser.add_argument('--root_data_detec', type=str, help='path to detect data', default='/home/tanhv1/kleentext/akaocr/data/data_detec/train/')
-    opt = parser.parse_args()
+    parser = parse_base
+    parser.add_argument('--data_recog', type=str, help='path to recog data')
+    parser.add_argument('--data_detec', type=str, help='path to detect data')
+    args = parser.parse_args()
 
-    config = setup("recog")
-    build_dataloader(config, opt.root_data_recog)
+    if args.data_recog is not None:
+        config = setup("recog", args)
+        print(config)
+        build_dataloader(config, args.root_data_recog)
 
-    config = setup("detec")
-    print(config)
-    build_dataloader(config, opt.root_data_detec)
+    if args.data_detec is not None:
+        config = setup("detec", args)
+        print(config)
+        build_dataloader(config, args.root_data_detec)
 
-    # root_data_recog = "/home/bacnv6/nghiann3/data/RECOG/"
-    # root_data_detec = "/home/tanhv1/kleentext/akaocr/data/data_detec/train/"
 
 if __name__ == '__main__':
     main()
