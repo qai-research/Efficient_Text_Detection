@@ -55,7 +55,6 @@ def test_detec(root_data_detec, data_test_path):
     acc = DetecAccuracy(cfg)
     lossc = CustomLoopHeat(cfg)
     train_loader = build_dataloader(cfg, root_data_detec)
-    test_loader = build_dataloader(cfg, root_data_detec, selected_data=["ST_Demo_1"])
     test_loader = LoadTestDetecDataset(data_test_path, cfg)
     trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, accuracy=acc, evaluation=evaluate, resume=True)
     trainer.do_train()
