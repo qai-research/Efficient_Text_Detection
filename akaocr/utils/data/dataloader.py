@@ -52,6 +52,8 @@ class LmdbDataset(Dataset):
         image, label = self.lmdbreader.get_item(index)
         if self.labelproc is not None:
             label = self.labelproc(label)
+        if label is None:
+            return None
         return image, label
 
 
@@ -78,7 +80,8 @@ class LoadDataset:
         chars = self.vocab
         labelproc = label_handler.TextLableHandle(character=chars,
                                                   sensitive=self.cfg.MODEL.SENSITIVE,
-                                                  unknown=self.cfg.SOLVER.UNKNOWN)
+                                                  unknown=self.cfg.SOLVER.UNKNOWN,
+                                                  max_length = self.cfg.MODEL.MAX_LABEL_LENGTH)
         try:
             dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc)
         except Exception:
@@ -182,9 +185,9 @@ class LoadDatasetIterator:
             except ValueError:
                 self.logger.warning(f"Getting data from dataloader failed")
 
-class load_test_dataset_detec():
-    def __init__(self, data):
-        self.lmdbreader = LmdbReader(data, rgb=True)
+class LoadTestDetecDataset():
+    def __init__(self, data, cfg):
+        self.lmdbreader = LmdbReader(data, rgb=cfg.MODEL.RGB)
 
     def get_length(self):
         return self.lmdbreader.num_samples

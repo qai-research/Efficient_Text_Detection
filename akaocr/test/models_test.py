@@ -49,7 +49,7 @@ def test_model_recog():
     model.to(device=device)
 
     x = torch.randn(1, 1, 32, 128)
-    # x = x.cuda()
+    x = x.cuda()
     x = x.to(device=device)
 
     text = ["xxx"]
