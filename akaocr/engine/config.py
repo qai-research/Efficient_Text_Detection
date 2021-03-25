@@ -119,12 +119,8 @@ def setup(tp="recog", args=None):
     if cfg.MODEL.VOCAB is not None:
         cfg.MODEL.VOCAB = os.path.join(cfg.SOLVER.DATA, "vocabs", cfg.MODEL.VOCAB)   
     if cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
-        print(cfg)
         cfg.SOLVER.DEVICE = str(device)
         if cfg.MODEL.VOCAB:  # vocabulary is given
-            # with open(cfg.MODEL.VOCAB, "r", encoding='utf-8-sig') as f:
-            #     chars = f.read().strip().split("\n")
-            #     cfg["character"] = chars
             cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
             cfg["character"] = cfg.MODEL.VOCAB
         else:  # use character list instead
