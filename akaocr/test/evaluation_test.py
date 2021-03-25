@@ -57,10 +57,10 @@ def main():
     args = parser.parse_args()
 
     if args.w_detec is not None and args.data_detec is not None:
-        detec_test_evaluation(args.model_detec_path, args.data_detec_path)
+        detec_test_evaluation(args.w_detec, args.data_detec)
 
     if args.w_recog is not None and args.data_recog is not None:
-        recog_test_evaluation(args.model_recog_path, args.data_recog_path)
+        recog_test_evaluation(args.w_recog_, args.data_recog)
 
 
 if __name__ == '__main__':
