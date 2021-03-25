@@ -59,7 +59,7 @@ def main():
     opt = parser.parse_args()
 
     test_model_detec()
-    test_model_recog(opt.config_recog_yaml)
+    test_model_recog(opt.config_recog)
 
 
 if __name__ == '__main__':
