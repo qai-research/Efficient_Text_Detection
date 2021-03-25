@@ -9,7 +9,6 @@ _____________________________________________________________________________
 This file contain unit test for dataloader
 _____________________________________________________________________________
 """
-import argparse
 import sys
 import torch
 
@@ -28,27 +27,26 @@ from engine.metric.accuracy import RecogAccuracy, DetecAccuracy
 from engine.metric.evaluation import DetecEvaluation, RecogEvaluation
 
 
-def test_recog(root_data_recog):
-    cfg = setup("recog")
-    cfg.SOLVER.DATA_SOURCE = root_data_recog
+def test_recog(args):
+    cfg = setup("recog", args)
+    cfg.SOLVER.DATA_SOURCE = args.data_recog
     model = Atten(cfg)
     model.to(device=cfg.SOLVER.DEVICE)
 
     evaluate = RecogEvaluation(cfg)
     acc = RecogAccuracy(cfg)
     lossc = CustomLoopAtten(cfg)
-    train_loader = build_dataloader(cfg, root_data_recog)
-    test_loader = build_dataloader(cfg, root_data_recog)
+    train_loader = build_dataloader(cfg, args.data_recog)
+    test_loader = build_dataloader(cfg, args.data_recog)
     trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, resume=True)
     trainer.do_train()
 
 
-def test_detec(root_data_detec, data_test_path):
-    cfg = setup("detec")
+def test_detec(args):
+    cfg = setup("detec", args)
     cfg.MODEL.NUM_CLASS = 3210
     cfg.SOLVER.DEVICE = str(device)
-    cfg.SOLVER.DATA_SOURCE = root_data_detec
-    print(cfg)
+    cfg.SOLVER.DATA_SOURCE = args.data_detec
 
     model = HEAT(cfg)
     model.to(device=device)
@@ -56,8 +54,8 @@ def test_detec(root_data_detec, data_test_path):
     evaluate = DetecEvaluation(cfg)
     acc = DetecAccuracy(cfg)
     lossc = CustomLoopHeat(cfg)
-    train_loader = build_dataloader(cfg, root_data_detec)
-    test_loader = LoadTestDetecDataset(data_test_path, cfg)
+    train_loader = build_dataloader(cfg, args.data_detec)
+    test_loader = LoadTestDetecDataset(args.data_test_detec, cfg)
     trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, accuracy=acc,
                       evaluation=evaluate, resume=True)
     trainer.do_train()
@@ -69,8 +67,8 @@ def main():
     parser.add_argument('--data_detec', type=str, help='path to detect data')
     parser.add_argument('--data_test_detec', type=str, help='path to test detect data')
     args = parser.parse_args()
-    test_recog(args.data_recog)
-    test_detec(args.data_detec, args.data_test_detec)
+    test_recog(args)
+    test_detec(args)
 
 
 if __name__ == '__main__':
