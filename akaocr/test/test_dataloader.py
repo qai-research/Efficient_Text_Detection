@@ -115,7 +115,7 @@ def test_build_dataset():
 
 
 def main():
-    parser = parse_base
+    parser = parse_base()
     parser.add_argument('--data_recog', type=str, help='path to recog data')
     parser.add_argument('--data_detec', type=str, help='path to detect data')
     args = parser.parse_args()
@@ -123,12 +123,12 @@ def main():
     if args.data_recog is not None:
         config = setup("recog", args)
         print(config)
-        build_dataloader(config, args.root_data_recog)
+        build_dataloader(config, args.data_recog)
 
     if args.data_detec is not None:
         config = setup("detec", args)
         print(config)
-        build_dataloader(config, args.root_data_detec)
+        build_dataloader(config, args.data_detec)
 
 
 if __name__ == '__main__':

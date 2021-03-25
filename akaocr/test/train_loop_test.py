@@ -38,7 +38,7 @@ def test_recog(root_data_recog):
     acc = RecogAccuracy(cfg)
     lossc = CustomLoopAtten(cfg)
     train_loader = build_dataloader(cfg, root_data_recog)
-    test_loader = build_dataloader(cfg, root_data_recog, selected_data=["CR_HW_JP_v1_1"])
+    test_loader = build_dataloader(cfg, root_data_recog)
     trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, resume=True)
     trainer.do_train()
 
@@ -64,16 +64,13 @@ def test_detec(root_data_detec, data_test_path):
 
 
 def main():
-    parser = parse_base
-    parser.add_argument('--root_data_recog', type=str, help='path to recog data',
-                        default='/home/bacnv6/nghiann3/data/RECOG/')
-    parser.add_argument('--root_data_detec', type=str, help='path to detect data',
-                        default='/home/tanhv1/kleentext/akaocr/data/data_detec/train/')
-    parser.add_argument('--data_test_path', type=str, help='path to test detect data',
-                        default='/home/tanhv1/kleentext/akaocr/data/data_detec/test/ST_Doc_WORD_v2_2/')
-    opt = parser.parse_args()
-    test_recog(opt.root_data_recog)
-    test_detec(opt.root_data_detec, opt.data_test_path)
+    parser = parse_base()
+    parser.add_argument('--data_recog', type=str, help='path to recog data')
+    parser.add_argument('--data_detec', type=str, help='path to detect data')
+    parser.add_argument('--data_test_detec', type=str, help='path to test detect data')
+    args = parser.parse_args()
+    test_recog(args.data_recog)
+    test_detec(args.data_detec, args.data_test_detec)
 
 
 if __name__ == '__main__':
