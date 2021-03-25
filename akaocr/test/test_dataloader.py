@@ -9,7 +9,7 @@ _____________________________________________________________________________
 This file contain unit test for dataloader
 _____________________________________________________________________________
 """
-
+import argparse
 import sys
 import os
 import torch
@@ -24,7 +24,8 @@ from utils.data import collates, label_handler
 from utils.visproc import visualizer, json2contour
 from utils.visproc import save_heatmap
 from pre.image import ImageProc
-
+from engine.config import setup, dict2namespace, load_yaml_config
+from engine.build import build_dataloader
 
 def test_dataloader_detec(root, config_path, vocab=None, image_name="demo_single_dataset_load"):
     """Test LmdbDataset for detec"""
@@ -111,24 +112,22 @@ def save_vis_heatmap_from_model(x, image_name="demo"):
     save_heatmap(img, [], re, af, image_name=image_name)
 
 
-from engine.build import build_dataloader
-
-
 def test_build_dataset():
     pass
 
-from engine.config import setup
-from engine.build import build_dataloader
-if __name__ == '__main__':
-    root_data_recog = "/home/nghianguyen/train_data/lake_recog"
-    root_data_detec = "/home/nghianguyen/train_data/lake_detec"
 
-    # Load data detec
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--root_data_recog', type=str, help='path to recog data', default='/home/bacnv6/nghiann3/data/RECOG/')
+    parser.add_argument('--root_data_detec', type=str, help='path to detect data', default='/home/tanhv1/kleentext/akaocr/data/data_detec/train/')
+    opt = parser.parse_args()
+
+    config = setup("recog")
+    build_dataloader(config, opt.root_data_recog)
+
     config = setup("detec")
     print(config)
-    build_dataloader(config, root_data_detec)
+    build_dataloader(config, opt.root_data_detec)
 
-    # Load data recog
-    config = setup("recog")
-    # print(config)
-    build_dataloader(config, root_data_recog)
+    # root_data_recog = "/home/bacnv6/nghiann3/data/RECOG/"
+    # root_data_detec = "/home/tanhv1/kleentext/akaocr/data/data_detec/train/"

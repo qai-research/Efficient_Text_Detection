@@ -10,7 +10,7 @@ _____________________________________________________________________________
 This file contain unit test for models
 _____________________________________________________________________________
 """
-
+import argparse
 import sys
 
 sys.path.append("../")
@@ -39,8 +39,8 @@ def test_model_detec():
     print(y[1].shape)
 
 
-def test_model_recog():
-    config_recog_yaml = '../data/attention_resnet_base_v1.yaml'
+def test_model_recog(config_recog_yaml):
+    # config_recog_yaml = '../data/attention_resnet_base_v1.yaml'
     config = load_yaml_config(config_recog_yaml)
     config = dict2namespace(config)
     config.MODEL.NUM_CLASS = 3210
@@ -61,5 +61,9 @@ def test_model_recog():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config_recog_yaml', type=str, help='path to recog data', default='../data/attention_resnet_base_v1.yaml')
+    opt = parser.parse_args()
+
     test_model_detec()
-    test_model_recog()
+    test_model_recog(opt.config_recog_yaml)

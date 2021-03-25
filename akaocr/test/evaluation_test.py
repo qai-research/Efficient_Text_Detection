@@ -10,7 +10,7 @@ _____________________________________________________________________________
 This file contains unit test for model evaluation
 _____________________________________________________________________________
 """
-
+import argparse
 import sys
 sys.path.append("../")
 from models.detec.heatmap import HEAT
@@ -44,10 +44,21 @@ def recog_test_evaluation(model_path, data_path):
     evaluation.run(model, test_loader)
         
 if __name__=='__main__':
-    model_detec_path = '/home/nghianguyen/smz_detec/best_accuracy.pth'
-    data_detec_path = '/home/nghianguyen/train_data/lake_detec/ST_Demo_1'
-    detec_test_evaluation(model_detec_path, data_detec_path)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model_detec_path', type=str, help='path to detect model',
+                        default='/home/tanhv1/kleentext/akaocr/data/saved_models_detec/smz_detec/best_accuracy.pth')
+    parser.add_argument('--data_detec_path', type=str, help='path to detect data',
+                        default='/home/tanhv1/kleentext/akaocr/data/data_detec/train/')
+    parser.add_argument('--model_recog_path', type=str, help='path to test detect data',
+                        default='/home/bacnv6/nghiann3/ocr-old/data/saved_models_recog/test1/best_accuracy.pth')
+    parser.add_argument('--data_recog_path', type=str, help='path to test detect data',
+                        default='/home/bacnv6/nghiann3/data/RECOG/')
+    opt = parser.parse_args()
 
-    model_recog_path = '/home/nghianguyen/ocr_compare/ocr_new/data/saved_models_recog/smz_recog/best_accuracy.pth'
-    data_recog_path = '/home/nghianguyen/train_data/lake_recog'
-    recog_test_evaluation(model_recog_path, data_recog_path)
+    # model_detec_path = '/home/tanhv1/kleentext/akaocr/data/saved_models_detec/smz_detec/best_accuracy.pth'
+    # data_detec_path = '/home/tanhv1/kleentext/akaocr/data/data_detec/train/'
+    detec_test_evaluation(opt.model_detec_path, opt.data_detec_path)
+
+    # model_recog_path = '/home/bacnv6/nghiann3/ocr-old/data/saved_models_recog/test1/best_accuracy.pth'
+    # data_recog_path = '/home/bacnv6/nghiann3/data/RECOG/'
+    recog_test_evaluation(opt.model_recog_path, opt.data_recog_path)
