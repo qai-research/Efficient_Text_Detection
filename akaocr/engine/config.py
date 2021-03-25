@@ -122,9 +122,11 @@ def setup(tp="recog", args=None):
         print(cfg)
         cfg.SOLVER.DEVICE = str(device)
         if cfg.MODEL.VOCAB:  # vocabulary is given
-            with open(cfg.MODEL.VOCAB, "r", encoding='utf-8-sig') as f:   
-                chars = f.read().strip().split("\n")
-                cfg["character"] = chars
+            # with open(cfg.MODEL.VOCAB, "r", encoding='utf-8-sig') as f:
+            #     chars = f.read().strip().split("\n")
+            #     cfg["character"] = chars
+            cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
+            cfg["character"] = cfg.MODEL.VOCAB
         else:  # use character list instead
             cfg["character"] = list(cfg["character"])
         if cfg.SOLVER.UNKNOWN:
@@ -134,7 +136,7 @@ def setup(tp="recog", args=None):
             converter = CTCLabelConverter(cfg["character"])
         else:
             converter = AttnLabelConverter(cfg["character"], device=cfg.SOLVER.DEVICE)
-        cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
+        # cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
         cfg.MODEL.NUM_CLASS = len(converter.character)
     return cfg
 
