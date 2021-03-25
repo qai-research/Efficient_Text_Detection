@@ -29,21 +29,21 @@ from engine.build import build_dataloader
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def detec_test_evaluation(model_path, data_path):
-    cfg = setup("detec")
+def detec_test_evaluation(args):
+    cfg = setup("detec", args)
     model = HEAT()
-    model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
-    test_loader = LoadTestDetecDataset(data_path, cfg)
+    model.load_state_dict(torch.load(args.w_detec, map_location=torch.device(device)))
+    test_loader = LoadTestDetecDataset(args.data_detec, cfg)
     evaluation = DetecEvaluation(cfg)
     evaluation.run(model, test_loader)
 
 
-def recog_test_evaluation(model_path, data_path):
-    cfg = setup("recog")
+def recog_test_evaluation(args):
+    cfg = setup("recog", args)
     model = Atten(cfg)
     model = torch.nn.DataParallel(model).to(device)
-    model.load_state_dict(torch.load(model_path, map_location=torch.device(device)), strict=False)
-    test_loader = build_dataloader(cfg, data_path, selected_data=["CR_sample1"])
+    model.load_state_dict(torch.load(args.w_recog, map_location=torch.device(device)), strict=False)
+    test_loader = build_dataloader(cfg, args.data_recog, selected_data=["CR_sample1"])
     evaluation = RecogEvaluation(cfg)
     evaluation.run(model, test_loader)
 
@@ -57,10 +57,10 @@ def main():
     args = parser.parse_args()
 
     if args.w_detec is not None and args.data_detec is not None:
-        detec_test_evaluation(args.w_detec, args.data_detec)
+        detec_test_evaluation(args)
 
     if args.w_recog is not None and args.data_recog is not None:
-        recog_test_evaluation(args.w_recog_, args.data_recog)
+        recog_test_evaluation(args)
 
 
 if __name__ == '__main__':
