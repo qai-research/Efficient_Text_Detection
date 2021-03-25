@@ -117,26 +117,18 @@ from engine.build import build_dataloader
 def test_build_dataset():
     pass
 
-
+from engine.config import setup
+from engine.build import build_dataloader
 if __name__ == '__main__':
-    # root_data_recog = "/home/nghianguyen/train_data/lake_recog"
-    # root_data_detec = "/home/nghianguyen/train_data/lake_detec"
-    root_data_recog = "/home/bacnv6/nghiann3/data/RECOG/"
-    root_data_detec = "/home/tanhv1/kleentext/akaocr/data/data_detec/train/"
-    # root_recog = "/home/bacnv6/data/train_data/recog/CR_DOC_WL_v4_30000"
-    # root_detec = '/home/bacnv6/data/train_data/detec/ST_DOC_WL_v4_30000'
-    # config_recog = '../data/recog_constants.ini'
-    # config_recog_yaml = '../data/attention_resnet_base_v1.yaml'
-    # config_detec = '../data/detec_constants.ini'
-    # config_detec_yaml = '../data/heatmap_1fpn_v1.yaml'
-    # vocab = '../data/vocabs/char_jpn_v2.txt'
-   
-    from engine.config import setup, dict2namespace, load_yaml_config
-    from engine.build import build_dataloader
-  
+    root_data_recog = "/home/nghianguyen/train_data/lake_recog"
+    root_data_detec = "/home/nghianguyen/train_data/lake_detec"
+
+    # Load data detec
     config = setup("detec")
     print(config)
     build_dataloader(config, root_data_detec)
-  
+
+    # Load data recog
     config = setup("recog")
+    # print(config)
     build_dataloader(config, root_data_recog)
