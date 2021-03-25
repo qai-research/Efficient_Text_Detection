@@ -115,8 +115,7 @@ def save_vis_heatmap_from_model(x, image_name="demo"):
 def test_build_dataset():
     pass
 
-
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root_data_recog', type=str, help='path to recog data', default='/home/bacnv6/nghiann3/data/RECOG/')
     parser.add_argument('--root_data_detec', type=str, help='path to detect data', default='/home/tanhv1/kleentext/akaocr/data/data_detec/train/')
@@ -131,3 +130,6 @@ if __name__ == '__main__':
 
     # root_data_recog = "/home/bacnv6/nghiann3/data/RECOG/"
     # root_data_detec = "/home/tanhv1/kleentext/akaocr/data/data_detec/train/"
+
+if __name__ == '__main__':
+    main()

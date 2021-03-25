@@ -59,11 +59,13 @@ def test_model_recog(config_recog_yaml):
     print(y.shape)
     # print(y)
 
-
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_recog_yaml', type=str, help='path to recog data', default='../data/attention_resnet_base_v1.yaml')
     opt = parser.parse_args()
 
     test_model_detec()
     test_model_recog(opt.config_recog_yaml)
+
+if __name__ == '__main__':
+    main()

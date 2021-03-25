@@ -42,8 +42,8 @@ def recog_test_evaluation(model_path, data_path):
     test_loader = build_dataloader(cfg, data_path, selected_data=["CR_sample1"])
     evaluation = RecogEvaluation(cfg)
     evaluation.run(model, test_loader)
-        
-if __name__=='__main__':
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_detec_path', type=str, help='path to detect model',
                         default='/home/tanhv1/kleentext/akaocr/data/saved_models_detec/smz_detec/best_accuracy.pth')
@@ -62,3 +62,6 @@ if __name__=='__main__':
     # model_recog_path = '/home/bacnv6/nghiann3/ocr-old/data/saved_models_recog/test1/best_accuracy.pth'
     # data_recog_path = '/home/bacnv6/nghiann3/data/RECOG/'
     recog_test_evaluation(opt.model_recog_path, opt.data_recog_path)
+
+if __name__=='__main__':
+    main()

@@ -59,7 +59,7 @@ def test_detec(root_data_detec, data_test_path):
     trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, accuracy=acc, evaluation=evaluate, resume=True)
     trainer.do_train()
 
-if __name__ == '__main__':
+def main():
     # root_data_recog = "/home/bacnv6/nghiann3/data/RECOG/"
     # root_data_detec = "/home/tanhv1/kleentext/akaocr/data/data_detec/train/"
     # data_test_path = '/home/tanhv1/kleentext/akaocr/data/data_detec/test/ST_Doc_WORD_v2_2/'
@@ -70,3 +70,6 @@ if __name__ == '__main__':
     opt = parser.parse_args()
     test_recog(opt.root_data_recog)
     test_detec(opt.root_data_detec, opt.data_test_path)
+
+if __name__ == '__main__':
+    main()
