@@ -25,20 +25,25 @@ class Numberic:
     Text Generator with different options
     """
 
-    def __init__(self, low, high = None):
+    def __init__(self, low, high=None):
         self.low = low
         self.high = high
-        self.min_text_length = len(str(self.low**2))
-        self.max_text_length = len(str(self.high**2))
-    
+        self.min_text_length = len(str(self.low ** 2))
+        self.max_text_length = len(str(self.high ** 2))
+
     def gen(self, opt_len):
-        if self.high == None:
-            if self.low>=10:
+        """
+
+        @param opt_len:
+        @return:
+        """
+        if self.high is None:
+            if self.low >= 10:
                 min_p = 1
-                max_p = len(str(int(self.low)))+1
-                out = np.random.randint(1,max_p)
-                new_M = min(10**out, self.low)
-                new_m = max(10**(out-1), self.low)
+                max_p = len(str(int(self.low))) + 1
+                out = np.random.randint(1, max_p)
+                new_M = min(10 ** out, self.low)
+                new_m = max(10 ** (out - 1), self.low)
             else:
                 out = 1
                 new_M = self.low
@@ -47,18 +52,18 @@ class Numberic:
             min_p = len(str(int(self.low)))
             max_p = len(str(int(self.high)))
             out = np.random.randint(min_p, max_p)
-            new_M = min(10**out, self.high)
-            new_m = max(10**(out-1), self.low)
-            
-        rand = np.random.random_sample()    
-        integer = np.random.randint(new_m, new_M)      
-        results = integer+rand
+            new_M = min(10 ** out, self.high)
+            new_m = max(10 ** (out - 1), self.low)
+
+        rand = np.random.random_sample()
+        integer = np.random.randint(new_m, new_M)
+        results = integer + rand
         if type(opt_len) == str:
-            text_len = len(opt_len)-len(str(integer))
+            text_len = len(opt_len) - len(str(integer))
         else:
-            text_len = (np.random.randint(self.min_text_length,self.max_text_length)-len(str(integer)))
-        txt = "{value:.%sf}"%max(0,text_len)
-        txt = txt.format(value = results)
+            text_len = (np.random.randint(self.min_text_length, self.max_text_length) - len(str(integer)))
+        txt = "{value:.%sf}" % max(0, text_len)
+        txt = txt.format(value=results)
         return txt
 
 
@@ -66,8 +71,9 @@ class Text:
     """
     Text Generator with different options
     """
+
     def __init__(self, source_text_path, vocab_group_path=None, min_text_length=1, max_text_length=15,
-                 replace_percentage=0.5, text_gen_type = 'randoms'):
+                 replace_percentage=0.5, text_gen_type='randoms'):
 
         with open(source_text_path, "r", encoding='utf-8-sig') as f:
             self.source_sentences = f.read().strip().split("\n")
@@ -87,15 +93,22 @@ class Text:
         self.short_percentage = 0.8
         self.text_gen_type = text_gen_type
 
-    def gen(self, opt_len = None):
+    def gen(self, opt_len=None):
+        """
+
+        @param opt_len:
+        @return:
+        """
         if type(opt_len) == str:
             text_len = len(opt_len)
+        else:
+            text_len = opt_len
         if self.text_gen_type == 'randoms':
             return self.random_generate(text_len)
         elif self.text_gen_type == 'words':
             return self.word_generate(text_len)
         elif self.text_gen_type == 'numberics':
-            self.vocab_dict = {str(i):[str(j) for j in range(10)] for i in range(10)}
+            self.vocab_dict = {str(i): [str(j) for j in range(10)] for i in range(10)}
             return self.random_generate(text_len)
         else:
             raise ValueError("Text gen type must be 'ramdoms', 'words' or 'numberics'.")
@@ -159,28 +172,28 @@ class Text:
         wakati = MeCab.Tagger("-Owakati")
         template = [word for word in wakati.parse(template).split()]
         word = ''
-        while len(word)<min_text_length or len(word)>max_text_length:
+        while len(word) < min_text_length or len(word) > max_text_length:
             s_ind = np.random.randint(len(template))
-            l_ind = np.random.randint(len(template)-s_ind)
-            more = random.choice(template)
-            word = "".join(template[s_ind:s_ind+l_ind])           
+            l_ind = np.random.randint(len(template) - s_ind)
+            # more = random.choice(template)
+            word = "".join(template[s_ind:s_ind + l_ind])
         return word
 
 
 class TextGenerator:
 
     def __init__(self, source_text_path, vocab_group_path=None, min_text_length=1, max_text_length=15,
-                 replace_percentage=0.5, text_gen_type = 'words'):
+                 replace_percentage=0.5, text_gen_type='words'):
         if not os.path.exists(source_text_path):
-            self.generator = Numberic(low = 10**(min_text_length//2),
-                                       high = 10**(max_text_length//2))
+            self.generator = Numberic(low=10 ** (min_text_length // 2),
+                                      high=10 ** (max_text_length // 2))
         else:
-            self.generator = Text(source_text_path, 
-                                vocab_group_path, 
-                                min_text_length, 
-                                max_text_length, 
-                                replace_percentage,
-                                text_gen_type)
+            self.generator = Text(source_text_path,
+                                  vocab_group_path,
+                                  min_text_length,
+                                  max_text_length,
+                                  replace_percentage,
+                                  text_gen_type)
 
-    def generate(self, opt_len = None):
-        return self.generator.gen(opt_len = opt_len)
+    def generate(self, opt_len=None):
+        return self.generator.gen(opt_len=opt_len)

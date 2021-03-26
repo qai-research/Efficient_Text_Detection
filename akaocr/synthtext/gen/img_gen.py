@@ -151,11 +151,10 @@ def ImageGenerator(fonts_path=None,
 
         source_images, source_chars_coor = Augmentator(source_images, source_chars_coor, aug_option)
         # Preprocess the clean background
-        trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image, max_size=max_size)
-        if method == 'white':
-            trans.inpainting = True
-        else:
-            trans.inpainting = False
+        if method == 'white':            
+            trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image, max_size=max_size, inpainting = True)
+        else:            
+            trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image, max_size=max_size)
         # for _ in range(num_samples):
         if is_object:
             sample_index = np.random.choice(range(len(source_images)), size=len(target_points))
