@@ -30,7 +30,8 @@ class DetecEvaluation:
         precision = 0
         hmean = 0
         AP = 0
-        num_samples = test_loader.get_length()
+        if num_samples > test_loader.get_length():
+            num_samples = test_loader.get_length()
         for i in range(1, num_samples+1):
             img, label = test_loader.get_item(i)
             gt_box = list()
@@ -93,13 +94,18 @@ class RecogEvaluation():
             self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0).to(self.cfg.SOLVER.DEVICE)  # ignore [GO] token = ignore index 0
             self.converter = AttnLabelConverter(self.cfg["character"], device=self.cfg.SOLVER.DEVICE)
 
-    def run(self, model, test_loader):
+    def run(self, model, test_loader, num_samples):
         best_accuracy = -1
         best_norm_ED = -1
+        data_length = 0
+        for i in range(len(test_loader.list_iterator)):
+            data_length += len(test_loader.list_iterator[i])
+        if num_samples > data_length:
+            num_samples = data_length 
         model.eval()
         with torch.no_grad():
             valid_loss, current_accuracy, current_norm_ED, preds, \
-            confidence_score, labels, infer_time, length_of_data = recog_eval.validation(model, self.criterion, test_loader, self.converter, self.cfg)
+            confidence_score, labels, infer_time, length_of_data = recog_eval.validation(model, self.criterion, test_loader, self.converter, self.cfg, num_samples=num_samples)
             current_model_log = f'{"Current_accuracy":17s}: {current_accuracy:0.3f}, {"Current_norm_ED":17s}: {current_norm_ED:0.2f}'
             if current_accuracy > best_accuracy:
                 best_accuracy = current_accuracy

@@ -16,7 +16,7 @@ import torch.nn.functional as F
 from nltk.metrics.distance import edit_distance
 import torch 
 
-def validation(model, criterion, evaluation_loader, converter, config):
+def validation(model, criterion, evaluation_loader, converter, config, num_samples=0):
     """ validation or evaluation """
     n_correct = 0
     length_of_data = 0
@@ -24,14 +24,6 @@ def validation(model, criterion, evaluation_loader, converter, config):
     valid_loss_avg = Averager()
     norm_ED = 0
 
-    num_batches = 0
-    if type(evaluation_loader) is not tuple:
-        for i in range(len(evaluation_loader.list_iterator)):
-            num_batches += len(evaluation_loader.list_iterator[i])
-    else:
-        num_batches=1
-        evaluation_loader = zip([evaluation_loader[0]], [evaluation_loader[1]])
-        
     for i, (image_tensors, labels) in enumerate(evaluation_loader):
         batch_size = image_tensors.size(0)
         length_of_data = length_of_data + batch_size
@@ -110,7 +102,8 @@ def validation(model, criterion, evaluation_loader, converter, config):
                 confidence_score = 0  # for empty pred case, when prune after "end of sentence" token ([s])
             confidence_score_list.append(confidence_score)
 
-        if i == num_batches-1:  # stop after a number of batches is reached
+        # if i == num_batches-1:  # stop after a number of batches is reached
+        if i == num_samples - 1:
             break
     accuracy = n_correct / float(length_of_data) * 100
     norm_ED = norm_ED / float(length_of_data)  # ICDAR2019 Normalized Edit Distance
