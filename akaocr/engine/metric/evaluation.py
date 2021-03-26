@@ -17,7 +17,7 @@ from pre.image import ImageProc
 import torch
 import cv2
 from models.modules.converters import AttnLabelConverter
-
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 """Evaluate detec model"""
 class DetecEvaluation:
     def __init__(self, cfg):
@@ -56,6 +56,7 @@ class DetecEvaluation:
             img = ImageProc.normalize_mean_variance(img)
             img = torch.from_numpy(img).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
             img = (img.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
+            img = img.to(device)
             y,_ = model(img)
             del img     # delete variable img to save memory
             box_list = Heat2boxes(self.cfg, y, ratio_w, ratio_h)
