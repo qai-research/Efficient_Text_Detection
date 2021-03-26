@@ -57,7 +57,7 @@ test-model:
       fi
   artifacts:
     paths:
-      - akaocr/test/test_model.svg #artifact, path as cd when the badge was created
+      - akaocr/test/badge_test_model.svg #artifact, path as cd when the badge was created
     when: always #upload on both success and fail job
   allow_failure:
     exit_codes: 137 #a number !=1 to make the job failed if it actually fail
@@ -90,7 +90,7 @@ test-config:
       fi
   artifacts:
     paths:
-      - akaocr/test/test_config.svg
+      - akaocr/test/badge_test_config.svg
     when: always
   allow_failure:
     exit_codes: 137
@@ -123,7 +123,7 @@ test-dataloader:
       fi
   artifacts:
     paths:
-      - akaocr/test/test_dataloader.svg
+      - akaocr/test/badge_test_dataloader.svg
     when: always
   allow_failure:
     exit_codes: 137
@@ -156,7 +156,7 @@ test-eval:
       fi
   artifacts:
     paths:
-      - akaocr/test/test_evaluation.svg
+      - akaocr/test/badge_test_evaluation.svg
     when: always
   allow_failure:
     exit_codes: 137
@@ -189,7 +189,7 @@ test-train-loop:
       fi
   artifacts:
     paths:
-      - akaocr/test/test_train_loop.svg
+      - akaocr/test/badge_test_train_loop.svg
     when: always
   allow_failure:
     exit_codes: 137
