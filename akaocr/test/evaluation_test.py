@@ -52,7 +52,7 @@ def main():
     parser = parse_base()
     parser.add_argument('--w_detec', type=str, help='path to detect model')
     parser.add_argument('--data_detec', type=str, help='path to detect data')
-    parser.add_argument('--w_recog_', type=str, help='path to test detect data')
+    parser.add_argument('--w_recog', type=str, help='path to test detect data')
     parser.add_argument('--data_recog', type=str, help='path to test detect data')
     args = parser.parse_args()
 
