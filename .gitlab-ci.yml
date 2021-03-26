@@ -41,7 +41,7 @@ test-model:
     - cd test
     - export exit_code=0 #success by default
     - export result=""
-    - python models_test.py --config_recog_yaml "../data/attention_resnet_base_v1.yaml"  || export exit_code=1
+    - python models_test.py --config_recog "../data/attention_resnet_base_v1.yaml"  || export exit_code=1
     - echo $exit_code
     - >
       if [ ${exit_code} -ne 0 ]; then
@@ -107,7 +107,7 @@ test-dataloader:
     - cd test
     - export exit_code=0 #success by default
     - export result=""
-    - python test_dataloader.py --root_data_recog /home/bacnv6/nghiann3/data/RECOG/ --root_data_detec /home/tanhv1/kleentext/akaocr/data/data_detec/train/ || export exit_code=1
+    - python test_dataloader.py --data_recog /home/bacnv6/nghiann3/data/RECOG/ --data_detec /home/tanhv1/kleentext/akaocr/data/data_detec/train/ || export exit_code=1
     - echo $exit_code
     - >
       if [ ${exit_code} -ne 0 ]; then
@@ -140,7 +140,7 @@ test-eval:
     - cd test
     - export exit_code=0 #success by default
     - export result=""
-    - python evaluation_test.py --model_detec_path /home/tanhv1/kleentext/akaocr/data/saved_models_detec/smz_detec/best_accuracy.pth --data_detec_path /home/tanhv1/kleentext/akaocr/data/data_detec/train/ --model_recog_path /home/bacnv6/nghiann3/ocr-old/data/saved_models_recog/test1/best_accuracy.pth --data_recog_path /home/bacnv6/nghiann3/data/RECOG/ || export exit_code=1
+    - python evaluation_test.py --w_detec /home/tanhv1/kleentext/akaocr/data/saved_models_detec/smz_detec/best_accuracy.pth --data_detec /home/tanhv1/kleentext/akaocr/data/data_detec/train/ST_Scene_ktex_50000/ --w_recog /home/bacnv6/nghiann3/ocr-old/data/saved_models_recog/test1/best_accuracy.pth --data_recog /home/bacnv6/nghiann3/data/RECOG/ || export exit_code=1
     - echo $exit_code
     - >
       if [ ${exit_code} -ne 0 ]; then
@@ -173,7 +173,7 @@ test-train-loop:
     - cd test
     - export exit_code=0 #success by default
     - export result=""
-    - python train_loop_test.py --root_data_recog /home/bacnv6/nghiann3/data/RECOG/ --root_data_detec /home/tanhv1/kleentext/akaocr/data/data_detec/train/ --data_test_path /home/tanhv1/kleentext/akaocr/data/data_detec/test/ST_Doc_WORD_v2_2/ || export exit_code=1
+    - python train_loop_test.py --data_recog /home/bacnv6/nghiann3/data/RECOG/ --data_detec /home/tanhv1/kleentext/akaocr/data/data_detec/train/ --data_test_detec /home/tanhv1/kleentext/akaocr/data/data_detec/train/ST_Scene_ktex_50000/ || export exit_code=1
     - echo $exit_code
     - >
       if [ ${exit_code} -ne 0 ]; then
