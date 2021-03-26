@@ -45,7 +45,7 @@ def recog_test_evaluation(args):
     model.load_state_dict(torch.load(args.w_recog, map_location=torch.device(device)), strict=False)
     test_loader = build_dataloader(cfg, args.data_recog)
     evaluation = RecogEvaluation(cfg)
-    evaluation.run(model, test_loader, num_sample=10)
+    evaluation.run(model, test_loader, num_samples=10)
 
 
 def main():

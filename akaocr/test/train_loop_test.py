@@ -38,7 +38,8 @@ def test_recog(args):
     lossc = CustomLoopAtten(cfg)
     train_loader = build_dataloader(cfg, args.data_recog)
     test_loader = build_dataloader(cfg, args.data_recog)
-    trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, resume=True)
+    trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, accuracy=acc,
+                    evaluation=evaluate, resume=True)
     trainer.do_train()
 
 
