@@ -28,6 +28,7 @@ class RecogAccuracy():
        
     def run(self, model, inputs):
         with torch.no_grad():
+            inputs = zip([inputs[0]], [inputs[1]])
             _,accuracy,_,_,_,_,_,_ = recog_eval.validation(model, self.criterion, inputs, self.converter, self.cfg)
         return accuracy
     

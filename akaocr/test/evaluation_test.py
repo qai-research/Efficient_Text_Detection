@@ -33,9 +33,10 @@ def detec_test_evaluation(args):
     cfg = setup("detec", args)
     model = HEAT()
     model.load_state_dict(torch.load(args.w_detec, map_location=torch.device(device)))
+    model = model.to(device)
     test_loader = LoadTestDetecDataset(args.data_detec, cfg)
     evaluation = DetecEvaluation(cfg)
-    evaluation.run(model, test_loader)
+    evaluation.run(model, test_loader, num_samples=1)
 
 
 def recog_test_evaluation(args):
@@ -43,16 +44,17 @@ def recog_test_evaluation(args):
     model = Atten(cfg)
     model = torch.nn.DataParallel(model).to(device)
     model.load_state_dict(torch.load(args.w_recog, map_location=torch.device(device)), strict=False)
+    model = model.to(device)
     test_loader = build_dataloader(cfg, args.data_recog)
     evaluation = RecogEvaluation(cfg)
-    evaluation.run(model, test_loader)
+    evaluation.run(model, test_loader, num_samples=10)
 
 
 def main():
     parser = parse_base()
     parser.add_argument('--w_detec', type=str, help='path to detect model')
     parser.add_argument('--data_detec', type=str, help='path to detect data')
-    parser.add_argument('--w_recog_', type=str, help='path to test detect data')
+    parser.add_argument('--w_recog', type=str, help='path to test detect data')
     parser.add_argument('--data_recog', type=str, help='path to test detect data')
     args = parser.parse_args()
 

@@ -56,11 +56,11 @@ SOLVER:
   WORKERS : 4
 
   # maximum number of iteration
-  MAX_ITER: 300000
-
+  # MAX_ITER: 300000
+  MAX_ITER: 1000
   # interval of iteration to do validation
-  EVAL_PERIOD: 5000
-
+  # EVAL_PERIOD: 5000
+  EVAL_PERIOD: 500
   # IDs of devices that host the data, model, etc.
   DEVICE_IDS : None
 
