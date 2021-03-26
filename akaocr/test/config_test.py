@@ -20,6 +20,7 @@ from engine.config import setup, parse_base
 parse = parse_base()
 args = parse.parse_args()
 config = setup("recog", args)
+print(config)
 print("Vocab length is : ", len(config.MODEL.VOCAB))
 config = setup("detec", args)
 print(config)
