@@ -96,9 +96,11 @@ _C.SOLVER.UNKNOWN = ''
 # number of data loading workers default=0, int
 _C.SOLVER.WORKERS = 4
 # maximum number of iteration
-_C.SOLVER.MAX_ITER = 300000
+# _C.SOLVER.MAX_ITER = 300000
+_C.SOLVER.MAX_ITER = 1000
 # interval to do validation
-_C.SOLVER.EVAL_PERIOD = 5000
+# _C.SOLVER.EVAL_PERIOD = 5000
+_C.SOLVER.EVAL_PERIOD = 500
 # IDs of devices that host the data, model, etc.
 _C.SOLVER.DEVICE_IDS = None
 # batch size of training default=1, int
@@ -135,7 +137,8 @@ _C.SOLVER.WARMUP_ITERS = 1000
 _C.SOLVER.WARMUP_METHOD = "linear"
 
 # Save a checkpoint after every this number of iterations
-_C.SOLVER.CHECKPOINT_PERIOD = 5000
+# _C.SOLVER.CHECKPOINT_PERIOD = 5000
+_C.SOLVER.CHECKPOINT_PERIOD = 500
 
 # Number of images per batch across all machines.
 # If we have 16 GPUs and IMS_PER_BATCH = 32,
