@@ -16,6 +16,7 @@ from engine.infer.heat2boxes import Heat2boxes
 from pre.image import ImageProc
 import torch
 import cv2
+import sys
 from models.modules.converters import AttnLabelConverter
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 """Evaluate detec model"""
@@ -24,7 +25,7 @@ class DetecEvaluation:
         self.cfg = cfg
         self.max_size = self.cfg.MODEL.MAX_SIZE
    
-    def run(self, model, test_loader, num_samples=None):
+    def run(self, model, test_loader, metric=None, num_samples=None, early_stop_after=5):
         model.eval()
         recall = 0
         precision = 0
@@ -72,10 +73,22 @@ class DetecEvaluation:
             precision += resdict['method']['precision']
             hmean += resdict['method']['hmean']
             AP += resdict['method']['AP']
-        
-        print('recall:', recall/num_samples, 'precision:', precision/num_samples)
-        print('hmean:', hmean/num_samples, 'AP:', AP/num_samples)
+
+        mess =  'recall:', recall/num_samples, 'precision:', precision/num_samples, 'hmean:', hmean/num_samples
+        recall = recall/num_samples
+        precision = precision/num_samples
+        hmean = hmean/num_samples
+        if metric is None:
+            metric = (recall, precision, hmean, 0)
+        elif metric[0] < recall:
+            metric[0] = recall
+            metric[3] = 0
+        else:
+            metric[3] += 1
+            if metric[3] > early_stop_after:
+                sys.exit()
         model.train()
+        return metric, mess
     
 """Evaluate recog model"""
 class RecogEvaluation():

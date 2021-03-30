@@ -46,7 +46,8 @@ class MapLoss(nn.Module):
         return sum_loss
 
     def forward(self, gh_label, gah_label, p_gh, p_gah, mask):
-        loss_fn = torch.nn.MSELoss(reduce=False, size_average=False)
+        # loss_fn = torch.nn.MSELoss(reduce=False, size_average=False)
+        loss_fn = torch.nn.MSELoss(reduction='none')
 
         assert p_gh.size() == gh_label.size() and p_gah.size() == gah_label.size()
         loss1 = loss_fn(p_gh, gh_label)
