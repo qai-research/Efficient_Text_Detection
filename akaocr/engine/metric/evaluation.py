@@ -108,7 +108,7 @@ class RecogEvaluation():
             self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0).to(self.cfg.SOLVER.DEVICE)  # ignore [GO] token = ignore index 0
             self.converter = AttnLabelConverter(self.cfg["character"], device=self.cfg.SOLVER.DEVICE)
 
-    def run(self, model, test_loader, num_samples):
+    def run(self, model, test_loader, metric=None, num_samples=None, early_stop_after=5):
         best_accuracy = -1
         best_norm_ED = -1
         data_length = 0
@@ -127,7 +127,21 @@ class RecogEvaluation():
                 best_norm_ED = current_norm_ED
             best_model_log = f'{"Best_accuracy":17s}: {best_accuracy:0.3f}, {"Best_norm_ED":17s}: {best_norm_ED:0.2f}'
             loss_model_log = f'\n{current_model_log}\n{best_model_log}'
-            print(loss_model_log)
+            
+            #log in metric
+            mess =  f'{"Best_accuracy":17s}: {best_accuracy:0.3f}, {"Best_norm_ED":17s}: {best_norm_ED:0.2f}\n{current_model_log}\n{best_model_log}'
+            if metric is None:
+                metric = (current_accuracy, current_norm_ED, 0)
+            elif metric[0] < current_accuracy: #check accuracy only, not norm
+                metric[0] = current_accuracy
+                metric[2] = 0
+            else:
+                metric[2] += 1
+                if metric[2] > early_stop_after:
+                    sys.exit()
+            model.train()
+            return metric, mess
+            # print(loss_model_log)
 
             # show some predicted results
             dashed_line = '-' * 80

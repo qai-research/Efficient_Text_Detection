@@ -70,8 +70,8 @@ def main():
     parser.add_argument('--data_detec', type=str, help='path to detect data')
     parser.add_argument('--data_test_detec', type=str, help='path to test detect data')
     args = parser.parse_args()
-    # test_recog(args)
-    test_detec(args)
+    test_recog(args)
+    # test_detec(args)
 
 
 if __name__ == '__main__':
