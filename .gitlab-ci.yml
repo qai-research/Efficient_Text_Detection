@@ -33,6 +33,8 @@ test-model:
     - testocr
   script:
     #    - export CUDA_VISIBLE_DEVICES=1 #in case 1st gpu full (2 gpus)
+    - echo $CI_JOB_STAGE
+    # - conda env create -f jobs/environment.yml -q #config new env to create if not exist, when use docker
     - conda activate akaocr #activate existed env; create a new env when use Docker
     - cd akaocr #cd to source
     - pip install -r requirements.txt #install for the 1st time only
@@ -69,6 +71,7 @@ test-config:
   tags:
     - testocr
   script:
+    - echo $CI_JOB_STAGE
     - conda activate akaocr
     - cd akaocr
     - cd test
@@ -102,6 +105,7 @@ test-dataloader:
   tags:
     - testocr
   script:
+    - echo $CI_JOB_STAGE
     - conda activate akaocr
     - cd akaocr
     - cd test
@@ -135,6 +139,7 @@ test-eval:
   tags:
     - testocr
   script:
+    - echo $CI_JOB_STAGE
     - conda activate akaocr
     - cd akaocr
     - cd test
@@ -169,6 +174,7 @@ test-train-loop:
   tags:
     - testocr
   script:
+    - echo $CI_JOB_STAGE
     - conda activate akaocr
     - cd akaocr
     - cd test
