@@ -183,7 +183,7 @@ class LoadDatasetIterator:
                 self.list_iterator[self.idi] = iter(self.list_dataset[self.idi])
                 logger.info(f"exhaust dataloader from {self.filled_selected_data[self.idi]} : reload")
             except ValueError:
-                self.logger.warning(f"Getting data from dataloader failed")
+                logger.warning(f"Getting data from dataloader failed")
 
 class LoadTestDetecDataset():
     def __init__(self, data, cfg):

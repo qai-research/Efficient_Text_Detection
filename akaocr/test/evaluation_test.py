@@ -34,9 +34,9 @@ def detec_test_evaluation(args):
     model = HEAT()
     model.load_state_dict(torch.load(args.w_detec, map_location=torch.device(device)))
     model = model.to(device)
-    test_loader = LoadTestDetecDataset(args.data_detec, cfg)
+    test_loader = LoadTestDetecDataset(args.data_test_detec, cfg)
     evaluation = DetecEvaluation(cfg)
-    evaluation.run(model, test_loader, num_samples=1)
+    evaluation.run(model, test_loader)
 
 
 def recog_test_evaluation(args):
@@ -47,18 +47,18 @@ def recog_test_evaluation(args):
     model = model.to(device)
     test_loader = build_dataloader(cfg, args.data_recog)
     evaluation = RecogEvaluation(cfg)
-    evaluation.run(model, test_loader, num_samples=10)
+    evaluation.run(model, test_loader)
 
 
 def main():
     parser = parse_base()
     parser.add_argument('--w_detec', type=str, help='path to detect model')
-    parser.add_argument('--data_detec', type=str, help='path to detect data')
+    parser.add_argument('--data_test_detec', type=str, help='path to detect data')
     parser.add_argument('--w_recog', type=str, help='path to test detect data')
     parser.add_argument('--data_recog', type=str, help='path to test detect data')
     args = parser.parse_args()
 
-    if args.w_detec is not None and args.data_detec is not None:
+    if args.w_detec is not None and args.data_test_detec is not None:
         detec_test_evaluation(args)
 
     if args.w_recog is not None and args.data_recog is not None:

@@ -38,12 +38,13 @@ class Trainer:
         self.accuracy = accuracy
         self.evaluation = evaluation
         self.resume = resume
+        self.metric = None
 
         if test_loader is None:
             logger.warning(f"Validation data not found, training without checkpoint validation")
 
-    def do_test(self, model, data):
-        self.evaluation.run(model, data, num_samples=2)
+    def do_test(self, model, data, metric):
+        return self.evaluation.run(model, data, metric=metric)
 
     def do_train(self):
         self.model.train()
@@ -72,7 +73,7 @@ class Trainer:
             for data, iteration in zip(self.train_loader, range(self.cfg.SOLVER.START_ITER, self.cfg.SOLVER.MAX_ITER)):
                 storage.iter = iteration
                 loss, acc = self.custom_loop.loop(self.model, data, self.accuracy)
-                print(loss, acc)
+                # print(loss, acc)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -83,9 +84,9 @@ class Trainer:
                 scheduler.step()
                 writers[2].write()
                 if (
-                        (iteration+1) % self.cfg.SOLVER.EVAL_PERIOD == 0
+                        (iteration) % self.cfg.SOLVER.EVAL_PERIOD == 0
                         and iteration != self.cfg.SOLVER.MAX_ITER - 1
                 ):
-                    # pass
                     periodic_checkpointer.step(iteration)
-                    self.do_test(self.model, self.test_loader)
+                    self.metric, mess = self.do_test(self.model, self.test_loader, self.metric)
+                    logger.info(mess)

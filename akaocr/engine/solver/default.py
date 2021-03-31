@@ -135,8 +135,8 @@ _C.SOLVER.WARMUP_ITERS = 1000
 _C.SOLVER.WARMUP_METHOD = "linear"
 
 # Save a checkpoint after every this number of iterations
-# _C.SOLVER.CHECKPOINT_PERIOD = 5000
-_C.SOLVER.CHECKPOINT_PERIOD = 500
+_C.SOLVER.CHECKPOINT_PERIOD = 5000
+# _C.SOLVER.CHECKPOINT_PERIOD = 500
 # Number of images per batch across all machines.
 # If we have 16 GPUs and IMS_PER_BATCH = 32,
 # each GPU will see 2 images per batch.
@@ -178,3 +178,7 @@ _C.SOLVER.CLIP_GRADIENTS.NORM_TYPE = 2.0
 # To use AMP in inference, run inference under autocast()
 # _C.SOLVER.AMP = False
 
+_C.SOLVER.NUM_SAMPLES = 50
+# _C.SOLVER.NUM_SAMPLES = 200
+# _C.SOLVER.NUM_SAMPLES = 1000
+_C.SOLVER.EARLY_STOP_AFTER = 5

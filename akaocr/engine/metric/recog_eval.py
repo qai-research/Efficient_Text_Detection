@@ -16,7 +16,7 @@ import torch.nn.functional as F
 from nltk.metrics.distance import edit_distance
 import torch 
 
-def validation(model, criterion, evaluation_loader, converter, config, num_samples=0):
+def validation(model, criterion, evaluation_loader, converter, config):
     """ validation or evaluation """
     n_correct = 0
     length_of_data = 0
@@ -103,7 +103,7 @@ def validation(model, criterion, evaluation_loader, converter, config, num_sampl
             confidence_score_list.append(confidence_score)
 
         # if i == num_batches-1:  # stop after a number of batches is reached
-        if i == num_samples - 1:
+        if i == config.SOLVER.NUM_SAMPLES - 1:
             break
     accuracy = n_correct / float(length_of_data) * 100
     norm_ED = norm_ED / float(length_of_data)  # ICDAR2019 Normalized Edit Distance
