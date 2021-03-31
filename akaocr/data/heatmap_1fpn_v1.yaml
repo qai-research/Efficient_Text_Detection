@@ -19,11 +19,19 @@ SOLVER:
 
   # maximum number of iteration
   MAX_ITER: 300000
-  # MAX_ITER: 1000
+
+  # milestone to update lr
+  STEPS : [30000, 60000, 90000, 120000, 150000]
+
+  # number of samples to eval
+  NUM_SAMPLES : 200
+  # NUM_SAMPLES : 50
+
+  # threshold of iters to stop training when no F1 improvement
+  EARLY_STOP_AFTER : 5
 
   # interval of iteration to do validation
   EVAL_PERIOD: 5000
-  # EVAL_PERIOD: 500
 
   # IDs of devices that host the data, model, etc.
   DEVICE_IDS : None
