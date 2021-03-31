@@ -34,7 +34,7 @@ def detec_test_evaluation(args):
     model = HEAT()
     model.load_state_dict(torch.load(args.w_detec, map_location=torch.device(device)))
     model = model.to(device)
-    test_loader = LoadTestDetecDataset(args.data_detec, cfg)
+    test_loader = LoadTestDetecDataset(args.data_test_detec, cfg)
     evaluation = DetecEvaluation(cfg)
     evaluation.run(model, test_loader)
 
