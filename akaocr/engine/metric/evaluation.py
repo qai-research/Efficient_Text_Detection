@@ -79,13 +79,13 @@ class DetecEvaluation:
         recall = recall/self.num_samples
         precision = precision/self.num_samples
         hmean = hmean/self.num_samples
-        if metric is None:
+        if metric is None: #log metric
             metric = [recall, precision, hmean, 0]
         elif metric[0] < recall:
             metric[0] = recall
-            metric[3] = 0
+            metric[3] = 0   #reset count if update best F1
         else:
-            metric[3] += 1
+            metric[3] += 1  #increase count if F1 not improve
             if metric[3] > self.cfg.SOLVER.EARLY_STOP_AFTER:
                 sys.exit()
         model.train()
