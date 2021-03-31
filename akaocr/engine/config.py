@@ -45,7 +45,6 @@ def parse_base(add_help=True):
     parser.add_argument("-w", "--weight", type=str, default=None)
     parser.add_argument("-g", "--gpu", nargs="+")
     parser.add_argument("--data", type=str, default="../data")
-    # return parser.parse_args()
     return parser
 
 
@@ -55,9 +54,8 @@ def setup(tp="recog", args=None):
     exp_exist = True
     if tp == "recog":
         exp_path = data_path.joinpath("exp_recog", args.exp)
-        exp_config_path = str(exp_path.joinpath(args.exp + "_detec_config.yaml"))
+        exp_config_path = str(exp_path.joinpath(args.exp + "_recog_config.yaml"))
         if not exp_path.exists():
-            config = "../data/attention_resnet_base_v1.yaml"
             logger.warning(f"Experiment {args.exp} do not exist.")
             logger.warning("Creating new experiment folder")
             exp_exist = False
@@ -70,9 +68,8 @@ def setup(tp="recog", args=None):
 
     elif tp == "detec":
         exp_path = data_path.joinpath("exp_detec", args.exp)
-        exp_config_path = str(exp_path.joinpath(args.exp + "_recog_config.yaml"))
+        exp_config_path = str(exp_path.joinpath(args.exp + "_detec_config.yaml"))
         if not exp_path.exists():
-            config = "../data/heatmap_1fpn_v1.yaml"
             logger.info(f"Experiment {args.exp} do not exist")
             logger.info("Creating new experiment folder")
             exp_exist = False

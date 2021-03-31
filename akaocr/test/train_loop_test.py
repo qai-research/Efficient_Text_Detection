@@ -66,13 +66,18 @@ def test_detec(args):
 
 def main():
     parser = parse_base()
+    parser.add_argument('--test_train_type', type=str, help='path to recog config [detec, recog]')
     parser.add_argument('--data_recog', type=str, help='path to recog data')
     parser.add_argument('--data_detec', type=str, help='path to detect data')
     parser.add_argument('--data_test_detec', type=str, help='path to test detect data')
     args = parser.parse_args()
-    test_recog(args)
-    # test_detec(args)
-
+    if args.test_train_type=="recog":
+        test_recog(args)
+    elif args.test_train_type=="detec":
+        test_detec(args)
+    else:
+        print("Wrong train type, check --test_train_type argument")
+        sys.exit()
 
 if __name__ == '__main__':
     main()
