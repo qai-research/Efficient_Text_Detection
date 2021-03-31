@@ -44,7 +44,7 @@ class Trainer:
             logger.warning(f"Validation data not found, training without checkpoint validation")
 
     def do_test(self, model, data, metric):
-        return self.evaluation.run(model, data, num_samples=2, metric=metric)
+        return self.evaluation.run(model, data, metric=metric)
 
     def do_train(self):
         self.model.train()

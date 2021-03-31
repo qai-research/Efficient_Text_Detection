@@ -178,3 +178,7 @@ _C.SOLVER.CLIP_GRADIENTS.NORM_TYPE = 2.0
 # To use AMP in inference, run inference under autocast()
 # _C.SOLVER.AMP = False
 
+_C.SOLVER.NUM_SAMPLES = 50
+# _C.SOLVER.NUM_SAMPLES = 200
+# _C.SOLVER.NUM_SAMPLES = 1000
+_C.SOLVER.EARLY_STOP_AFTER = 5
