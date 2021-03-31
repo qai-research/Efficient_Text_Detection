@@ -36,7 +36,7 @@ def detec_test_evaluation(args):
     model = model.to(device)
     test_loader = LoadTestDetecDataset(args.data_detec, cfg)
     evaluation = DetecEvaluation(cfg)
-    evaluation.run(model, test_loader, num_samples=1)
+    evaluation.run(model, test_loader)
 
 
 def recog_test_evaluation(args):
@@ -47,7 +47,7 @@ def recog_test_evaluation(args):
     model = model.to(device)
     test_loader = build_dataloader(cfg, args.data_recog)
     evaluation = RecogEvaluation(cfg)
-    evaluation.run(model, test_loader, num_samples=10)
+    evaluation.run(model, test_loader)
 
 
 def main():
