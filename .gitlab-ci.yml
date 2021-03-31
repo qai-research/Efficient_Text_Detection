@@ -145,7 +145,7 @@ test-eval:
     - cd test
     - export exit_code=0 #success by default
     - export result=""
-    - python evaluation_test.py --w_detec $W_DETEC --data_detec $DATA_DETEC --w_recog $W_RECOG --data_recog $DATA_RECOG || export exit_code=1
+    - python evaluation_test.py --w_detec $W_DETEC --data_test_detec $DATA_TEST_DETEC --w_recog $W_RECOG --data_recog $DATA_RECOG || export exit_code=1
     - echo $exit_code
     - >
       if [ ${exit_code} -ne 0 ]; then
