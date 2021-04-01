@@ -23,8 +23,8 @@ from engine.build import build_dataloader
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-from engine.metric.accuracy import RecogAccuracy
-from engine.metric.evaluation import RecogEvaluation
+from engine.metric.accuracy import RecogAccuracy, DetecAccuracy
+from engine.metric.evaluation import DetecEvaluation, RecogEvaluation
 
 
 def test_recog(args):
