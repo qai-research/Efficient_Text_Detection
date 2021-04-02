@@ -185,7 +185,7 @@ class LoadDatasetIterator:
             except ValueError:
                 logger.warning(f"Getting data from dataloader failed")
 
-class LoadTestDetecDataset():
+class LoadDatasetDetecBBox():
     def __init__(self, data, cfg):
         self.lmdbreader = LmdbReader(data, rgb=cfg.MODEL.RGB)
 
