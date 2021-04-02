@@ -49,7 +49,7 @@ def build_model(config):
     model.to(device=config.SOLVER.DEVICE)
     return model
 
-def build_detectestdataloader(cfg, source, selected_data=None):
+def build_test_data_detec(cfg, source, selected_data=None):
     root_path = Path(source)
     data_list = list()
     if selected_data is None:

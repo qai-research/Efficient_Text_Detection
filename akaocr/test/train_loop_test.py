@@ -19,7 +19,7 @@ from models.recog.atten import Atten
 from engine import Trainer
 from engine.config import setup, parse_base
 from engine.trainer.loop import CustomLoopHeat, CustomLoopAtten
-from engine.build import build_dataloader, build_detectestdataloader
+from engine.build import build_dataloader, build_test_data_detec
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -57,7 +57,7 @@ def test_detec(args):
     acc = DetecAccuracy(cfg)
     lossc = CustomLoopHeat(cfg)
     train_loader = build_dataloader(cfg, args.data_detec)
-    test_loader = build_detectestdataloader(cfg, args.data_test_detec, selected_data=None)
+    test_loader = build_test_data_detec(cfg, args.data_test_detec, selected_data=None)
     trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, accuracy=acc,
                       evaluation=evaluate, resume=True)
     trainer.do_train()

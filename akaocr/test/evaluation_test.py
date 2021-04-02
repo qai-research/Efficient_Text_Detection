@@ -22,7 +22,7 @@ logger = initial_logger()
 
 from engine.metric.evaluation import DetecEvaluation, RecogEvaluation
 from engine.config import setup, parse_base
-from engine.build import build_dataloader, build_detectestdataloader
+from engine.build import build_dataloader, build_test_data_detec
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -32,7 +32,7 @@ def detec_test_evaluation(args):
     model = HEAT()
     model.load_state_dict(torch.load(args.w_detec, map_location=torch.device(device)))
     model = model.to(device)
-    test_loader = build_detectestdataloader(cfg, args.data_test_detec, selected_data=None)
+    test_loader = build_test_data_detec(cfg, args.data_test_detec, selected_data=None)
     evaluation = DetecEvaluation(cfg)
     evaluation.run(model, test_loader)
 
