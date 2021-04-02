@@ -8,22 +8,30 @@
 # _____________________________________________________________________________
 
 stages:
+  - train
   - test
 
-.requires-trigger-building-image-commit-message:
+.requires-trigger-build-image-commit-message:
   only:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Trigger build image/
 
-.requires-trigger-training-commit-message:
+.requires-trigger-train-detec-commit-message:
   only:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^Trigger train/
+      - $CI_COMMIT_MESSAGE =~ /^Trigger train detec/
+
+.requires-trigger-train-recog-commit-message:
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^Trigger train recog/
 
 .requires-trigger-merge-commit-message:
   only:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Trigger merge/ #test before merge
+
+# test stage for merge process
 
 test-model:
   extends:
@@ -179,6 +187,7 @@ test-train-loop:
     - cd test
     - export exit_code=0 #success by default
     - export result=""
+    - nvidia-smi
     - python train_loop_test.py --test_train_type detec --config="../data/heatmap_1fpn_v1_ci_test.yaml" --data_detec $DATA_DETEC --data_test_detec $DATA_TEST_DETEC && python train_loop_test.py --test_train_type recog --config="../data/attention_resnet_base_v1_ci_test.yaml" --data_recog $DATA_RECOG || export exit_code=1
     - echo $exit_code
     - >
@@ -199,3 +208,84 @@ test-train-loop:
     when: always
   allow_failure:
     exit_codes: 137
+
+
+# train stage for training model experiment
+
+train-detec:
+  extends:
+    - .requires-trigger-train-detec-commit-message
+  stage: train
+  tags:
+    - akaocr
+  script:
+    - echo $CI_JOB_STAGE
+    - conda activate akaocr
+    - cd akaocr
+    - cd tools
+    - export exit_code=0 #success by default
+    - export result=""
+    - nvidia-smi
+    - echo $CI_COMMIT_MESSAGE
+    - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK" "
+    - echo $data_args
+    - python train_detec.py $data_args || export exit_code=1
+    - echo $exit_code
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="train detec" --value=${result} --file=badge_train_detec.svg passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/tools/badge_train_detec.svg
+    when: always
+  allow_failure:
+    exit_codes: 137
+
+train-recog:
+  extends:
+    - .requires-trigger-train-recog-commit-message
+  stage: train
+  tags:
+    - akaocr
+  script:
+    - echo $CI_JOB_STAGE
+    - conda activate akaocr
+    - cd akaocr
+    - cd tools
+    - export exit_code=0 #success by default
+    - export result=""
+    - nvidia-smi
+    - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
+    - python train_recog.py $data_args || export exit_code=1
+    - echo $exit_code
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="train recog" --value=${result} --file=badge_train_recog.svg passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/tools/badge_train_recog.svg
+    when: always
+  allow_failure:
+    exit_codes: 137
+
+
+#Trigger train detec ex: commit -m "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK""
+#Trigger train detec ex: commit -m "Trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
