@@ -11,7 +11,7 @@ _____________________________________________________________________________
 """
 from pathlib import Path
 
-from utils.data.dataloader import LoadDatasetIterator
+from utils.data.dataloader import LoadDatasetIterator, LoadDatasetDetecBBox
 from models.detec.heatmap import HEAT
 from models.recog.atten import Atten
 from engine.config import setup, dict2namespace
@@ -48,3 +48,16 @@ def build_model(config):
         raise ValueError("invalid _BASE_.MODEL_TYPE in config file(accept HEAT_BASE and ATTEN_BASE)")
     model.to(device=config.SOLVER.DEVICE)
     return model
+
+def build_detectestdataloader(cfg, source, selected_data=None):
+    root_path = Path(source)
+    data_list = list()
+    if selected_data is None:
+        datalist = [str(dataset.name) for dataset in root_path.iterdir()]
+    else:
+        datalist = selected_data
+    for dataset_name in datalist:
+        dataset_path = str(root_path.joinpath(dataset_name))
+        data_test = LoadDatasetDetecBBox(dataset_path, cfg)
+        data_list.append(data_test)
+    return data_list

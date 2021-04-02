@@ -25,6 +25,7 @@ class DetecEvaluation:
         self.cfg = cfg
         self.max_size = self.cfg.MODEL.MAX_SIZE
         self.num_samples = self.cfg.SOLVER.NUM_SAMPLES
+        self.finish = False
    
     def run(self, model, test_loader, metric=None):
         model.eval()
@@ -32,48 +33,59 @@ class DetecEvaluation:
         precision = 0
         hmean = 0
         AP = 0
-        if self.num_samples > test_loader.get_length():
-            self.num_samples = test_loader.get_length()
-        for i in range(1, self.num_samples+1):
-            img, label = test_loader.get_item(i)
-            gt_box = list()
-            words = list()
-            for j in range(len(label['words'])):
-                words.append(label['words'][j]['text'])
-                x1 = label['words'][j]['x1']
-                x2 = label['words'][j]['x2']
-                x3 = label['words'][j]['x3']
-                x4 = label['words'][j]['x4']
-                y1 = label['words'][j]['y1']
-                y2 = label['words'][j]['y2']
-                y3 = label['words'][j]['y3']
-                y4 = label['words'][j]['y4']
-                box = [x1, y1, x2, y2, x3, y3, x4, y4]
-                gt_box.append(box)
-    
-            img, target_ratio = ImageProc.resize_aspect_ratio(
-                img, self.max_size, interpolation=cv2.INTER_LINEAR
-            )
-            ratio_h = ratio_w = 1 / target_ratio
-            img = ImageProc.normalize_mean_variance(img)
-            img = torch.from_numpy(img).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
-            img = (img.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
-            img = img.to(device)
-            y,_ = model(img)
-            del img     # delete variable img to save memory
-            box_list = Heat2boxes(self.cfg, y, ratio_w, ratio_h)
-            del y       # delete variable y to save memory
-            box_list,_ = box_list.convert(evaluation=True)
+        data_length = 0
+        num = 0
+        for data in test_loader:
+            data_length += data.get_length()
+        if self.num_samples > data_length:
+            self.num_samples = data_length
+        for data in test_loader:
+            for i in range(1, data.get_length()+1):
+                img, label = data.get_item(i)
+                gt_box = list()
+                words = list()
+                for j in range(len(label['words'])):
+                    words.append(label['words'][j]['text'])
+                    x1 = label['words'][j]['x1']
+                    x2 = label['words'][j]['x2']
+                    x3 = label['words'][j]['x3']
+                    x4 = label['words'][j]['x4']
+                    y1 = label['words'][j]['y1']
+                    y2 = label['words'][j]['y2']
+                    y3 = label['words'][j]['y3']
+                    y4 = label['words'][j]['y4']
+                    box = [x1, y1, x2, y2, x3, y3, x4, y4]
+                    gt_box.append(box)
+        
+                img, target_ratio = ImageProc.resize_aspect_ratio(
+                    img, self.max_size, interpolation=cv2.INTER_LINEAR
+                )
+                ratio_h = ratio_w = 1 / target_ratio
+                img = ImageProc.normalize_mean_variance(img)
+                img = torch.from_numpy(img).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
+                img = (img.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
+                img = img.to(device)
+                y,_ = model(img)
+                del img     # delete variable img to save memory
+                box_list = Heat2boxes(self.cfg, y, ratio_w, ratio_h)
+                del y       # delete variable y to save memory
+                box_list,_ = box_list.convert(evaluation=True)
 
-            confidence_point = list()
-            for j in range(len(box_list)):
-                confidence_point.append(0.0)
-            detec_eval = tedeval.Evaluate(box_list, gt_box, words, confidence_point)
-            resdict = detec_eval.do_eval()
-            recall += resdict['method']['recall']
-            precision += resdict['method']['precision']
-            hmean += resdict['method']['hmean']
-            AP += resdict['method']['AP']
+                confidence_point = list()
+                for j in range(len(box_list)):
+                    confidence_point.append(0.0)
+                detec_eval = tedeval.Evaluate(box_list, gt_box, words, confidence_point)
+                resdict = detec_eval.do_eval()
+                recall += resdict['method']['recall']
+                precision += resdict['method']['precision']
+                hmean += resdict['method']['hmean']
+                AP += resdict['method']['AP']
+                num += 1
+                if num ==self.num_samples:
+                    self.finish = True
+                    break
+            if self.finish:
+                break
 
         mess =  'recall:', recall/self.num_samples, 'precision:', precision/self.num_samples, 'hmean:', hmean/self.num_samples
         recall = recall/self.num_samples
