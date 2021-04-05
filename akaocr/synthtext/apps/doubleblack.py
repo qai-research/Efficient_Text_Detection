@@ -14,7 +14,7 @@ import os
 import io
 import sys
 import time
-import config
+from . import config
 import argparse
 import streamlit as st
 from shutil import rmtree as remove_folder
@@ -22,18 +22,42 @@ from synthtext.main import BlackList, WhiteList
 from synthtext.utils.utils_func import check_valid, get_all_valid
 
 
-def doubleblackapp(value):
+def doubleblackapp(input_dict):
     """
     Gen data with double black method
     """
-    Method, NumCores, Fonts, Backgrounds = value[:4]
-    ObjectSources, TextSources, ImageSources, GenType, num_images, max_num_box = value[4:10]
-    min_char_spacing, max_char_spacing, min_size, max_size, min_text_len, max_text_len, random_color = value[10:-7]
-    max_height, max_width, shear_p, dropout_p, blur_p, status, detail = value[-7:]
+    Method = input_dict['Method']
+    NumCores = input_dict['NumCores']
+    Fonts = input_dict['Fonts']
+    Backgrounds = input_dict['Backgrounds']
+    ObjectSources = input_dict['ObjectSource']
+    TextSources = input_dict['Textsources']
+    TextGenType = input_dict['TextGenType']
+    ImageSources = input_dict['ImageSources']
+    GenType = input_dict['GenType']
+    num_images = input_dict['NumImages']
+    max_num_box = input_dict['MaxNumBox']
+    min_char_spacing = input_dict['MinCharSpacing']
+    max_char_spacing = input_dict['MaxCharSpacing']
+    min_size = input_dict['MinFontSize']
+    max_size = input_dict['MaxFontSize']
+    min_text_len = input_dict['MinTextLengh']
+    max_text_len = input_dict['MaxTextLengh']
+    max_height = input_dict['MaxHeigh']
+    max_width = input_dict['MaxWidth']
+    random_color = input_dict['RandomColor']
+    elastic_p = input_dict['ElasticP']
+    shear_p = input_dict['ShearP']
+    dropout_p = input_dict['DropoutP']
+    blur_p = input_dict['BlurP']
+    status = input_dict['STATUS']
+    detail = input_dict['DETAIL']
+    
     parser = argparse.ArgumentParser()
     opt = parser.parse_args()
 
     opt.method = Method
+    opt.TextGenType = TextGenType
     opt.backgrounds_path = os.path.join(config.background_folder, Backgrounds, 'images')
 
     opt.fonts_path = os.path.join(config.font_folder, Fonts)
@@ -64,6 +88,11 @@ def doubleblackapp(value):
     opt.segment = seg_path if os.path.exists(seg_path) else None
     opt.segment = None
     opt.aug_option = {'shear': {'p': shear_p,
+                                'v': {"x": (-15, 15),
+                                      "y": (-15, 15)
+                                      }
+                                },
+                      'elastic': {'p': elastic_p,
                                 'v': {"x": (-15, 15),
                                       "y": (-15, 15)
                                       }

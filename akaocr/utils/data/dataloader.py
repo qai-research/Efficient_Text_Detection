@@ -23,6 +23,8 @@ from utils.runtime import Color, colorize
 from utils.utility import initial_logger
 logger = initial_logger()
 
+import numpy as np
+import json
 
 class LmdbDataset(Dataset):
     """
@@ -50,6 +52,8 @@ class LmdbDataset(Dataset):
         image, label = self.lmdbreader.get_item(index)
         if self.labelproc is not None:
             label = self.labelproc(label)
+        if label is None:
+            return None
         return image, label
 
 
@@ -76,7 +80,8 @@ class LoadDataset:
         chars = self.vocab
         labelproc = label_handler.TextLableHandle(character=chars,
                                                   sensitive=self.cfg.MODEL.SENSITIVE,
-                                                  unknown=self.cfg.SOLVER.UNKNOWN)
+                                                  unknown=self.cfg.SOLVER.UNKNOWN,
+                                                  max_length = self.cfg.MODEL.MAX_LABEL_LENGTH)
         try:
             dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc)
         except Exception:
@@ -176,7 +181,19 @@ class LoadDatasetIterator:
                 return data
             except StopIteration:
                 self.list_iterator[self.idi] = iter(self.list_dataset[self.idi])
-                logger.info(f"finish on dataloader from {self.filled_selected_data[self.idi]}")
+                logger.info(f"exhaust dataloader from {self.filled_selected_data[self.idi]} : reload")
             except ValueError:
-                self.logger.warning(f"Getting data from dataloader failed")
+                logger.warning(f"Getting data from dataloader failed")
 
+class LoadDatasetDetecBBox():
+    def __init__(self, data, cfg):
+        self.lmdbreader = LmdbReader(data, rgb=cfg.MODEL.RGB)
+
+    def get_length(self):
+        return self.lmdbreader.num_samples
+
+    def get_item(self, index):
+        img, label = self.lmdbreader.get_item(index)
+        img = np.array(img)
+        label = json.loads(label)
+        return img, label

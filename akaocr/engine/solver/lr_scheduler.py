@@ -47,7 +47,7 @@ class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
             base_lr * warmup_factor * self.gamma ** bisect_right(self.milestones, self.last_epoch)
             for base_lr in self.base_lrs
         ]
-
+       
     def _compute_values(self) -> List[float]:
         # The new interface
         return self.get_lr()
@@ -118,3 +118,56 @@ def _get_warmup_factor_at_iter(
         return warmup_factor * (1 - alpha) + alpha
     else:
         raise ValueError("Unknown warmup method: {}".format(method))
+
+class WarmupDecayCosineLR(torch.optim.lr_scheduler._LRScheduler):
+    def __init__(
+        self,
+        optimizer: torch.optim.Optimizer,
+        milestones: List[int],
+        warmup_factor: float = 0.001,
+        warmup_iters: int = 1000,
+        last_epoch: int = -1,
+    ):
+        if not list(milestones) == sorted(milestones):
+            raise ValueError(
+                "Milestones should be a list of" " increasing integers. Got {}", milestones
+            )
+        self.milestones = milestones
+        self.warmup_factor = warmup_factor
+        self.warmup_iters = warmup_iters
+        super().__init__(optimizer, last_epoch)
+
+    def get_lr(self) -> List[float]:
+        
+        min_lr = 10**-5
+        self.warmup_factor = 0.001
+        indx = bisect_right(self.milestones, self.last_epoch)
+        if indx == 0:
+            cur_iter = self.last_epoch
+            iter_range = self.milestones[0]
+            alpha = 1.0
+        else:
+            cur_iter = self.last_epoch - self.milestones[indx-1]
+            iter_range = self.milestones[indx] - self.milestones[indx-1]
+            alpha = 0.8**indx
+
+        factor = warmup_linear_factor(self.warmup_iters, cur_iter, self.warmup_factor)
+        return [base_lr*factor*alpha*decay_cosine_lr(iter_range, self.warmup_iters, cur_iter)+ min_lr 
+                for base_lr in self.base_lrs ]
+        
+    def _compute_values(self) -> List[float]:
+        # The new interface
+        return self.get_lr()
+
+def warmup_linear_factor(warmup_iters, iteration, warmup_factor):
+    if iteration < warmup_iters:
+        alpha = iteration / warmup_iters
+        return warmup_factor * (1 - alpha) + alpha
+    else:
+        return 1.0
+    
+def decay_cosine_lr(iter_range, warmup_iters, step):
+    if step <= warmup_iters:
+        return 1.0
+    else:
+        return math.cos(math.pi*step/(2*iter_range))

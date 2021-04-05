@@ -83,9 +83,16 @@ def Augmentator(images, points=None, option=None):
     if 'blur' in option:
         base.add(iaa.Sometimes(option['blur']['p'],
                                iaa.GaussianBlur(sigma=option['blur']['v'])))
+<<<<<<< akaocr/synthtext/utils/utils_func.py
 
     base.add(iaa.Sometimes(0.85,
+                           iaa.ElasticTransformation(alpha=(40, 60), sigma=(6, 12))))
+=======
+    if 'elastic' in option:
+        base.add(iaa.Sometimes(option['elastic']['p'],
                                iaa.ElasticTransformation(alpha=(40,60), sigma=(6,12))))
+                               
+>>>>>>> akaocr/synthtext/utils/utils_func.py
     if points is not None:
         kps = []
         for img_info in points:
@@ -123,7 +130,7 @@ def check_valid(dataframe, bg_df, source_df, fonts_df):
     results = {}
     for index, value in enumerate(dataframe.values):
         results[index] = {"Status": "valid", "Error": []}
-        Method, NumCores, Fonts, Backgrounds, ObjectSources, Textsources, ImageSources = value[:7]
+        Method, NumCores, Fonts, Backgrounds, ObjectSources, Textsources, _, ImageSources = value[:8]
         if Backgrounds not in bg_df['NAME'].values:
             results[index]['Error'].append('Invalid Backgrounds Folder')
         else:
@@ -137,7 +144,7 @@ def check_valid(dataframe, bg_df, source_df, fonts_df):
             if str(ObjectSources) != '0' and ObjectSources not in source_df['NAME'].values:
                 results[index]['Error'].append('The ObjectSources Is Not Existed.')
             if str(ImageSources) != '0' and ImageSources not in source_df['NAME'].values:
-                results[index]['Error'].append('The ObjectSources Is Not Existed.')
+                results[index]['Error'].append('The ImagesSource Is Not Existed.')
         if len(results[index]['Error']) is not 0:
             results[index]["Status"] = "INVALID"
     df['STATUS'] = [results[i]["Status"] for i in range(len(results))]
@@ -145,10 +152,10 @@ def check_valid(dataframe, bg_df, source_df, fonts_df):
     return df
 
 
-def get_all_valid(config):
+def get_all_valid(background_folder, source_folder, font_folder):
     # CREATE BACKGROUND DATAFRAME
     existed_background = sorted(
-        [os.path.join(config.background_folder, name) for name in os.listdir(config.background_folder)])
+        [os.path.join(background_folder, name) for name in os.listdir(background_folder)])
     whitelist_background = [path for path in existed_background if
                             os.path.isdir(path) and 'anotations' in os.listdir(path)]
     blacklist_background = [path for path in existed_background if os.path.isdir(path)]
@@ -177,7 +184,7 @@ def get_all_valid(config):
     bg_df = pd.DataFrame(bg_df, columns=["NAME", "METHOD", "SIZE", "PATH"])
 
     # CREATE SOURCE DATAFRAME
-    existed_source = sorted([os.path.join(config.source_folder, name) for name in os.listdir(config.source_folder)])
+    existed_source = sorted([os.path.join(source_folder, name) for name in os.listdir(source_folder)])
     source_df = {"NAME": [],
                  "SIZE": [],
                  "PATH": [],
@@ -208,7 +215,7 @@ def get_all_valid(config):
     source_df = pd.DataFrame(source_df, columns=["NAME", "TYPE", "SIZE", "PATH"])
 
     # CREATE FONT DATAFRAME
-    existed_font = sorted([os.path.join(config.font_folder, name) for name in os.listdir(config.font_folder)])
+    existed_font = sorted([os.path.join(font_folder, name) for name in os.listdir(font_folder)])
 
     font_df = {"NAME": [],
                "SIZE": [],

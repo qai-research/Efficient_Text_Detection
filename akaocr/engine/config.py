@@ -16,11 +16,13 @@ import shutil
 import argparse
 from pathlib import Path
 from argparse import Namespace
-
+import torch
 from engine.solver.default import _C
 from utils.utility import initial_logger
 logger = initial_logger()
-
+from utils.file_utils import read_vocab
+from models.modules.converters import AttnLabelConverter
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def get_cfg_defaults():
     """Get a yacs CfgNode object with default values for my_project."""
@@ -35,7 +37,7 @@ def load_yaml_config(config_path):
     return config
 
 
-def parse_args(add_help=True):
+def parse_base(add_help=True):
     parser = argparse.ArgumentParser(add_help=add_help)
     # params for prediction engine
     parser.add_argument("-e", "--exp", type=str, default="test")
@@ -43,19 +45,21 @@ def parse_args(add_help=True):
     parser.add_argument("-w", "--weight", type=str, default=None)
     parser.add_argument("-g", "--gpu", nargs="+")
     parser.add_argument("--data", type=str, default="../data")
-    return parser.parse_args()
+    # return parser.parse_args()
+    return parser
 
 
-def setup(tp="recog"):
+def setup(tp="recog", args=None):
     """setup config environment and working space"""
-    args = parse_args()
     data_path = Path(args.data)
     exp_exist = True
     if tp == "recog":
         exp_path = data_path.joinpath("exp_recog", args.exp)
-        exp_config_path = str(exp_path.joinpath(args.exp + "_detec_config.yaml"))
+        exp_config_path = str(exp_path.joinpath(args.exp + "_recog_config.yaml"))
         if not exp_path.exists():
             config = "../data/attention_resnet_base_v1.yaml"
+            if args.config:
+                config = args.config
             logger.warning(f"Experiment {args.exp} do not exist.")
             logger.warning("Creating new experiment folder")
             exp_exist = False
@@ -68,9 +72,11 @@ def setup(tp="recog"):
 
     elif tp == "detec":
         exp_path = data_path.joinpath("exp_detec", args.exp)
-        exp_config_path = str(exp_path.joinpath(args.exp + "_recog_config.yaml"))
+        exp_config_path = str(exp_path.joinpath(args.exp + "_detec_config.yaml"))
         if not exp_path.exists():
             config = "../data/heatmap_1fpn_v1.yaml"
+            if args.config:
+                config = args.config
             logger.info(f"Experiment {args.exp} do not exist")
             logger.info("Creating new experiment folder")
             exp_exist = False
@@ -107,7 +113,6 @@ def setup(tp="recog"):
     cfg = get_cfg_defaults()
 
     logger.info(f"Load config from : {config}")
-    # config_data = load_yaml_config(config)
     cfg.merge_from_file(config)
 
     cfg.SOLVER.START_ITER = iteration
@@ -116,7 +121,23 @@ def setup(tp="recog"):
     cfg.SOLVER.DATA = args.data
     cfg.SOLVER.EXP = str(exp_path)
     if cfg.MODEL.VOCAB is not None:
-        cfg.MODEL.VOCAB = os.path.join(cfg.SOLVER.DATA, "vocabs", cfg.MODEL.VOCAB)
+        cfg.MODEL.VOCAB = os.path.join(cfg.SOLVER.DATA, "vocabs", cfg.MODEL.VOCAB)   
+    if cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
+        cfg.SOLVER.DEVICE = str(device)
+        if cfg.MODEL.VOCAB:  # vocabulary is given
+            cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
+            cfg["character"] = cfg.MODEL.VOCAB
+        else:  # use character list instead
+            cfg["character"] = list(cfg["character"])
+        if cfg.SOLVER.UNKNOWN:
+            cfg["character"].append(cfg.SOLVER.UNKNOWN)
+        cfg["character"].sort()
+        if 'CTC' in cfg.MODEL.PREDICTION:
+            converter = CTCLabelConverter(cfg["character"])
+        else:
+            converter = AttnLabelConverter(cfg["character"], device=cfg.SOLVER.DEVICE)
+        # cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
+        cfg.MODEL.NUM_CLASS = len(converter.character)
     return cfg
 
 
@@ -155,7 +176,6 @@ def get_model_weight(exp_path, cp_type="best"):
     latest_model = exp_path.joinpath("iter_" + str(max_iter) + ".pth")
     logger.info(f"Latest checkpoints {str(latest_model)} found")
     return str(latest_model), max_iter
-
 
 def dict2namespace(di):
     for d in di:

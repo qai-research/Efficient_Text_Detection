@@ -162,6 +162,7 @@ class TensorboardXWriter(EventWriter):
         for k, (v, iter) in storage.latest_with_smoothing_hint(self._window_size).items():
             if iter > self._last_write:
                 self._writer.add_scalar(k, v, iter)
+                self._writer.flush()
                 new_last_write = max(new_last_write, iter)
         self._last_write = new_last_write
 

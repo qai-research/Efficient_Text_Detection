@@ -14,7 +14,7 @@
 <!-- PROJECT LOGO -->
 ### CI Test Pipeline status
 [![Overall Testing Pipeline](https://gitlab.com/cuongvt/ocr-components/badges/develop/pipeline.svg)](https://gitlab.com/cuongvt/ocr-components/-/pipelines)\
-Test jobs in detail (see in Pipeline for correctly status, may not real time):
+Test jobs in detail (see in Pipeline for correctly status, may not real time): 
 <br />
 [![model test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_model.svg?job=test-model)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
 [![config test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_config.svg?job=test-config)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
