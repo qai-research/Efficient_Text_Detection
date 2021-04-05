@@ -123,6 +123,7 @@ class WarmupDecayCosineLR(torch.optim.lr_scheduler._LRScheduler):
     def __init__(
         self,
         optimizer: torch.optim.Optimizer,
+        max_iters: int,
         milestones: List[int],
         warmup_factor: float = 0.001,
         warmup_iters: int = 1000,
@@ -132,6 +133,7 @@ class WarmupDecayCosineLR(torch.optim.lr_scheduler._LRScheduler):
             raise ValueError(
                 "Milestones should be a list of" " increasing integers. Got {}", milestones
             )
+        self.max_iters = max_iters
         self.milestones = milestones
         self.warmup_factor = warmup_factor
         self.warmup_iters = warmup_iters
@@ -146,6 +148,10 @@ class WarmupDecayCosineLR(torch.optim.lr_scheduler._LRScheduler):
             cur_iter = self.last_epoch
             iter_range = self.milestones[0]
             alpha = 1.0
+        elif indx == len(self.milestones):
+            cur_iter = self.last_epoch - self.milestones[indx-1]
+            iter_range = self.max_iters - self.milestones[indx-1]
+            alpha = 0.8**indx
         else:
             cur_iter = self.last_epoch - self.milestones[indx-1]
             iter_range = self.milestones[indx] - self.milestones[indx-1]
