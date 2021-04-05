@@ -22,7 +22,7 @@ SOLVER:
   MAX_ITER: 1000
 
   # milestone to update lr
-  STEPS : [30000, 60000, 90000, 120000, 150000]
+  STEPS : [30000, 60000, 90000] #, 120000]
 
   # number of samples to eval
   # NUM_SAMPLES : 200
