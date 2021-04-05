@@ -8,22 +8,30 @@
 # _____________________________________________________________________________
 
 stages:
+  - train
   - test
 
-.requires-trigger-building-image-commit-message:
+.requires-trigger-build-image-commit-message:
   only:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Trigger build image/
 
-.requires-trigger-training-commit-message:
+.requires-trigger-train-detec-commit-message:
   only:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^Trigger train/
+      - $CI_COMMIT_MESSAGE =~ /^Trigger train detec/
+
+.requires-trigger-train-recog-commit-message:
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^Trigger train recog/
 
 .requires-trigger-merge-commit-message:
   only:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Trigger merge/ #test before merge
+
+# test stage for merge process
 
 test-model:
   extends:
@@ -32,16 +40,18 @@ test-model:
   tags:
     - testocr
   script:
-    #    - export CUDA_VISIBLE_DEVICES=1
-    - conda activate akaocr
-    - cd akaocr
-    - pip install -r requirements.txt
+    #    - export CUDA_VISIBLE_DEVICES=1 #in case 1st gpu full (2 gpus)
+    - echo $CI_JOB_STAGE
+    # - conda env create -f jobs/environment.yml -q #config new env to create if not exist, when use docker
+    - conda activate akaocr #activate existed env; create a new env when use Docker
+    - cd akaocr #cd to source
+    - pip install -r requirements.txt #install for the 1st time only
     - pip install torch==1.8.0+cu111 torchvision==0.9.0+cu111 torchaudio===0.8.0 -f https://download.pytorch.org/whl/torch_stable.html
     - pip install anybadge
     - cd test
     - export exit_code=0 #success by default
     - export result=""
-    - python models_test.py || export exit_code=1
+    - python models_test.py --config_recog "../data/attention_resnet_base_v1.yaml"  || export exit_code=1
     - echo $exit_code
     - >
       if [ ${exit_code} -ne 0 ]; then
@@ -50,13 +60,17 @@ test-model:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test model" --value=${result} --file=test_model.svg passed=green failed=red
-    
+    - anybadge --label="test model" --value=${result} --file=badge_test_model.svg passed=green failed=red #create badge for job
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
   artifacts:
     paths:
-      - akaocr/test/test_model.svg
-    when: always
-  # allow_failure: true
+      - akaocr/test/badge_test_model.svg #artifact, path as cd when the badge was created
+    when: always #upload on both success and fail job
+  allow_failure:
+    exit_codes: 137 #a number !=1 to make the job failed if it actually fail
 
 test-config:
   extends:
@@ -65,6 +79,7 @@ test-config:
   tags:
     - testocr
   script:
+    - echo $CI_JOB_STAGE
     - conda activate akaocr
     - cd akaocr
     - cd test
@@ -79,12 +94,17 @@ test-config:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test config" --value=${result} --file=test_config.svg passed=green failed=red
+    - anybadge --label="test config" --value=${result} --file=badge_test_config.svg passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
   artifacts:
     paths:
-      - akaocr/test/test_config.svg
+      - akaocr/test/badge_test_config.svg
     when: always
-  # allow_failure: true
+  allow_failure:
+    exit_codes: 137
 
 test-dataloader:
   extends:
@@ -93,12 +113,13 @@ test-dataloader:
   tags:
     - testocr
   script:
+    - echo $CI_JOB_STAGE
     - conda activate akaocr
     - cd akaocr
     - cd test
     - export exit_code=0 #success by default
     - export result=""
-    - python test_dataloader.py || export exit_code=1
+    - python test_dataloader.py --data_recog $DATA_RECOG --data_detec $DATA_DETEC || export exit_code=1
     - echo $exit_code
     - >
       if [ ${exit_code} -ne 0 ]; then
@@ -107,12 +128,17 @@ test-dataloader:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test dataloader" --value=${result} --file=test_dataloader.svg passed=green failed=red
+    - anybadge --label="test dataloader" --value=${result} --file=badge_test_dataloader.svg passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
   artifacts:
     paths:
-      - akaocr/test/test_dataloader.svg
+      - akaocr/test/badge_test_dataloader.svg
     when: always
-  # allow_failure: true
+  allow_failure:
+    exit_codes: 137
 
 test-eval:
   extends:
@@ -121,12 +147,13 @@ test-eval:
   tags:
     - testocr
   script:
+    - echo $CI_JOB_STAGE
     - conda activate akaocr
     - cd akaocr
     - cd test
     - export exit_code=0 #success by default
     - export result=""
-    - python evaluation_test.py || export exit_code=1
+    - python evaluation_test.py --w_detec $W_DETEC --data_test_detec $DATA_TEST_DETEC --w_recog $W_RECOG --data_recog $DATA_RECOG || export exit_code=1
     - echo $exit_code
     - >
       if [ ${exit_code} -ne 0 ]; then
@@ -135,17 +162,17 @@ test-eval:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test evaluation" --value=${result} --file=test_evaluation.svg passed=green failed=red
+    - anybadge --label="test evaluation" --value=${result} --file=badge_test_evaluation.svg passed=green failed=red
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
       fi
   artifacts:
     paths:
-      - akaocr/test/test_evaluation.svg
+      - akaocr/test/badge_test_evaluation.svg
     when: always
   allow_failure:
-    exit_codes: 1
+    exit_codes: 137
 
 test-train-loop:
   extends:
@@ -154,12 +181,14 @@ test-train-loop:
   tags:
     - testocr
   script:
+    - echo $CI_JOB_STAGE
     - conda activate akaocr
     - cd akaocr
     - cd test
     - export exit_code=0 #success by default
     - export result=""
-    - python train_loop_test.py || export exit_code=1
+    - nvidia-smi
+    - python train_loop_test.py --test_train_type detec --config="../data/heatmap_1fpn_v1_ci_test.yaml" --data_detec $DATA_DETEC --data_test_detec $DATA_TEST_DETEC && python train_loop_test.py --test_train_type recog --config="../data/attention_resnet_base_v1_ci_test.yaml" --data_recog $DATA_RECOG || export exit_code=1
     - echo $exit_code
     - >
       if [ ${exit_code} -ne 0 ]; then
@@ -168,9 +197,95 @@ test-train-loop:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test training loop" --value=${result} --file=test_train_loop.svg passed=green failed=red
+    - anybadge --label="test training loop" --value=${result} --file=badge_test_train_loop.svg passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
   artifacts:
     paths:
-      - akaocr/test/test_train_loop.svg
+      - akaocr/test/badge_test_train_loop.svg
     when: always
-  # allow_failure: true
+  allow_failure:
+    exit_codes: 137
+
+
+# train stage for training model experiment
+
+train-detec:
+  extends:
+    - .requires-trigger-train-detec-commit-message
+  stage: train
+  tags:
+    - akaocr
+  script:
+    - echo $CI_JOB_STAGE
+    - conda activate akaocr
+    - cd akaocr
+    - cd tools
+    - export exit_code=0 #success by default
+    - export result=""
+    - nvidia-smi
+    - echo $CI_COMMIT_MESSAGE
+    - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK" "
+    - echo $data_args
+    - python train_detec.py $data_args || export exit_code=1
+    - echo $exit_code
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="train detec" --value=${result} --file=badge_train_detec.svg passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/tools/badge_train_detec.svg
+    when: always
+  allow_failure:
+    exit_codes: 137
+
+train-recog:
+  extends:
+    - .requires-trigger-train-recog-commit-message
+  stage: train
+  tags:
+    - akaocr
+  script:
+    - echo $CI_JOB_STAGE
+    - conda activate akaocr
+    - cd akaocr
+    - cd tools
+    - export exit_code=0 #success by default
+    - export result=""
+    - nvidia-smi
+    - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
+    - python train_recog.py $data_args || export exit_code=1
+    - echo $exit_code
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="train recog" --value=${result} --file=badge_train_recog.svg passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/tools/badge_train_recog.svg
+    when: always
+  allow_failure:
+    exit_codes: 137
+
+
+#Trigger train detec ex: commit -m "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK""
+#Trigger train detec ex: commit -m "Trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""

@@ -9,55 +9,74 @@ _____________________________________________________________________________
 This file contain unit test for dataloader
 _____________________________________________________________________________
 """
-
 import sys
 import torch
 
 sys.path.append("../")
-from models.detec.heatmap import HEAT
+# from models.detec.heatmap import HEAT
+from models.detec.resnet_fpn_heatmap import RESNET_FPN_HEAT
 from models.recog.atten import Atten
 from engine import Trainer
-from engine.config import setup, dict2namespace, load_yaml_config
+from engine.config import setup, parse_base
 from engine.trainer.loop import CustomLoopHeat, CustomLoopAtten
-from engine.build import build_dataloader
-from utils.data.dataloader import load_test_dataset_detec
+from engine.build import build_dataloader, build_test_data_detec
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-root_data_recog = "/home/bacnv6/nghiann3/data/RECOG/"
-root_data_detec = "/home/tanhv1/kleentext/akaocr/data/data_detec/train/"
-data_test_path = '/home/tanhv1/kleentext/akaocr/data/data_detec/test/ST_Doc_WORD_v2_2/'
+from engine.metric.accuracy import RecogAccuracy, DetecAccuracy
+from engine.metric.evaluation import DetecEvaluation, RecogEvaluation
 
 
-def test_recog():
-    cfg = setup("recog")
-    cfg.SOLVER.DATA_SOURCE = root_data_recog
+def test_recog(args):
+    cfg = setup("recog", args)
+    cfg.SOLVER.DATA_SOURCE = args.data_recog
     model = Atten(cfg)
     model.to(device=cfg.SOLVER.DEVICE)
 
+    evaluate = RecogEvaluation(cfg)
+    acc = RecogAccuracy(cfg)
     lossc = CustomLoopAtten(cfg)
-    train_loader = build_dataloader(cfg, root_data_recog)
-    test_loader = build_dataloader(cfg, root_data_recog, selected_data=["CR_HW_JP_v1_1"])
-    trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, resume=True)
+    train_loader = build_dataloader(cfg, args.data_recog)
+    test_loader = build_dataloader(cfg, args.data_recog)
+    trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, accuracy=acc,
+                    evaluation=evaluate, resume=True)
     trainer.do_train()
 
 
-def test_detec():
-    cfg = setup("detec")
+def test_detec(args):
+    cfg = setup("detec", args)
     cfg.MODEL.NUM_CLASS = 3210
     cfg.SOLVER.DEVICE = str(device)
-    cfg.SOLVER.DATA_SOURCE = root_data_detec
-    print(cfg)
+    cfg.SOLVER.DATA_SOURCE = args.data_detec
 
-    model = HEAT(cfg)
+    # model = HEAT(cfg)
+    model = RESNET_FPN_HEAT(cfg)
     model.to(device=device)
 
+    evaluate = DetecEvaluation(cfg)
+    acc = DetecAccuracy(cfg)
     lossc = CustomLoopHeat(cfg)
-    train_loader = build_dataloader(cfg, root_data_detec)
-    # test_loader = build_dataloader(cfg, root_data_detec, selected_data=["ST_Demo_1"])
-    test_loader = load_test_dataset_detec(data_test_path)
-    trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, resume=True)
+    train_loader = build_dataloader(cfg, args.data_detec)
+    test_loader = build_test_data_detec(cfg, args.data_test_detec, selected_data=None)
+    trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, accuracy=acc,
+                      evaluation=evaluate, resume=True)
     trainer.do_train()
 
+
+def main():
+    parser = parse_base()
+    parser.add_argument('--test_train_type', type=str, help='path to recog config [detec, recog]')
+    parser.add_argument('--data_recog', type=str, help='path to recog data')
+    parser.add_argument('--data_detec', type=str, help='path to detect data')
+    parser.add_argument('--data_test_detec', type=str, help='path to test detect data')
+    args = parser.parse_args()
+    if args.test_train_type=="recog":
+        test_recog(args)
+    elif args.test_train_type=="detec":
+        test_detec(args)
+    else:
+        print("Wrong train type, check --test_train_type argument")
+        sys.exit()
+
 if __name__ == '__main__':
-    test_recog()
-    test_detec()
+    main()

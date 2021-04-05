@@ -10,27 +10,21 @@ _____________________________________________________________________________
 This file contain unit test for models
 _____________________________________________________________________________
 """
-
+import argparse
 import sys
-
 sys.path.append("../")
-import os
 import torch
-import numpy as np
-import cv2
 
 from models.detec.heatmap import HEAT
 from models.recog.atten import Atten
 from models.modules.converters import AttnLabelConverter
 from engine.config import setup, dict2namespace, load_yaml_config
-from engine.build import build_dataloader
-#################################
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+
 def test_model_detec():
     model = HEAT()
-
     model = model.to(device)
     x = torch.randn(1, 3, 768, 768).to(device)
     print(x.shape)
@@ -39,8 +33,7 @@ def test_model_detec():
     print(y[1].shape)
 
 
-def test_model_recog():
-    config_recog_yaml = '../data/attention_resnet_base_v1.yaml'
+def test_model_recog(config_recog_yaml):
     config = load_yaml_config(config_recog_yaml)
     config = dict2namespace(config)
     config.MODEL.NUM_CLASS = 3210
@@ -49,7 +42,7 @@ def test_model_recog():
     model.to(device=device)
 
     x = torch.randn(1, 1, 32, 128)
-    # x = x.cuda()
+    x = x.cuda()
     x = x.to(device=device)
 
     text = ["xxx"]
@@ -57,9 +50,17 @@ def test_model_recog():
     text, length = converter.encode(text, max_label_length=config.MODEL.MAX_LABEL_LENGTH)
     y = model(x, text)
     print(y.shape)
-    # print(y)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config_recog', type=str, help='path to recog data',
+                        default='../data/attention_resnet_base_v1.yaml')
+    opt = parser.parse_args()
+
+    test_model_detec()
+    test_model_recog(opt.config_recog)
 
 
 if __name__ == '__main__':
-    test_model_detec()
-    test_model_recog()
+    main()
