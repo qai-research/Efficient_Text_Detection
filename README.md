@@ -43,7 +43,7 @@ OCR pre-train for japanese + custom process to create OCR engine for new project
 └── synth
     ├── stdoc
     ├── stimg
-    └── stscene 
+    └── stscene
 ```
 
 ### Built With
@@ -60,7 +60,7 @@ OCR pre-train for japanese + custom process to create OCR engine for new project
 ### Prerequisites
 
 List of dependencies
-* [cuda compatible installation](https://pytorch.org/) 
+* [cuda compatible installation](https://pytorch.org/)
 ```
 torch==1.5.1
 torchvision==0.6.1
