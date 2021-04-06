@@ -7,6 +7,8 @@ logger = initial_logger()
 import numpy as np
 import cv2
 
+import uuid
+
 class AlignCollate(object):
     def __init__(self, img_h=32, img_w=128, keep_ratio_with_pad=False):
         self.img_h = img_h
@@ -34,30 +36,161 @@ class AlignCollate(object):
             image_tensor = transform(image)
             image_tensors = image_tensor.unsqueeze(0)
 
-        return image_tensors  # (1, c, h, w)
+        return image_tensors  # (1, c, h, w)   
 
-def imagewriter(img, boxes, text_list, score_list, output_path, fontpath):
-    font = ImageFont.truetype(font=fontpath, size=40)
-    b,g,r = 0,0,255
-    for i in range(len(boxes)):
-        box = boxes[i]
-        poly = np.array(box).astype(np.int32)
-        if len(poly.shape) == 1:
-            x0, y0 = poly[0], poly[1]
-            x1, y1 = poly[2], poly[3]
+class Visualizer:
+    """
+    Utility class for visualizing image.
+
+    Attributes
+    ----------
+    output_folder : str
+        the path to output folder
+    pre : str
+        the prefix to append to out image's name
+    suf : str
+        the suffix to append to out image's name
+
+    Methods
+    -------
+    imwrite(image, file_name)
+        write the image to output_folder
+    """
+
+    def __init__(self, output_folder='./', pre='', suf='random'):
+        """
+        Parameters
+        ----------
+        output_folder : str
+            the path to output folder
+        pre : str, optional, default: ""
+            the prefix to be appended before the given image's name
+        suf : str or "random", optional, default: "random"
+            the suffix to be appended after the given image's name
+        """
+        self.output_folder = Path(output_folder)
+        self.pre = pre
+        self.suf = suf
+
+    def imwrite(self, image, file_name):
+        """
+        Parameters
+        ----------
+        image : numpy array
+            the image to be written to file
+        file_name : str
+            the image's file name
+        """
+        file_path = Path(file_name)
+        name_base = file_path.stem
+
+        if self.suf == 'random':
+            post = str(uuid.uuid4())[:8]
         else:
-            x0, y0 = np.min(poly, axis=0)
-            x1, y1 = np.max(poly, axis=0)
-        color = (0, 0, 255)
-        thickness = 2
-        img = cv2.rectangle(img, (x0,y0), (x1,y1), color=color, thickness=thickness)
-        # img = cv2.putText(img, text_list[i], (x1, y1-60), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color=color, thickness=thickness)
-        img = cv2.putText(img, str(score_list[i].cpu().numpy())[:4], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color=color, thickness=thickness)
-        img_pil = Image.fromarray(img)
-        draw = ImageDraw.Draw(img_pil)
-        draw.text((x1, y1-80), text_list[i], font = font, fill = (b, g, r))
-        img = np.array(img_pil)
-    cv2.imwrite(output_path, img)
+            post = self.suf
+
+        new_name_base = self.pre + name_base + post
+        file_type = file_path.suffix
+        write_file_path = self.output_folder.joinpath(new_name_base + file_type)
+
+        if not self.output_folder.exists():
+            self.output_folder.mkdir()
+
+        is_success, im_buf_arr = cv2.imencode(file_type, image)
+        im_buf_arr.tofile(str(write_file_path))
+
+    @staticmethod
+    def draw_zone(image, zone, color, thickness):
+        points = np.array([zone.points[0].to_array(),
+                           zone.points[1].to_array(),
+                           zone.points[2].to_array(),
+                           zone.points[3].to_array()])
+        points = points.reshape((-1, 1, 2))
+
+        image = cv2.polylines(image, [points], isClosed=True, color=color, thickness=thickness)
+        return image
+
+    @staticmethod
+    def draw_text(image, text, x, y, font_size=18, color=(0, 0, 0), font=None, thickness=3):
+        img = np.copy(image)
+
+        if font is None:
+            (text_width, text_height) = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, fontScale=font_size,
+                                                        thickness=thickness)[0]
+            text_offset_x = x
+            text_offset_y = y
+
+            # make the coords of the box with a small padding of two pixels
+            box_coords = ((text_offset_x, text_offset_y),
+                          (text_offset_x + text_width + 2, text_offset_y - text_height - 2))
+
+            cv2.rectangle(img, box_coords[0], box_coords[1], (255, 255, 255), cv2.FILLED)
+            cv2.putText(img, text, (text_offset_x, text_offset_y), cv2.FONT_HERSHEY_SIMPLEX,
+                        font_size, color, thickness)
+        else:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            im_pil = Image.fromarray(img)
+            draw = ImageDraw.Draw(im_pil)
+            u_font = ImageFont.truetype(font, font_size)
+            draw.text((x, y), text, font=u_font, fill=color)
+
+            img = cv2.cvtColor(np.array(im_pil), cv2.COLOR_RGB2BGR)
+        return img
+
+    def visualizer(self, image_ori, contours=None, boxes=None, lines=None, bcolor=(0, 255, 0), texts=None,
+                   font=None, font_size=30, thick=2, windows=None, show=True, name='demo', tcolor=(255, 0, 0), 
+                   gt_text=None, gt_color=(0, 0, 255)):
+        image = image_ori.copy()
+        imshape = image.shape
+        if len(imshape) == 2:
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+        if windows is None:
+            windows = imshape[:2]
+
+        if contours is not None:
+            image = cv2.drawContours(image, contours.astype(int), -1, bcolor, thick)
+            if texts is not None:
+                if gt_text is None:
+                    for con, tex in zip(contours, texts):
+                        image = self.draw_text(image, tex, con[3][0], con[3][1], font=font, font_size=font_size,
+                                               color=tcolor)
+                else:
+                    for con, tex, gt in zip(contours, texts, gt_text):
+                        if tex == gt:
+                            image = self.draw_text(image, tex, con[3][0], con[3][1], font=font, font_size=font_size,
+                                                   color=gt_color)
+                        else:
+                            image = self.draw_text(image, tex, con[3][0], con[3][1], font=font, font_size=font_size,
+                                                   color=tcolor)
+
+        elif boxes is not None:
+            for b in boxes:
+                image = cv2.rectangle(image, (b[0], b[1]), (b[2], b[3]), bcolor, thick)
+            if texts is not None:
+                if gt_text is None:
+                    for box, tex in zip(boxes, texts):
+                        image = self.draw_text(image, tex, box[0], box[3], font=font, font_size=font_size, color=tcolor)
+                else:
+                    for box, tex, gt in zip(boxes, texts, gt_text):
+                        if tex == gt:
+                            image = self.draw_text(image, tex, box[0], box[3], font=font, font_size=font_size,
+                                                   color=gt_color)
+                        else:
+                            image = self.draw_text(image, tex, box[0], box[3], font=font, font_size=font_size,
+                                                   color=tcolor)
+
+        if lines is not None:
+            for li in lines:
+                li = li[0]
+                image = cv2.line(image, (li[0], li[1]), (li[2], li[3]), (255, 0, 0), thick, cv2.LINE_AA)
+
+        if show:
+            cv2.namedWindow(name, cv2.WINDOW_NORMAL)
+            cv2.resizeWindow(name, windows[0], windows[1])
+            cv2.imshow(name, image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        return image
 
 def experiment_loader(name='best_accuracy.pth', type='detec', data_path="../"):
     data_path = Path(data_path)
@@ -73,4 +206,4 @@ def experiment_loader(name='best_accuracy.pth', type='detec', data_path="../"):
         if len(saved_model_list)<1:
             raise Exception("No model for experiment ", name, " in ", data_path.joinpath(saved_model_path))
         saved_model = str(saved_model_list[-1])
-    return saved_model
+    return 
