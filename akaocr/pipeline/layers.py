@@ -12,7 +12,7 @@ import re
 from models.modules.converters import AttnLabelConverter
 import torch.nn.functional as F
 from engine.infer.heat2boxes import Heat2boxes
-from pipeline.util import AlignCollate, experiment_loader, imagewriter
+from pipeline.util import AlignCollate, experiment_loader, Visualizer
 from pre.image import ImageProc
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -285,11 +285,10 @@ class Recoglayer():
                 except:
                     text = ''
                     print('cant recog box ', roi.shape)
-                if output:
-                    cv2.imwrite(os.path.join(output, 'result' + str(i) + '_' + '.jpg'), roi)
                 recog_result_list.append(text)
                 confidence_score_list.append(score)
             if output and fontpath:
-                output_path = os.path.join(output, 'result' + '.jpg')
-                imagewriter(img, boxes, recog_result_list, confidence_score_list, output_path, fontpath)
+                vis = Visualizer(output_folder = output)
+                img = vis.visualizer(image_ori=img, contours=boxes, font=fontpath, texts=recog_result_list)
+                cv2.imwrite(os.path.join(output, "result.jpg"), img)
             return recog_result_list
