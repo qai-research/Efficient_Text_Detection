@@ -284,7 +284,8 @@ class ImageProc:
         word_bboxes = []
         if len(character_bboxes) > 0:
             for bboxes in character_bboxes:
-                word_bboxes.append(
+                if len(bboxes.shape)==3 and (bboxes.shape[1]==4 and bboxes.shape[2]==2):
+                    word_bboxes.append(
                     [[bboxes[:, :, 0].min(), bboxes[:, :, 1].min()], [bboxes[:, :, 0].max(), bboxes[:, :, 1].max()]])
         word_bboxes = np.array(word_bboxes, np.int32)
 
