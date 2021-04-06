@@ -103,19 +103,11 @@ class Augmentation():
         imgs = [255 - np.array(img) for img in images_aug]
     
         if imwrite and output_path:
-            # data_path = "../data/visualize_augment/"
-            # Path(data_path).mkdir(parents=True, exist_ok=True)
-            # name = os.path.join(data_path, points[0]['file'])
-            # vis = Visualizer(output_folder = data_path)
-            # img = vis.visualizer(image_ori=np.array(images[0]), contours=np.array(box_origin), show=False)
-            # cv2.imwrite(name, img)
-            # name = os.path.join(data_path, "augmented" + points[0]['file'])
-            # img = vis.visualizer(image_ori=np.array(imgs[0]), contours=np.array(box_augment), show=False)
-            # cv2.imwrite(name, img)
-
+            # Visualize original image
             name = points[0]['file']
             self.imwrite(output_path, name, np.array(images[0]), np.array(box_origin))
-
+            
+            # Visualize augmented image
             name = "augmented" + points[0]['file']
             self.imwrite(output_path, name, np.array(imgs[0]), np.array(box_augment))
         
