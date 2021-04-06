@@ -15,12 +15,13 @@ import logging
 from pathlib import Path
 import random
 from torch.utils.data import Dataset, ConcatDataset, Subset
-
 from utils.file_utils import LmdbReader
 from utils.file_utils import Constants, read_vocab
 from utils.data import collates, label_handler
 from utils.runtime import Color, colorize
 from utils.utility import initial_logger
+from utils.augmentation import Augmentation
+
 logger = initial_logger()
 
 import numpy as np
@@ -30,7 +31,7 @@ class LmdbDataset(Dataset):
     """
     Base loader for lmdb type dataset
     """
-    def __init__(self, root, rgb=False, labelproc=None):
+    def __init__(self, root, rgb=False, labelproc=None, augmentation=None):
         """
         :param root: path to lmdb dataset
         :param rgb: process color image
@@ -42,6 +43,7 @@ class LmdbDataset(Dataset):
 
         self.labelproc = labelproc
         self.lmdbreader = LmdbReader(root, rgb)
+        self.augmentation = augmentation
 
     def __len__(self):
         return self.lmdbreader.num_samples
@@ -54,6 +56,8 @@ class LmdbDataset(Dataset):
             label = self.labelproc(label)
         if label is None:
             return None
+        if self.augmentation is not None:
+            image, label = self.augmentation.augment([image], [label])
         return image, label
 
 
@@ -83,7 +87,7 @@ class LoadDataset:
                                                   unknown=self.cfg.SOLVER.UNKNOWN,
                                                   max_length = self.cfg.MODEL.MAX_LABEL_LENGTH)
         try:
-            dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc)
+            dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc, augmentation=None)
         except Exception:
             logger.warning(f"can't read recog LMDB database from {root}")
             return None
@@ -105,8 +109,16 @@ class LoadDataset:
         :return: dataloader
         """
         labelproc = label_handler.JsonLabelHandle()
+        option = {'shear':{'p':0.8, 'v':{'x':(-15,15), 'y':(-15,15)}},
+                'scale':{'p':0.8, 'v':{"x": (0.8, 1.2), "y": (0.8, 1.2)}},
+                'translate':{'p':0.8, 'v':{"x": (-0.2, 0.2), "y": (-0.2, 0.2)}},
+                'rotate':{'p':0.8, 'v':(-45, 45)},
+                'dropout':{'p':0.6,'v':(0.0, 0.5)},
+                'blur'   :{'p':0.6,'v':(0.0, 4.0)},
+                'elastic':{'p':0.85}}
+        augmentation = Augmentation(self.cfg, option=option)
         try:
-            dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc)
+            dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc, augmentation=augmentation)
         except Exception:
             logger.warning(f"can't read detec LMDB database from {root}")
             return None
