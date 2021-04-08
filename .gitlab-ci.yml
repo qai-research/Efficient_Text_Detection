@@ -44,7 +44,6 @@ build-image:
   script:
     # configure and run kaniko (ecr login creds come from env vars)
     # - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $DOCKER_REGISTRY/dvc_example:${DOCKER_TAG}_${CI_COMMIT_REF_NAME}
-  script:
     - mkdir -p /kaniko/.docker
     # configure and run kaniko (ecr login creds come from env vars)
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
