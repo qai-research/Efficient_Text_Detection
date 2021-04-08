@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:1.8.0-cuda11.1-cudnn8-devel
+FROM pytorch/pytorch:latest
 
 COPY akaocr/requirements.txt .
 RUN pwd
