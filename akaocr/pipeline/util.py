@@ -206,4 +206,4 @@ def experiment_loader(name='best_accuracy.pth', type='detec', data_path="../"):
         if len(saved_model_list)<1:
             raise Exception("No model for experiment ", name, " in ", data_path.joinpath(saved_model_path))
         saved_model = str(saved_model_list[-1])
-    return 
+    return saved_model
