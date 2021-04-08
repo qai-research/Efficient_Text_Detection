@@ -4,41 +4,63 @@
 # Project: AkaOCR core
 # _____________________________________________________________________________
 
-# Define test jobs for pipeline in CI-CD
+# Define jobs for pipeline in CI-CD of the new OCR
 # _____________________________________________________________________________
 
 stages:
+  - build
   - train
   - test
 
-.requires-trigger-build-image-commit-message:
+.requires-trigger-build-commit-message:
   only:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^Trigger build image/
+      - $CI_COMMIT_MESSAGE =~ /^trigger build/
 
 .requires-trigger-train-detec-commit-message:
   only:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^Trigger train detec/
+      - $CI_COMMIT_MESSAGE =~ /^trigger train detec/
 
 .requires-trigger-train-recog-commit-message:
   only:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^Trigger train recog/
+      - $CI_COMMIT_MESSAGE =~ /^trigger train recog/
 
 .requires-trigger-merge-commit-message:
   only:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^Trigger merge/ #test before merge
+      - $CI_COMMIT_MESSAGE =~ /^trigger merge/ #test before merge
 
-# test stage for merge process
+build-image:
+  extends:
+    - .requires-trigger-build-commit-message
+  stage: build
+  tags:
+    - docker
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    # configure and run kaniko (ecr login creds come from env vars)
+    # - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $DOCKER_REGISTRY/dvc_example:${DOCKER_TAG}_${CI_COMMIT_REF_NAME}
+  script:
+    - mkdir -p /kaniko/.docker
+    # configure and run kaniko (ecr login creds come from env vars)
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    # - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/akaocr/Dockerfile --destination $CI_REGISTRY_IMAGE:${DOCKER_TAG}_${CI_COMMIT_REF_NAME}
+
+
+
+## test stage for merge process
 
 test-model:
   extends:
     - .requires-trigger-merge-commit-message
   stage: test
   tags:
-    - testocr
+    - shell
   script:
     #    - export CUDA_VISIBLE_DEVICES=1 #in case 1st gpu full (2 gpus)
     - echo $CI_JOB_STAGE
@@ -77,7 +99,7 @@ test-config:
     - .requires-trigger-merge-commit-message
   stage: test
   tags:
-    - testocr
+    - shell
   script:
     - echo $CI_JOB_STAGE
     - conda activate akaocr
@@ -111,7 +133,7 @@ test-dataloader:
     - .requires-trigger-merge-commit-message
   stage: test
   tags:
-    - testocr
+    - shell
   script:
     - echo $CI_JOB_STAGE
     - conda activate akaocr
@@ -145,7 +167,7 @@ test-eval:
     - .requires-trigger-merge-commit-message
   stage: test
   tags:
-    - testocr
+    - shell
   script:
     - echo $CI_JOB_STAGE
     - conda activate akaocr
@@ -179,7 +201,7 @@ test-train-loop:
     - .requires-trigger-merge-commit-message
   stage: test
   tags:
-    - testocr
+    - shell
   script:
     - echo $CI_JOB_STAGE
     - conda activate akaocr
@@ -210,14 +232,16 @@ test-train-loop:
     exit_codes: 137
 
 
-# train stage for training model experiment
+## train stage for training model experiment
+  #Trigger train detec ex: commit -m "trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST""
+  #Trigger train recog ex: commit -m "trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
 
 train-detec:
   extends:
     - .requires-trigger-train-detec-commit-message
   stage: train
   tags:
-    - akaocr
+    - shell
   script:
     - echo $CI_JOB_STAGE
     - conda activate akaocr
@@ -255,7 +279,7 @@ train-recog:
     - .requires-trigger-train-recog-commit-message
   stage: train
   tags:
-    - akaocr
+    - shell
   script:
     - echo $CI_JOB_STAGE
     - conda activate akaocr
@@ -286,6 +310,3 @@ train-recog:
   allow_failure:
     exit_codes: 137
 
-
-#Trigger train detec ex: commit -m "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST""
-#Trigger train detec ex: commit -m "Trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
