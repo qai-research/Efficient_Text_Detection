@@ -12,6 +12,11 @@ stages:
   - train
   - test
 
+.requires-trigger-mount-data-commit-message:
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^trigger mount/
+
 .requires-trigger-build-commit-message:
   only:
     variables:
@@ -31,6 +36,19 @@ stages:
   only:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^trigger merge/ #test before merge
+
+mount-nas2server:
+  extends:
+    - .requires-trigger-mount-data-commit-message
+  tags:
+    - docker
+    - shell
+  script:
+      #mount data from NAS to 54 (user bacnv6); just mount once
+      #data test
+    - sudo mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /home/bacnv6/runner_data_test/
+      #saved model
+    - sudo mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /home/bacnv6/runner_model_test/
 
 build-image:
   extends:
