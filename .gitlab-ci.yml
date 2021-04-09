@@ -94,9 +94,6 @@ train-detec-docker:
   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
   script:
     - pwd
-    - sudo groupadd docker
-    - sudo usermod -aG docker ${USER}
-    - su -s ${USER}
     - mkdir runner_data_test
     - mkdir runner_model_test
     - ls
@@ -105,8 +102,8 @@ train-detec-docker:
     - export exit_code=0 #success by default
     - export result=""
     - nvidia-smi
-        #mount data from NAS to 54 (user bacnv6)
-        #data test
+      #mount data from NAS to 54 (user bacnv6)
+      #data test
     - sudo mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
       #saved model
     - sudo mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
