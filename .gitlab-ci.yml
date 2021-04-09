@@ -71,7 +71,7 @@ build-image:
     - apt-get update && \
         apt-get upgrade -y && \
         apt-get install -y git
-
+    - apt-get -y install sudo
     - mkdir -p ~/.ssh
     - echo "$SSH_PUB_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - ls ~/.ssh
