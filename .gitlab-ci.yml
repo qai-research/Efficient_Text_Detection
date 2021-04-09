@@ -48,6 +48,8 @@ build-image:
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/akaocr/Dockerfile --destination $CI_REGISTRY_IMAGE:${DOCKER_TAG} #--verbosity=debug
 
 .authen-git-repo:
+extends:
+   - .requires-trigger-training-commit-message
   scripts:
     #remove when included in build stage
     - apt-get update && \
@@ -68,7 +70,7 @@ build-image:
 
 train-detec-docker:
   extends:
-   - .requires-trigger-training-commit-message
+  #  - .requires-trigger-training-commit-message
    - .authen-git-repo
   stage: train
   tags:
@@ -105,6 +107,9 @@ train-detec-docker:
     - branch=$(git rev-parse --short HEAD)
     - echo $branch
     - git push origin HEAD:${CI_COMMIT_REF_NAME}
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^trigger train detec/
   allow_failure:
     exit_codes: 137
 
