@@ -74,7 +74,7 @@ train-detec-docker:
     - docker
   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
   extends: .authen-git-repo
-  script:
+  scripts:
     - pwd
     - ls
     - echo $CI_JOB_STAGE
