@@ -42,13 +42,71 @@ build-image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    # configure and run kaniko (ecr login creds come from env vars)
-    # - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $DOCKER_REGISTRY/dvc_example:${DOCKER_TAG}_${CI_COMMIT_REF_NAME}
     - mkdir -p /kaniko/.docker
     # configure and run kaniko (ecr login creds come from env vars)
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    # - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/akaocr/Dockerfile --destination $CI_REGISTRY_IMAGE:${DOCKER_TAG}_${CI_COMMIT_REF_NAME} --verbosity=debug
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/akaocr/Dockerfile --destination $CI_REGISTRY_IMAGE:${DOCKER_TAG} #--verbosity=debug
+
+.authen-git-repo:
+  scripts:
+    #remove when included in build stage
+    - apt-get update && \
+        apt-get upgrade -y && \
+        apt-get install -y git
+
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PUB_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - ls ~/.ssh
+    - chmod 600 ~/.ssh/id_rsa
+    - cat ~/.ssh/id_rsa
+    # - ssh-keyscan  -t rsa -p 2022 git3.fsoft.com.vn  >> ~/.ssh/known_hosts
+    #2. Update (ssh) remote git3 repo, email, user
+    - git remote set-url origin ssh://git@gitlab.com:cuongvt/ocr-components.git
+    - git config --global user.email "huukim98@gmail.com"
+    - git config --global user.name "huukim911"
+
+
+train-detec-docker:
+  extends:
+   - .requires-trigger-training-commit-message
+  stage: train
+  tags:
+    - docker
+  image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
+  extends: .authen-git-repo
+  script:
+    - pwd
+    - ls
+    - echo $CI_JOB_STAGE
+    - cd akaocr/tools
+    - cd tools
+    - export exit_code=0 #success by default
+    - export result=""
+    - nvidia-smi
+    - echo $CI_COMMIT_MESSAGE
+    - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK" "
+    - echo $data_args
+    - python train_detec.py $data_args || export exit_code=1
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="train detec" --value=${result} --file=/akaocr/cicd/artifacts/badge_train_detec.svg passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+    - git status
+    - git add /akaocr/cicd/artifacts/badge_train_detec.svg
+    - git commit -m "CI-COMMIT:($CI_COMMIT_MESSAGE)"
+    - branch=$(git rev-parse --short HEAD)
+    - echo $branch
+    - git push origin HEAD:${CI_COMMIT_REF_NAME}
+  allow_failure:
+    exit_codes: 137
 
 
 
@@ -235,43 +293,44 @@ test-train-loop:
   #Trigger train detec ex: commit -m "trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST""
   #Trigger train recog ex: commit -m "trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
 
-train-detec:
-  extends:
-    - .requires-trigger-train-detec-commit-message
-  stage: train
-  tags:
-    - shell
-  script:
-    - echo $CI_JOB_STAGE
-    - conda activate akaocr
-    - cd akaocr
-    - cd tools
-    - export exit_code=0 #success by default
-    - export result=""
-    - nvidia-smi
-    - echo $CI_COMMIT_MESSAGE
-    - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK" "
-    - echo $data_args
-    - python train_detec.py $data_args || export exit_code=1
-    - echo $exit_code
-    - >
-      if [ ${exit_code} -ne 0 ]; then
-        export result="failed";
-      else
-        export result="passed";
-      fi
-    - echo $result
-    - anybadge --label="train detec" --value=${result} --file=badge_train_detec.svg passed=green failed=red
-    - >
-      if [ ${exit_code} -ne 0 ]; then
-        exit 1;
-      fi
-  artifacts:
-    paths:
-      - akaocr/tools/badge_train_detec.svg
-    when: always
-  allow_failure:
-    exit_codes: 137
+# train-detec:
+#   extends:
+#     - .requires-trigger-train-detec-commit-message
+#   stage: train
+#   tags:
+#     - shell
+#   script:
+#     - echo $CI_JOB_STAGE
+#     - conda activate akaocr
+#     - cd akaocr
+#     - cd tools
+#     - export exit_code=0 #success by default
+#     - export result=""
+#     - nvidia-smi
+#     - echo $CI_COMMIT_MESSAGE
+#     - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK" "
+#     - echo $data_args
+#     - python train_detec.py $data_args || export exit_code=1
+#     - echo $exit_code
+#     - >
+#       if [ ${exit_code} -ne 0 ]; then
+#         export result="failed";
+#       else
+#         export result="passed";
+#       fi
+#     - echo $result
+#     - anybadge --label="train detec" --value=${result} --file=badge_train_detec.svg passed=green failed=red
+#     - >
+#       if [ ${exit_code} -ne 0 ]; then
+#         exit 1;
+#       fi
+#   artifacts:
+#     paths:
+#       - akaocr/tools/badge_train_detec.svg
+#     when: always
+#   allow_failure:
+#     exit_codes: 137
+
 
 train-recog:
   extends:

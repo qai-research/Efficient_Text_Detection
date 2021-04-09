@@ -16,6 +16,7 @@
 [![Overall Testing Pipeline](https://gitlab.com/cuongvt/ocr-components/badges/develop/pipeline.svg)](https://gitlab.com/cuongvt/ocr-components/-/pipelines)\
 Test jobs in detail (see in Pipeline for correctly status, may not real time): 
 <br />
+[![train detec](https://gitlab.com/cuongvt/ocr-components/-/tree/master/akaocr/cicd/artifacts/badge_train_detec.svg)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
 [![model test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_model.svg?job=test-model)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
 [![config test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_config.svg?job=test-config)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
 [![dataloader test](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_dataloader.svg?job=test-dataloader)](https://gitlab.com/cuongvt/ocr-components/-/jobs)
