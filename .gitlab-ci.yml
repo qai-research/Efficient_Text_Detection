@@ -100,7 +100,6 @@ train-detec-docker:
     - cd akaocr/tools
     - export exit_code=0 #success by default
     - export result=""
-    - export CUDA_VISIBLE_DEVICES=1 #in case 1st gpu full (2 gpus)
     - nvidia-smi
       #mount data from NAS to 54 (user bacnv6)
       #data test
@@ -126,9 +125,6 @@ train-detec-docker:
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
       fi
-    - apt-get update && \
-        apt-get upgrade -y && \
-        apt-get install -y git
     - mkdir -p ~/.ssh
     - echo "$SSH_PUB_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - ls ~/.ssh
