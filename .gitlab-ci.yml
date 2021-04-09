@@ -69,11 +69,11 @@ build-image:
 train-detec-docker:
   extends:
    - .requires-trigger-training-commit-message
+   - .authen-git-repo
   stage: train
   tags:
     - docker
   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
-  extends: .authen-git-repo
   scripts:
     - pwd
     - ls
