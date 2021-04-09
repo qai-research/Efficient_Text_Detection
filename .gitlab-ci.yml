@@ -94,6 +94,7 @@ train-detec-docker:
   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
   script:
     - pwd
+    - apt-get -y install sudo
     - mkdir runner_data_test
     - mkdir runner_model_test
     - ls
