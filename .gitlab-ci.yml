@@ -182,7 +182,7 @@ test-model:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test model" --value=${result} --file=badge_test_model.svg passed=green failed=red #create badge for job
+    - anybadge --label="test model" --value=${result} --file=badge_test_model.svg -o passed=green failed=red #create badge for job
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
