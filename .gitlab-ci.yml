@@ -71,7 +71,7 @@ build-image:
     - apt-get update && \
         apt-get upgrade -y && \
         apt-get install -y git
-    - apt-get -y install     - mkdir -p ~/.ssh
+    - mkdir -p ~/.ssh
     - echo "$SSH_PUB_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - ls ~/.ssh
     - chmod 600 ~/.ssh/id_rsa
@@ -120,11 +120,26 @@ train-detec-docker:
         export result="passed";
       fi
     - echo $result
+    - pip install anybadge
     - anybadge --label="train detec" --value=${result} --file=/akaocr/cicd/artifacts/badge_train_detec.svg passed=green failed=red
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
       fi
+    - apt-get update && \
+        apt-get upgrade -y && \
+        apt-get install -y git
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PUB_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - ls ~/.ssh
+    - chmod 600 ~/.ssh/id_rsa
+    - cat ~/.ssh/id_rsa
+    # - ssh-keyscan  -t rsa -p 2022 git3.fsoft.com.vn  >> ~/.ssh/known_hosts
+    #2. Update (ssh) remote git3 repo, email, user
+    - git remote set-url origin ssh://git@gitlab.com:cuongvt/ocr-components.git
+    - git config --global user.email "huukim98@gmail.com"
+    - git config --global user.name "huukim911"
+
     - git status
     - git add /akaocr/cicd/artifacts/badge_train_detec.svg
     - git commit -m "CI-COMMIT:($CI_COMMIT_MESSAGE)"
