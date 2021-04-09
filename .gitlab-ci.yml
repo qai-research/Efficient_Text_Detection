@@ -46,9 +46,9 @@ mount-nas2server:
   script:
       #mount data from NAS to 54 (user bacnv6); just mount once
       #data test
-    - sudo mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /home/bacnv6/runner_data_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /home/bacnv6/runner_data_test/
       #saved model
-    - sudo mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /home/bacnv6/runner_model_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /home/bacnv6/runner_model_test/
 
 build-image:
   extends:
@@ -71,8 +71,7 @@ build-image:
     - apt-get update && \
         apt-get upgrade -y && \
         apt-get install -y git
-    - apt-get -y install sudo
-    - mkdir -p ~/.ssh
+    - apt-get -y install     - mkdir -p ~/.ssh
     - echo "$SSH_PUB_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - ls ~/.ssh
     - chmod 600 ~/.ssh/id_rsa
@@ -104,15 +103,15 @@ train-detec-docker:
     - nvidia-smi
       #mount data from NAS to 54 (user bacnv6)
       #data test
-    - sudo mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
       #saved model
-    - sudo mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
     - echo $CI_COMMIT_MESSAGE
     - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK" "
     - echo $data_args
     - python train_detec.py $data_args || export exit_code=1
-    - sudo unmount /builds/cuongvt/ocr-components/runner_data_test/
-    - sudo unmount /builds/cuongvt/ocr-components/runner_model_test/
+    - unmount /builds/cuongvt/ocr-components/runner_data_test/
+    - unmount /builds/cuongvt/ocr-components/runner_model_test/
     - >
       if [ ${exit_code} -ne 0 ]; then
         export result="failed";
