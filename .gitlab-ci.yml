@@ -104,9 +104,9 @@ train-detec-docker:
     - nvidia-smi
       #mount data from NAS to 54 (user bacnv6)
       #data test
-    # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
       #saved model
-    # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
     - echo $CI_COMMIT_MESSAGE
     - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK" "
     - echo $data_args
