@@ -79,7 +79,6 @@ train-detec-docker:
     - ls
     - echo $CI_JOB_STAGE
     - cd akaocr/tools
-    - cd tools
     - export exit_code=0 #success by default
     - export result=""
     - nvidia-smi
