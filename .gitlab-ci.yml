@@ -100,6 +100,7 @@ train-detec-docker:
     - cd akaocr/tools
     - export exit_code=0 #success by default
     - export result=""
+    - export CUDA_VISIBLE_DEVICES=1 #in case 1st gpu full (2 gpus)
     - nvidia-smi
       #mount data from NAS to 54 (user bacnv6)
       #data test
