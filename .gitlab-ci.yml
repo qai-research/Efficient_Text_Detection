@@ -148,7 +148,6 @@ test-model:
   tags:
     - shell
   script:
-    #    - export CUDA_VISIBLE_DEVICES=1 #in case 1st gpu full (2 gpus)
     - echo $CI_JOB_STAGE
     # - conda env create -f jobs/environment.yml -q #config new env to create if not exist, when use docker
     - conda activate akaocr #activate existed env; create a new env when use Docker
