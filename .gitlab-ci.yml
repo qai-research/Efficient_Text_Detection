@@ -121,7 +121,7 @@ train-detec-docker:
       fi
     - echo $result
     - pip install anybadge
-    - anybadge --label="train detec" --value=${result} --file=/akaocr/cicd/artifacts/badge_train_detec.svg passed=green failed=red
+    - anybadge --label="train detec" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/cicd/artifacts/badge_train_detec.svg passed=green failed=red
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
@@ -141,7 +141,7 @@ train-detec-docker:
     - git config --global user.name "huukim911"
 
     - git status
-    - git add /akaocr/cicd/artifacts/badge_train_detec.svg
+    - git add /builds/cuongvt/ocr-components/akaocr/cicd/artifacts/badge_train_detec.svg
     - git commit -m "CI-COMMIT:($CI_COMMIT_MESSAGE)"
     - branch=$(git rev-parse --short HEAD)
     - echo $branch
