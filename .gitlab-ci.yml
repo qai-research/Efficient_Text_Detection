@@ -92,7 +92,7 @@ train-detec-docker:
     - docker
   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
   script:
-    - pwd
+    # - pwd
     - mkdir runner_data_test
     - mkdir runner_model_test
     - ls
