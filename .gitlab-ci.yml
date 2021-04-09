@@ -48,8 +48,6 @@ build-image:
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/akaocr/Dockerfile --destination $CI_REGISTRY_IMAGE:${DOCKER_TAG} #--verbosity=debug
 
 .authen-git-repo:
-extends:
-   - .requires-trigger-training-commit-message
   scripts:
     #remove when included in build stage
     - apt-get update && \
