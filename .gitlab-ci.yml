@@ -138,8 +138,8 @@ train-detec-docker:
     - git commit -m "CI-COMMIT:($CI_COMMIT_MESSAGE)"
     - branch=$(git rev-parse --short HEAD)
     - echo $branch
-    # - git push origin HEAD:${CI_COMMIT_REF_NAME}
     - git push https://gitlab.com/cuongvt/ocr-components.git HEAD:${CI_COMMIT_REF_NAME}
+    # - git push origin HEAD:${CI_COMMIT_REF_NAME}
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
