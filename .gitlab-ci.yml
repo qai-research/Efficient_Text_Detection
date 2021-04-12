@@ -127,7 +127,7 @@ train-detec-docker:
     - chmod 600 ~/.ssh/id_rsa
     - cat ~/.ssh/id_rsa
     - ssh-keyscan  -t rsa -p 443 gitlab.com  >> ~/.ssh/known_hosts
-    - ssh -T git@gitlab.com
+    # - ssh -T git@gitlab.com
     #2. Update (ssh) remote git3 repo, email, user
     - git remote set-url origin ssh://git@gitlab.com:cuongvt/ocr-components.git
     - git config --global user.email "huukim98@gmail.com"
