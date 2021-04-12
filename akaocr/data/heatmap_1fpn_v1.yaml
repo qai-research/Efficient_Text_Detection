@@ -19,10 +19,10 @@ SOLVER:
 
   # maximum number of iteration
   # MAX_ITER: 300000
-  MAX_ITER: 1000
+  MAX_ITER: 10
 
   # milestone to update lr
-  STEPS : [30000, 60000, 90000] #, 120000]
+  STEPS : [30000, 60000, 90000, 120000, 150000]
 
   # number of samples to eval
   # NUM_SAMPLES : 200
@@ -33,7 +33,7 @@ SOLVER:
 
   # interval of iteration to do validation
   # EVAL_PERIOD: 5000
-  EVAL_PERIOD: 500
+  EVAL_PERIOD: 5
 
   # IDs of devices that host the data, model, etc.
   DEVICE_IDS : None
