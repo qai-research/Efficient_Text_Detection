@@ -20,7 +20,6 @@ from utils.events import (
     JSONWriter,
     TensorboardXWriter,
 )
-
 from utils.utility import initial_logger
 import torch
 logger = initial_logger()
