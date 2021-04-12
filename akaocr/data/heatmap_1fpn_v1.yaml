@@ -15,7 +15,7 @@ MODEL:
 
 SOLVER:
   # number of data loading workers default=0, int
-  WORKERS : 4
+  WORKERS : 0
 
   # maximum number of iteration
   # MAX_ITER: 300000
