@@ -119,6 +119,7 @@ train-detec-docker:
     - pip install anybadge
     - anybadge --label="train detec" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/cicd/artifacts/badge_train_detec.svg -o passed=green failed=red
     - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
     - echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     # - chmod 600 ~/.ssh/id_rsa
     - chmod 644 ~/.ssh/id_rsa
