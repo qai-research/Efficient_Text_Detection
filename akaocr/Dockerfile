@@ -1,4 +1,5 @@
 FROM python:3.7
+MAINTAINER huukim98@gmail.com(kimnh3)
 
 COPY akaocr/requirements.txt .
 RUN pwd
@@ -10,5 +11,4 @@ RUN apt-get update && \
       apt-get install -y git
 RUN mkdir /app
 WORKDIR /app
-RUN python --version
 CMD /bin/bash

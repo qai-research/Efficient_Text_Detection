@@ -125,7 +125,7 @@ train-detec-docker:
     - ssh-keyscan  -t rsa -p 443 gitlab.com  >> ~/.ssh/known_hosts
     # - ssh -T git@gitlab.com
     #2. Update (ssh) remote git3 repo, email, user
-    - git remote set-url origin https://gitlab.com/cuongvt/ocr-components.git
+    - git remote set-url origin git@gitlab.com:cuongvt/ocr-components.git # https://gitlab.com/cuongvt/ocr-components.git
     - git config --global user.email "huukim98@gmail.com"
     - git config --global user.name "huukim911"
 
@@ -329,77 +329,77 @@ test-train-loop:
   #Trigger train detec ex: commit -m "trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST""
   #Trigger train recog ex: commit -m "trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
 
-train-detec:
-  extends:
-    - .requires-trigger-train-detec-commit-message
-  stage: train
-  tags:
-    - shell
-  script:
-    - echo $CI_JOB_STAGE
-    - conda activate akaocr
-    - cd akaocr
-    - cd tools
-    - export exit_code=0 #success by default
-    - export result=""
-    - nvidia-smi
-    - echo $CI_COMMIT_MESSAGE
-    - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK" "
-    - echo $data_args
-    - python train_detec.py $data_args || export exit_code=1
-    - echo $exit_code
-    - >
-      if [ ${exit_code} -ne 0 ]; then
-        export result="failed";
-      else
-        export result="passed";
-      fi
-    - echo $result
-    - anybadge --label="train detec" --value=${result} --file=badge_train_detec.svg passed=green failed=red
-    - >
-      if [ ${exit_code} -ne 0 ]; then
-        exit 1;
-      fi
-  artifacts:
-    paths:
-      - akaocr/tools/badge_train_detec.svg
-    when: always
-  allow_failure:
-    exit_codes: 137
+# train-detec:
+#   extends:
+#     - .requires-trigger-train-detec-commit-message
+#   stage: train
+#   tags:
+#     - shell
+#   script:
+#     - echo $CI_JOB_STAGE
+#     - conda activate akaocr
+#     - cd akaocr
+#     - cd tools
+#     - export exit_code=0 #success by default
+#     - export result=""
+#     - nvidia-smi
+#     - echo $CI_COMMIT_MESSAGE
+#     - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK" "
+#     - echo $data_args
+#     - python train_detec.py $data_args || export exit_code=1
+#     - echo $exit_code
+#     - >
+#       if [ ${exit_code} -ne 0 ]; then
+#         export result="failed";
+#       else
+#         export result="passed";
+#       fi
+#     - echo $result
+#     - anybadge --label="train detec" --value=${result} --file=badge_train_detec.svg passed=green failed=red
+#     - >
+#       if [ ${exit_code} -ne 0 ]; then
+#         exit 1;
+#       fi
+#   artifacts:
+#     paths:
+#       - akaocr/tools/badge_train_detec.svg
+#     when: always
+#   allow_failure:
+#     exit_codes: 137
 
-train-recog:
-  extends:
-    - .requires-trigger-train-recog-commit-message
-  stage: train
-  tags:
-    - shell
-  script:
-    - echo $CI_JOB_STAGE
-    - conda activate akaocr
-    - cd akaocr
-    - cd tools
-    - export exit_code=0 #success by default
-    - export result=""
-    - nvidia-smi
-    - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
-    - python train_recog.py $data_args || export exit_code=1
-    - echo $exit_code
-    - >
-      if [ ${exit_code} -ne 0 ]; then
-        export result="failed";
-      else
-        export result="passed";
-      fi
-    - echo $result
-    - anybadge --label="train recog" --value=${result} --file=badge_train_recog.svg passed=green failed=red
-    - >
-      if [ ${exit_code} -ne 0 ]; then
-        exit 1;
-      fi
-  artifacts:
-    paths:
-      - akaocr/tools/badge_train_recog.svg
-    when: always
-  allow_failure:
-    exit_codes: 137
+# train-recog:
+#   extends:
+#     - .requires-trigger-train-recog-commit-message
+#   stage: train
+#   tags:
+#     - shell
+#   script:
+#     - echo $CI_JOB_STAGE
+#     - conda activate akaocr
+#     - cd akaocr
+#     - cd tools
+#     - export exit_code=0 #success by default
+#     - export result=""
+#     - nvidia-smi
+#     - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
+#     - python train_recog.py $data_args || export exit_code=1
+#     - echo $exit_code
+#     - >
+#       if [ ${exit_code} -ne 0 ]; then
+#         export result="failed";
+#       else
+#         export result="passed";
+#       fi
+#     - echo $result
+#     - anybadge --label="train recog" --value=${result} --file=badge_train_recog.svg passed=green failed=red
+#     - >
+#       if [ ${exit_code} -ne 0 ]; then
+#         exit 1;
+#       fi
+#   artifacts:
+#     paths:
+#       - akaocr/tools/badge_train_recog.svg
+#     when: always
+#   allow_failure:
+#     exit_codes: 137
 

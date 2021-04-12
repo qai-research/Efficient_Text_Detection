@@ -26,3 +26,4 @@ pygame==2.0.0.dev10
 albumentations==0.5.0
 tensorboard==2.4.1
 fvcore==0.1.2.post20210115
+anybadge
