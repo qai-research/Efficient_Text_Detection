@@ -26,6 +26,7 @@ logger = initial_logger()
 
 import numpy as np
 import json
+import random
 
 class LmdbDataset(Dataset):
     """
@@ -200,12 +201,13 @@ class LoadDatasetIterator:
 class LoadDatasetDetecBBox():
     def __init__(self, data, cfg):
         self.lmdbreader = LmdbReader(data, rgb=cfg.MODEL.RGB)
+        self.index_list = random.sample(range(1, self.get_length()+1), self.get_length())
 
     def get_length(self):
         return self.lmdbreader.num_samples
 
     def get_item(self, index):
-        img, label = self.lmdbreader.get_item(index)
+        img, label = self.lmdbreader.get_item(self.index_list[index])
         img = np.array(img)
         label = json.loads(label)
         return img, label
