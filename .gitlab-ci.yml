@@ -65,27 +65,27 @@ build-image:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/akaocr/Dockerfile --destination $CI_REGISTRY_IMAGE:${DOCKER_TAG} #--verbosity=debug
 
-.authen-git-repo:
-  script:
-    #remove when included in build stage
-    - apt-get update && \
-        apt-get upgrade -y && \
-        apt-get install -y git
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PUB_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    - ls ~/.ssh
-    - chmod 600 ~/.ssh/id_rsa
-    - cat ~/.ssh/id_rsa
-    # - ssh-keyscan  -t rsa -p 2022 git3.fsoft.com.vn  >> ~/.ssh/known_hosts
-    #2. Update (ssh) remote git3 repo, email, user
-    - git remote set-url origin ssh://git@gitlab.com:cuongvt/ocr-components.git
-    - git config --global user.email "huukim98@gmail.com"
-    - git config --global user.name "huukim911"
+# .authen-git-repo:
+#   script:
+#     #remove when included in build stage
+#     - apt-get update && \
+#         apt-get upgrade -y && \
+#         apt-get install -y git
+#     - mkdir -p ~/.ssh
+#     - echo "$SSH_PUB_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+#     - ls ~/.ssh
+#     - chmod 600 ~/.ssh/id_rsa
+#     - cat ~/.ssh/id_rsa
+#     # - ssh-keyscan  -t rsa -p 2022 git3.fsoft.com.vn  >> ~/.ssh/known_hosts
+#     #2. Update (ssh) remote git3 repo, email, user
+#     - git remote set-url origin ssh://git@gitlab.com:cuongvt/ocr-components.git
+#     - git config --global user.email "huukim98@gmail.com"
+#     - git config --global user.name "huukim911"
 
 
 train-detec-docker:
-  extends:
-    - .authen-git-repo
+  # extends:
+    # - .authen-git-repo
   #  - .requires-trigger-training-commit-message
   stage: train
   tags:
@@ -123,10 +123,10 @@ train-detec-docker:
     - pip install anybadge
     - anybadge --label="train detec" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/cicd/artifacts/badge_train_detec.svg -o passed=green failed=red
     - mkdir -p ~/.ssh
-    - echo $SSH_PUB_KEY | tr -d '\r' > ~/.ssh/id_rsa
-    - ls ~/.ssh
+    - echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - cat ~/.ssh/id_rsa
+    - ssh -T git@gitlab.com
     # - ssh-keyscan  -t rsa -p 2022 git3.fsoft.com.vn  >> ~/.ssh/known_hosts
     #2. Update (ssh) remote git3 repo, email, user
     - git remote set-url origin ssh://git@gitlab.com:cuongvt/ocr-components.git
