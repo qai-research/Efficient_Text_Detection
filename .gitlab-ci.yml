@@ -120,9 +120,11 @@ train-detec-docker:
     - anybadge --label="train detec" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/cicd/artifacts/badge_train_detec.svg -o passed=green failed=red
     - mkdir -p ~/.ssh
     - echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
+    # - chmod 600 ~/.ssh/id_rsa
+    - chmod 644 ~/.ssh/id_rsa
     - cat ~/.ssh/id_rsa
-    - ssh-keyscan  -t rsa -p 443 gitlab.com  >> ~/.ssh/known_hosts
+    - ssh-keyscan gitlab.com  >> ~/.ssh/known_hosts
+    # - ssh-keyscan  -t rsa -p 443 gitlab.com  >> ~/.ssh/known_hosts
     # - ssh -T git@gitlab.com
     #2. Update (ssh) remote git3 repo, email, user
     - git remote set-url origin git@gitlab.com:cuongvt/ocr-components.git # https://gitlab.com/cuongvt/ocr-components.git
