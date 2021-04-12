@@ -88,6 +88,6 @@ class Trainer:
                         and iteration != self.cfg.SOLVER.MAX_ITER - 1
                 ):
                     # periodic_checkpointer.step(iteration-1)
-                    torch.save(self.model.state_dict(), os.path.join(self.cfg.SOLVER.EXP, f'iter_{iteration}.pth'))
+                    torch.save(self.model.state_dict(), os.path.join(self.cfg.SOLVER.EXP, "iter_{:07d}.pth".format(iteration)))
                     self.metric, mess = self.do_test(self.model, self.test_loader, self.metric)
                     logger.info(mess)
