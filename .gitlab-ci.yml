@@ -90,7 +90,7 @@ train-detec-docker:
   stage: train
   tags:
     - docker
-    # - windows
+    - windows
   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
   script:
     # - pwd
