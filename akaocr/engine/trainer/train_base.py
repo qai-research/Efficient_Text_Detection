@@ -26,8 +26,6 @@ import torch
 logger = initial_logger()
 import torch.optim as optim
 
-# from engine.metric.evaluation import Evaluation
-
 class Trainer:
     def __init__(self, cfg, model, train_loader=None, test_loader=None, custom_loop=None, accuracy=None, evaluation=None, resume=False):
         self.cfg = cfg
