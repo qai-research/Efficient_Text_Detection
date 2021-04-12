@@ -39,6 +39,7 @@ class DetecEvaluation:
             data_length += data.get_length()
         if self.num_samples > data_length:
             self.num_samples = data_length
+        
         for data in test_loader:
             for i in range(1, data.get_length()+1):
                 img, label = data.get_item(i)
