@@ -17,11 +17,11 @@ Pipelines in detail (run on develop):
 <br />
 | Test: [![Overall test status](https://gitlab.com/cuongvt/ocr-components/badges/develop/pipeline.svg)](https://gitlab.com/cuongvt/ocr-components/-/pipelines)        | Train           |
 | :-------------: |:-------------:|
-| [![Config test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_config.svg?job=test-config)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      | [![Train detec status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_train_detec.svg?job=train-detec-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs) |
-| [![Model test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_model.svg?job=test-model)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      | [![Train recog status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_train_recog.svg?job=train-recog-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |
-| [![Dataloader test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_dataloader.svg?job=test-dataloader)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
-| [![Evaluation test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_evaluation.svg?job=test-eval)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
-| [![Training loop test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_train_loop.svg?job=test-train-loop)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
+| [![Config test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_config.svg?job=test-config-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      | [![Train detec status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_train_detec.svg?job=train-detec-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs) |
+| [![Model test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_model.svg?job=test-model-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      | [![Train recog status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_train_recog.svg?job=train-recog-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |
+| [![Dataloader test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_dataloader.svg?job=test-dataloader-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
+| [![Evaluation test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_evaluation.svg?job=test-eval-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
+| [![Training loop test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_train_loop.svg?job=test-train-loop-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
 
 # AkaOCR
 

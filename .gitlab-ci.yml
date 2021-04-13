@@ -76,9 +76,9 @@ train-detec-docker:
     - nvidia-smi
       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
       #data test
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
       #saved model
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
       #extract data arguments from commit;
     - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+')
     - python train_detec.py $data_args || export exit_code=1
@@ -124,9 +124,9 @@ train-recog-docker:
     - nvidia-smi
       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
       #data test
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
       #saved model
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
       #extract data arguments from commit;
     - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+')
     - python train_recog.py $data_args || export exit_code=1
@@ -265,9 +265,9 @@ test-dataloader-docker:
     # - nvidia-smi
       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
       #data test
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
       #saved model
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
     - python test_dataloader.py --data_recog $DATA_RECOG_DOCKER --data_detec $DATA_DETEC_DOCKER || export exit_code=1
       #unmount data from NAS
     - umount /builds/cuongvt/ocr-components/runner_data_test/
@@ -311,9 +311,9 @@ test-eval-docker:
     # - nvidia-smi
       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
       #data test
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
       #saved model
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
     - python evaluation_test.py --w_detec $W_DETEC_DOCKER --data_test_detec $DATA_TEST_DETEC_DOCKER --w_recog $W_RECOG_DOCKER --data_recog $DATA_RECOG_DOCKER || export exit_code=1
       #unmount data from NAS
     - umount /builds/cuongvt/ocr-components/runner_data_test/
@@ -357,9 +357,9 @@ test-train-loop:
     - nvidia-smi
       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
       #data test
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
       #saved model
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
     - python train_loop_test.py --test_train_type detec --config="../data/heatmap_1fpn_v1_ci_test.yaml" --data_detec $DATA_DETEC_DOCKER --data_test_detec $DATA_TEST_DETEC_DOCKER && python train_loop_test.py --test_train_type recog --config="../data/attention_resnet_base_v1_ci_test.yaml" --data_recog $DATA_RECOG_DOCKER || export exit_code=1
       #unmount data from NAS
     - umount /builds/cuongvt/ocr-components/runner_data_test/
