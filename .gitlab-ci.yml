@@ -187,7 +187,7 @@ test-model-docker:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test model" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/tools/badge_test_model.svg -o passed=green failed=red
+    - anybadge --label="test model" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_model.svg -o passed=green failed=red
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
@@ -233,7 +233,7 @@ test-config-docker:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test config" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/tools/badge_test_config.svg -o passed=green failed=red
+    - anybadge --label="test config" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_config.svg -o passed=green failed=red
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
@@ -279,7 +279,7 @@ test-dataloader-docker:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test dataloader" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/tools/badge_test_dataloader.svg -o passed=green failed=red
+    - anybadge --label="test dataloader" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_dataloader.svg -o passed=green failed=red
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
@@ -325,7 +325,7 @@ test-eval-docker:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test evaluation" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/tools/badge_test_evaluation.svg -o passed=green failed=red
+    - anybadge --label="test evaluation" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_evaluation.svg -o passed=green failed=red
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
@@ -371,7 +371,7 @@ test-train-loop:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test training loop" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/tools/badge_test_train_loop.svg -o passed=green failed=red
+    - anybadge --label="test training loop" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_train_loop.svg -o passed=green failed=red
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
