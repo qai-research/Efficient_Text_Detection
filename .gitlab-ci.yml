@@ -12,6 +12,7 @@ stages:
   - train
   - test
 
+#set some trigger to run jobs as commit message rule
 .requires-trigger-build-commit-message:
   only:
     variables:
@@ -32,6 +33,7 @@ stages:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^trigger merge/ #test before merge
 
+#build docker image use kaniko
 build-image:
   extends:
     - .requires-trigger-build-commit-message
@@ -47,10 +49,12 @@ build-image:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/akaocr/Dockerfile --destination $CI_REGISTRY_IMAGE:${DOCKER_TAG} #--verbosity=debug
 
+
 #jobs run in docker
+
 ## train stage for training model experiment
-  #Trigger train detec ex: git commit -m "trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST""
-  #Trigger train recog ex: git commit -m "trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
+  #Trigger train detec ex: git commit -m "trigger train detec: --data_detec="/builds/cuongvt/ocr-components/runner_data_test/Kleentex/Detec/train" --data_test_detec="/builds/cuongvt/ocr-components/runner_data_test/Kleentex/ST""
+  #Trigger train recog ex: git commit -m "trigger train recog: --data_recog="/builds/cuongvt/ocr-components/runner_data_test/Kleentex/Recog/train" --data_test_recog="/builds/cuongvt/ocr-components/runner_data_test/Kleentex/Recog/train""
 
 train-detec-docker:
   extends:
