@@ -12,11 +12,6 @@ stages:
   - train
   - test
 
-.requires-trigger-mount-data-commit-message:
-  only:
-    variables:
-      - $CI_COMMIT_MESSAGE =~ /^trigger mount/
-
 .requires-trigger-build-commit-message:
   only:
     variables:
@@ -37,19 +32,6 @@ stages:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^trigger merge/ #test before merge
 
-mount-nas2server:
-  extends:
-    - .requires-trigger-mount-data-commit-message
-  tags:
-    - docker
-    - shell
-  script:
-      #mount data from NAS to 54 (user bacnv6); just mount once
-      #data test
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /home/bacnv6/runner_data_test/
-      #saved model
-    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /home/bacnv6/runner_model_test/
-
 build-image:
   extends:
     - .requires-trigger-build-commit-message
@@ -65,28 +47,14 @@ build-image:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/akaocr/Dockerfile --destination $CI_REGISTRY_IMAGE:${DOCKER_TAG} #--verbosity=debug
 
-# .authen-git-repo:
-#   script:
-#     #remove when included in build stage
-#     - apt-get update && \
-#         apt-get upgrade -y && \
-#         apt-get install -y git
-#     - mkdir -p ~/.ssh
-#     - echo "$SSH_PUB_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-#     - ls ~/.ssh
-#     - chmod 600 ~/.ssh/id_rsa
-#     - cat ~/.ssh/id_rsa
-#     # - ssh-keyscan  -t rsa -p 2022 git3.fsoft.com.vn  >> ~/.ssh/known_hosts
-#     #2. Update (ssh) remote git3 repo, email, user
-#     - git remote set-url origin ssh://git@gitlab.com:cuongvt/ocr-components.git
-#     - git config --global user.email "huukim98@gmail.com"
-#     - git config --global user.name "huukim911"
-
+#jobs run in docker
+## train stage for training model experiment
+  #Trigger train detec ex: git commit -m "trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST""
+  #Trigger train recog ex: git commit -m "trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
 
 train-detec-docker:
-  # extends:
-    # - .authen-git-repo
-  #  - .requires-trigger-training-commit-message
+  extends:
+    - .requires-trigger-train-detec-commit-message
   stage: train
   tags:
     - docker
@@ -96,19 +64,23 @@ train-detec-docker:
     - mkdir runner_model_test
     - echo $CI_JOB_STAGE
     - cd akaocr/tools
-    - export exit_code=0 #success by default
+      #success code init
+    - export exit_code=0 
     - export result=""
-    - nvidia-smi #configured [runner.docker]'s gpus="all" in runner config (config.toml)
-      #mount data from NAS to 54 (user bacnv6)
+      #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
+    - nvidia-smi
+      #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
       #data test
-    # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
-    #   #saved model
-    # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
-    # - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+') #extract data arguments from commit; for ex: $CI_COMMIT_MESSAGE = "Trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST/ST_YAMATO_BLACK" "
-    # - echo $data_args
-    # - python train_detec.py $data_args || export exit_code=1
-    # - umount /builds/cuongvt/ocr-components/runner_data_test/
-    # - umount /builds/cuongvt/ocr-components/runner_model_test/
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
+      #saved model
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
+      #extract data arguments from commit;
+    - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+')
+    - python train_detec.py $data_args || export exit_code=1
+      #unmount data from NAS
+    - umount /builds/cuongvt/ocr-components/runner_data_test/
+    - umount /builds/cuongvt/ocr-components/runner_model_test/
+      #base on exit_code to create badge result
     - >
       if [ ${exit_code} -ne 0 ]; then
         export result="failed";
@@ -116,41 +88,68 @@ train-detec-docker:
         export result="passed";
       fi
     - echo $result
-    # - pip install anybadge
-    - anybadge --label="train detec" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/cicd/artifacts/badge_train_detec.svg -o passed=green failed=red
-    # - mkdir -p ~/.ssh
-    # - chmod 700 ~/.ssh
-    # - echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    # - chmod 644 ~/.ssh/id_rsa
-    # - cat ~/.ssh/id_rsa
-    # - ssh-keyscan gitlab.com  >> ~/.ssh/known_hosts
-    # - cat ~/.ssh/known_hosts
-    # - ssh-keyscan  -t rsa -p 443 gitlab.com  >> ~/.ssh/known_hosts
-    # - ssh -T git@gitlab.com
-    #2. Update (ssh) remote git3 repo, email, user
-    # - git remote set-url origin git@gitlab.com:cuongvt/ocr-components.git # https://gitlab.com/cuongvt/ocr-components.git
-    # - git config --global user.email "huukim98@gmail.com"
-    # - git config --global user.name "huukim911"
-
-    # - git status
-    # - git add /builds/cuongvt/ocr-components/akaocr/cicd/artifacts/badge_train_detec.svg
-    # - git commit -m "CI-COMMIT:($CI_COMMIT_MESSAGE)"
-    # - branch=$(git rev-parse --short HEAD)
-    # - echo $branch
-    # - git push https://gitlab.com/cuongvt/ocr-components.git HEAD:${CI_COMMIT_REF_NAME}
-    # - git push origin HEAD:${CI_COMMIT_REF_NAME}
+    - anybadge --label="train detec" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/tools/badge_train_detec.svg -o passed=green failed=red
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
       fi
-  only:
-    variables:
-      - $CI_COMMIT_MESSAGE =~ /^trigger train detec/
+  artifacts:
+    paths:
+      - akaocr/tools/badge_train_detec.svg
+    when: always
+  allow_failure:
+    exit_codes: 137
+
+train-recog-docker:
+  extends:
+    - .requires-trigger-train-recog-commit-message
+  stage: train
+  tags:
+    - docker
+  image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
+  script:
+    - mkdir runner_data_test
+    - mkdir runner_model_test
+    - echo $CI_JOB_STAGE
+    - cd akaocr/tools
+      #success code init
+    - export exit_code=0 
+    - export result=""
+      #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
+    - nvidia-smi
+      #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
+      #data test
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
+      #saved model
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
+      #extract data arguments from commit;
+    - export data_args=$(echo $CI_COMMIT_MESSAGE | grep -o -E '\--.+')
+    - python train_recog.py $data_args || export exit_code=1
+      #unmount data from NAS
+    - umount /builds/cuongvt/ocr-components/runner_data_test/
+    - umount /builds/cuongvt/ocr-components/runner_model_test/
+      #base on exit_code to create badge result
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="train recog" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/tools/badge_train_recog.svg -o passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/tools/badge_train_recog.svg
+    when: always
   allow_failure:
     exit_codes: 137
 
 
-
+    
 ## test stage for merge process
 
 test-model:
@@ -329,9 +328,6 @@ test-train-loop:
     exit_codes: 137
 
 
-## train stage for training model experiment
-  #Trigger train detec ex: commit -m "trigger train detec: --data_detec="/home/bacnv6/runner_data_test/Kleentex/Detec/train" --data_test_detec="/home/bacnv6/runner_data_test/Kleentex/ST""
-  #Trigger train recog ex: commit -m "trigger train recog: --data_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train" --data_test_recog="/home/bacnv6/runner_data_test/Kleentex/Recog/train""
 
 # train-detec:
 #   extends:
