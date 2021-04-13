@@ -20,13 +20,10 @@ from utils.events import (
     JSONWriter,
     TensorboardXWriter,
 )
-
 from utils.utility import initial_logger
-
+import torch
 logger = initial_logger()
 import torch.optim as optim
-
-# from engine.metric.evaluation import Evaluation
 
 class Trainer:
     def __init__(self, cfg, model, train_loader=None, test_loader=None, custom_loop=None, accuracy=None, evaluation=None, resume=False):
@@ -87,6 +84,6 @@ class Trainer:
                         (iteration) % self.cfg.SOLVER.EVAL_PERIOD == 0
                         and iteration != self.cfg.SOLVER.MAX_ITER - 1
                 ):
-                    periodic_checkpointer.step(iteration-1)
+                    torch.save(self.model.state_dict(), os.path.join(self.cfg.SOLVER.EXP, "iter_{:07d}.pth".format(iteration)))
                     self.metric, mess = self.do_test(self.model, self.test_loader, self.metric)
                     logger.info(mess)
