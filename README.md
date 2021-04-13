@@ -22,6 +22,8 @@ Pipelines in detail (run on develop):
 | [![Dataloader test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_dataloader.svg?job=test-dataloader-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
 | [![Evaluation test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_evaluation.svg?job=test-eval-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
 | [![Training loop test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_train_loop.svg?job=test-train-loop-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
+| [![Augmentation test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_augmentation.svg?job=test-augmentation-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
+| [![Pipeline test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_pipeline.svg?job=test-pipeline-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
 
 # AkaOCR
 
