@@ -337,7 +337,7 @@ test-eval-docker:
   allow_failure:
     exit_codes: 137
 
-test-eval-docker:
+test-train-loop:
   extends:
     - .requires-trigger-merge-commit-message
   stage: test
@@ -383,7 +383,7 @@ test-eval-docker:
   allow_failure:
     exit_codes: 137
 
-## test stage for merge process
+## use shell
 
 # test-model:
 #   extends:
