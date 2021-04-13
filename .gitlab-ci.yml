@@ -384,8 +384,6 @@ test-train-loop:
   allow_failure:
     exit_codes: 137
 
-    \
-
 test-augmentation-docker:
   extends:
     - .requires-trigger-merge-commit-message
