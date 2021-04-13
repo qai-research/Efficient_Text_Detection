@@ -68,6 +68,7 @@ train-detec-docker:
     - mkdir runner_model_test
     - echo $CI_JOB_STAGE
     - cd akaocr/tools
+    
       #success code init
     - export exit_code=0 
     - export result=""
