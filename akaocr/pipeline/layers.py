@@ -4,6 +4,8 @@ import numpy as np
 import shutil
 
 from models.detec.heatmap import HEAT
+from models.detec.resnet_fpn_heatmap import HEAT_RESNET
+from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from models.recog.atten import Atten
 import os
 from engine.config import setup, parse_base
@@ -80,7 +82,12 @@ class Detectlayer():
         self.cfg = setup("detec", args)
         if model_path is None:
             model_path = experiment_loader(type='detec')
-        model = HEAT()
+        if self.cfg.MODEL.NAME == "CRAFT":
+            model = HEAT()
+        elif self.cfg.MODEL.NAME == "RESNET":
+            model = HEAT_RESNET()
+        elif self.cfg.MODEL.NAME == "EFFICIENT":
+            model = HEAT_EFFICIENT()
         model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
         model = model.to(device)
         self.window_shape = window
