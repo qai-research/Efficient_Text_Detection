@@ -44,8 +44,8 @@ class Heat2boxes:
             return 0  # same
 
     def convert(self, evaluation = False):
-        score_text = self.y[0:,:,0].cpu().data.numpy()
-        score_link = self.y[0:,:,1].cpu().data.numpy()
+        score_text = self.y[0, :, :, 0].cpu().data.numpy()
+        score_link = self.y[0, :, :, 1].cpu().data.numpy()
         
         # Post-processing
         text_threshold = self.cfg.INFERENCE.TEXT_THRESHOLD

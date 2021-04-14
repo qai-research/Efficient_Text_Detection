@@ -153,6 +153,7 @@ train-recog-docker:
   allow_failure:
     exit_codes: 137
 
+    
 ##test in docker
 test-model-docker:
   extends:
