@@ -33,7 +33,7 @@ stages:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^trigger merge/ #test before merge
 
-#build docker image use kaniko
+#build docker image using kaniko
 build-image:
   extends:
     - .requires-trigger-build-commit-message
