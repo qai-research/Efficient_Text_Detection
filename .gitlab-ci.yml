@@ -433,7 +433,7 @@ test-augmentation-docker:
     
 test-pipeline-docker:
   extends:
-    # - .requires-trigger-merge-commit-message
+    - .requires-trigger-merge-commit-message
   stage: test
   tags:
     - docker
@@ -454,7 +454,7 @@ test-pipeline-docker:
       #saved model
     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
     # - python pipeline_test.py --detec_lmdb=$DETEC_LMDB_AUG_DOCKER --num_samples=2 --output_folder=/builds/cuongvt/ocr-components/akaocr/test/
-    - python pipeline_test.py --w_detec=$W_DETEC --w_recog=$W_RECOG --font_path=input/default_vis_font.ttf --img_path=input/image_1.jpg --output_path=/builds/cuongvt/ocr-components/akaocr/test/
+    - python pipeline_test.py --w_detec=$W_DETEC_DOCKER --w_recog=$W_RECOG_DOCKER --font_path=input/default_vis_font.ttf --img_path=input/image_1.jpg --output_path=/builds/cuongvt/ocr-components/akaocr/test/
       #unmount data from NAS
     # - umount /builds/cuongvt/ocr-components/runner_data_test/
     - umount /builds/cuongvt/ocr-components/runner_model_test/
