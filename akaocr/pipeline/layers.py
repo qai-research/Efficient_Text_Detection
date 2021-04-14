@@ -87,68 +87,59 @@ class Detectlayer():
         self.bufferx = bufferx
         self.buffery = buffery
         self.detector = model
-        self.cfg.MODEL.MAX_SIZE = 1200
 
-    def detect(self, img):
-        img, target_ratio = ImageProc.resize_aspect_ratio(
-            img, self.cfg.MODEL.MAX_SIZE, interpolation=cv2.INTER_LINEAR
-        )
-        ratio_h = ratio_w = 1 / target_ratio
+    def detect(self, img, preprocess=True):
+        if preprocess:
+            img, target_ratio = ImageProc.resize_aspect_ratio(
+                img, self.cfg.MODEL.MAX_SIZE, interpolation=cv2.INTER_LINEAR
+            )
+            self.ratio_h = self.ratio_w = 1 / target_ratio
+        else:
+            self.ratio_h = self.ratio_w = 1
         img = ImageProc.normalize_mean_variance(img)
         img = torch.from_numpy(img).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
         img = (img.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
         img = img.to(device)
         y,_ = self.detector(img)
-        box_list = Heat2boxes(self.cfg, y, ratio_w, ratio_h)
-        box_list,_ = box_list.convert()
-        for i in range(len(box_list)):
-            box_list[i] = [[box_list[i][0], box_list[i][4]],
-                            [box_list[i][1], box_list[i][5]],
-                            [box_list[i][2], box_list[i][6]],
-                            [box_list[i][3], box_list[i][7]]]
-        return np.array(box_list)
+        return y[0,:,:,0], y[0,:,:,1]
 
     def __call__(self, imgs):
         if isinstance(imgs, list):
             all_boxes = []
+            merge_heat = MergeHeatmap(imgs, self.bufferx, self.buffery)
+            heatmap = merge_heat.heatmap
+            linkmap = merge_heat.linkmap
             for i, row in enumerate(imgs):
                 for j, img in enumerate(row):
-                    boxes = self.detect(img)
-                    center = [(sum(box[:, :1]) / 4, sum(box[:, 1:2]) / 4) for box in boxes]
-                    for ce, bo in zip(center, boxes):
-                        correct = 1
-                        buffx = self.bufferx / 2
-                        buffy = self.buffery / 2
-                        ebuffx = self.window_shape[0] - buffx
-                        ebuffy = self.window_shape[1] - buffy
-                        if ce[0] < buffx or ce[0] > ebuffx or ce[1] < buffy or ce[1] > ebuffy:
-                            correct = 0
-
-                        if i == 0 and ce[1] < buffy:
-                            correct = 1
-                        elif i == len(imgs) - 1 and ce[1] > ebuffy:
-                            correct = 1
-                        elif j == 0 and ce[0] < buffx:
-                            correct = 1
-                        elif j == len(row) and ce[0] > ebuffx:
-                            correct = 1
-
-                        if i == 0 and j == 0 and ce[0] < buffx and ce[1] < buffy:
-                            correct = 1
-                        elif i == 0 and j == len(row) and ce[0] > ebuffx and ce[1] < buffy:
-                            correct = 1
-                        elif i == len(imgs) and j == 0 and ce[0] < buffx and ce[1] > ebuffy:
-                            correct = 1
-                        elif i == len(imgs) and j == len(row) and ce[0] > ebuffx and ce[1] > ebuffy:
-                            correct = 1
-                        if correct == 1:
-                            x_plus = (self.window_shape[0] - self.bufferx) * j
-                            y_plus = (self.window_shape[1] - self.buffery) * i
-                            bo = [[b[0] + x_plus, b[1] + y_plus] for b in bo]
-                            all_boxes.append(np.array(bo))
-            result = np.array(all_boxes)
+                    heat, score_link = self.detect(img, preprocess=False)
+                    x_plus = (imgs[0][0].shape[1] - self.bufferx) * j//2
+                    y_plus = (imgs[0][0].shape[0] - self.buffery) * i//2  
+                    start_point = (x_plus, y_plus) 
+                    end_point = (x_plus+heat.shape[1], y_plus+heat.shape[0])
+                    heatmap, linkmap = merge_heat.merge_heatmap(heatmap, linkmap, heat, score_link, start_point, end_point)
+            heatmap = torch.Tensor(heatmap)
+            linkmap = torch.Tensor(linkmap)
+            box_list = Heat2boxes(self.cfg, heatmap, linkmap, self.ratio_w, self.ratio_h)
+            box_list,_ = box_list.convert()
+            for i in range(len(box_list)):
+                box_list[i] = [[box_list[i][0], box_list[i][4]],
+                                [box_list[i][1], box_list[i][5]],
+                                [box_list[i][2], box_list[i][6]],
+                                [box_list[i][3], box_list[i][7]]]
+                all_boxes.append(np.array(box_list[i]))
+            result =  np.array(all_boxes)
         else:
-            result = self.detect(imgs)
+            all_boxes = []
+            heatmap, linkmap = self.detect(imgs, preprocess=True)
+            box_list = Heat2boxes(self.cfg, heatmap, linkmap, self.ratio_w, self.ratio_h)
+            box_list,_ = box_list.convert()
+            for i in range(len(box_list)):
+                box_list[i] = [[box_list[i][0], box_list[i][4]],
+                                [box_list[i][1], box_list[i][5]],
+                                [box_list[i][2], box_list[i][6]],
+                                [box_list[i][3], box_list[i][7]]]
+                all_boxes.append(np.array(box_list[i]))
+            result =  np.array(all_boxes)
         return result
 
 class Recoglayer():

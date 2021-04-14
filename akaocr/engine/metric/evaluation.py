@@ -67,7 +67,7 @@ class DetecEvaluation:
                 img = img.to(device)
                 y,_ = model(img)
                 del img     # delete variable img to save memory
-                box_list = Heat2boxes(self.cfg, y, ratio_w, ratio_h)
+                box_list = Heat2boxes(self.cfg, y[0,:,:,0], y[0,:,:,1], ratio_w, ratio_h)
                 del y       # delete variable y to save memory
                 box_list,_ = box_list.convert(evaluation=True)
 

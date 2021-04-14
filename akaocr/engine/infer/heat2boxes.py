@@ -15,9 +15,10 @@ import numpy as np
 from functools import cmp_to_key
 
 class Heat2boxes:
-    def __init__(self, cfg, y, ratio_w, ratio_h):
+    def __init__(self, cfg, heatmap, linkmap, ratio_w, ratio_h):
         self.cfg = cfg
-        self.y = y
+        self.heatmap = heatmap
+        self.linkmap = linkmap
         self.ratio_w = ratio_w
         self.ratio_h = ratio_h
 
@@ -44,8 +45,8 @@ class Heat2boxes:
             return 0  # same
 
     def convert(self, evaluation = False):
-        score_text = self.y[0, :, :, 0].cpu().data.numpy()
-        score_link = self.y[0, :, :, 1].cpu().data.numpy()
+        score_text = self.heatmap.cpu().data.numpy()
+        score_link = self.linkmap.cpu().data.numpy()
         
         # Post-processing
         text_threshold = self.cfg.INFERENCE.TEXT_THRESHOLD

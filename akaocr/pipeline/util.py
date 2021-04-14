@@ -207,3 +207,18 @@ def experiment_loader(name='best_accuracy.pth', type='detec', data_path="../"):
             raise Exception("No model for experiment ", name, " in ", data_path.joinpath(saved_model_path))
         saved_model = str(saved_model_list[-1])
     return saved_model
+
+class MergeHeatmap():
+    
+    def __init__(self, imgs, bufferx, buffery):
+        first_row = imgs[0]
+        first_col = [row[0] for row in imgs]
+        width = math.ceil((sum([img.shape[1] for img in first_row]) - (len(first_row)-1)*bufferx)/2)
+        height = math.ceil((sum([img.shape[0] for img in first_col]) - (len(first_col)-1)*buffery)/2)
+        self.heatmap = np.zeros((height, width), dtype = float)
+        self.linkmap = np.zeros((height, width), dtype = float)
+
+    def merge_heatmap(self, heatmap, linkmap, heat, link, startpoint, endpoint):
+        heatmap[startpoint[1]:endpoint[1], startpoint[0]:endpoint[0]] = np.maximum(heatmap[startpoint[1]:endpoint[1], startpoint[0]:endpoint[0]], heat.cpu().detach().numpy())
+        linkmap[startpoint[1]:endpoint[1], startpoint[0]:endpoint[0]] = np.maximum(linkmap[startpoint[1]:endpoint[1], startpoint[0]:endpoint[0]], link.cpu().detach().numpy())
+        return heatmap, linkmap
