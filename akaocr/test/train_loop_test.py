@@ -56,12 +56,12 @@ def test_detec(args):
         model = HEAT_RESNET()
     elif cfg.MODEL.NAME == "EFFICIENT":
         model = HEAT_EFFICIENT()
-        
+
     model.to(device=device)
     evaluate = DetecEvaluation(cfg)
     acc = DetecAccuracy(cfg)
     lossc = CustomLoopHeat(cfg)
-    train_loader = build_dataloader(cfg, args.data_detec, selected_data=["ST_WL_300K"])
+    train_loader = build_dataloader(cfg, args.data_detec)
     test_loader = build_test_data_detec(cfg, args.data_test_detec, selected_data=None)
     trainer = Trainer(cfg, model, train_loader=train_loader, test_loader=test_loader, custom_loop=lossc, accuracy=acc,
                       evaluation=evaluate, resume=True)
