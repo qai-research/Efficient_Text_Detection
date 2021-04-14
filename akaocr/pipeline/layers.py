@@ -6,7 +6,7 @@ import shutil
 from models.detec.heatmap import HEAT
 from models.recog.atten import Atten
 import os
-from engine.config import setup, parse_base
+from engine.config import setup
 from PIL import Image
 import re
 from models.modules.converters import AttnLabelConverter
@@ -73,10 +73,8 @@ class Detectlayer():
         execute the pipeline
     """
 
-    def __init__(self, model_path=None, window=(1280, 800), bufferx=50, buffery=20):
+    def __init__(self, args=None, model_path=None, window=(1280, 800), bufferx=50, buffery=20):
         super().__init__()
-        parse = parse_base()
-        args = parse.parse_args()
         self.cfg = setup("detec", args)
         if model_path is None:
             model_path = experiment_loader(type='detec')
@@ -168,10 +166,8 @@ class Recoglayer():
         image : crop image to recognize or big image with bounding boxes to crop and return list of recognized results
     """
 
-    def __init__(self, model_path=None):
+    def __init__(self, args=None, model_path=None):
         super().__init__()
-        parse = parse_base()
-        args = parse.parse_args()
         self.cfg = setup("recog", args)
         if model_path is None:
             model_path = experiment_loader(type='recog')
