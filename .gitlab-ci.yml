@@ -433,7 +433,7 @@ test-augmentation-docker:
     
 test-pipeline-docker:
   extends:
-    - .requires-trigger-merge-commit-message
+    # - .requires-trigger-merge-commit-message
   stage: test
   tags:
     - docker
