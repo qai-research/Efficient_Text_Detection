@@ -85,7 +85,6 @@ class Detectlayer():
         self.bufferx = bufferx
         self.buffery = buffery
         self.detector = model
-        self.cfg.MODEL.MAX_SIZE = 1200
 
     def detect(self, img):
         img, target_ratio = ImageProc.resize_aspect_ratio(
