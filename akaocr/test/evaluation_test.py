@@ -14,6 +14,8 @@ import sys
 
 sys.path.append("../")
 from models.detec.heatmap import HEAT
+from models.detec.resnet_fpn_heatmap import HEAT_RESNET
+from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from models.recog.atten import Atten
 import torch
 from utils.utility import initial_logger
@@ -29,7 +31,12 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def detec_test_evaluation(args):
     cfg = setup("detec", args)
-    model = HEAT()
+    if cfg.MODEL.NAME == "CRAFT":
+        model = HEAT()
+    elif cfg.MODEL.NAME == "RESNET":
+        model = HEAT_RESNET()
+    elif cfg.MODEL.NAME == "EFFICIENT":
+        model = HEAT_EFFICIENT()
     model.load_state_dict(torch.load(args.w_detec, map_location=torch.device(device)))
     model = model.to(device)
     test_loader = build_test_data_detec(cfg, args.data_test_detec, selected_data=None)

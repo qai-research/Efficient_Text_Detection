@@ -35,9 +35,9 @@ class DoubleConv(nn.Module):
         x = self.conv(x)
         return x
 
-class RESNET_FPN_HEAT(nn.Module):
+class HEAT_RESNET(nn.Module):
     def __init__(self, freeze=False):
-        super(RESNET_FPN_HEAT, self).__init__()
+        super(HEAT_RESNET, self).__init__()
 
         # Base network
         self.resnet = Resnet_Extractor()
