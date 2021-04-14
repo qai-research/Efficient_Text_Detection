@@ -278,6 +278,7 @@ class RecogGen:
                 for ind in range(i * self.num_cores, (i + 1) * self.num_cores):
                     template = self.text_gen.generate()
                     proc = Process(target=self.gen_img, args=(template, ind,))
+                    print(ind, template)
                     fw.write('images/%s.jpg\t' % str(ind).zfill(self.img_name_length))
                     fw.write(template + "\n")
                     procs.append(proc)

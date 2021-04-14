@@ -152,7 +152,7 @@ def ImageGenerator(fonts_path=None,
         source_images, source_chars_coor = Augmentator(source_images, source_chars_coor, aug_option)
         # Preprocess the clean background
         if method == 'white':            
-            trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image, max_size=max_size, inpainting = True)
+            trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image, max_size=max_size, inpainting = False)
         else:            
             trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image, max_size=max_size)
         # for _ in range(num_samples):

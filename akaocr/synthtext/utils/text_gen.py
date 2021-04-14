@@ -76,7 +76,7 @@ class Text:
                  replace_percentage=0.5, text_gen_type='randoms'):
 
         with open(source_text_path, "r", encoding='utf-8-sig') as f:
-            self.source_sentences = f.read().strip().split("\n")
+            self.source_sentences = [i for i in f.read().strip().split("\n") if len(i)>= min_text_length]
 
         self.vocab_dict = {}
         if vocab_group_path is not None:
@@ -167,17 +167,16 @@ class Text:
                 min_text_length, max_text_length = opt_len
             else:
                 raise ValueError
-
+                
         template = random.choice(self.source_sentences)
-        wakati = MeCab.Tagger("-Owakati")
-        template = [word for word in wakati.parse(template).split()]
-        word = ''
-        while len(word) < min_text_length or len(word) > max_text_length:
+        if len(template) == min_text_length:
+            return template
+        else:
+            wakati = MeCab.Tagger("-Owakati")
+            template = [word for word in wakati.parse(template).split()]
             s_ind = np.random.randint(len(template))
-            l_ind = np.random.randint(len(template) - s_ind)
-            # more = random.choice(template)
-            word = "".join(template[s_ind:s_ind + l_ind])
-        return word
+            l_ind = np.random.randint(1,len(template) - s_ind+1)
+            return "".join(template[s_ind:s_ind + l_ind])
 
 
 class TextGenerator:
