@@ -12,7 +12,7 @@ stages:
   - train
   - test
 
-#set some trigger to run jobs as commit message rule
+##set some trigger to run jobs as commit message rule
 .requires-trigger-build-commit-message:
   only:
     variables:
