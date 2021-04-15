@@ -14,7 +14,7 @@ import os
 import io
 import sys
 import time
-from . import config
+from . import config as default_config
 import argparse
 import streamlit as st
 from synthtext.main import RecogGen
@@ -22,10 +22,13 @@ from shutil import rmtree as remove_folder
 from synthtext.utils.utils_func import check_valid, get_all_valid
 
 
-def recogapp(input_dict):
+def recogapp(input_dict, config = None):
     """
-    Gen data with white method
+    Gen data for training recognizition model
     """
+    if config is None:
+          config = default_config
+
     Method = input_dict['Method']
     NumCores = input_dict['NumCores']
     Fonts = input_dict['Fonts']

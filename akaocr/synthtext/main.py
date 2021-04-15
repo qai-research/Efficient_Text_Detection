@@ -13,6 +13,7 @@ The Module Has Been Build for Running SynthText as completed flow
 _____________________________________________________________________________
 """
 import os
+import io
 import sys
 import cv2
 import json
@@ -20,10 +21,13 @@ import time
 import argparse
 import datetime
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+from .gen.boxgen import BoxGenerator
+from shutil import move as move_folder
 from numpy import random, count_nonzero
 from .gen.img_gen import ImageGenerator
-from .gen.boxgen import BoxGenerator
+from shutil import rmtree as remove_folder
 from .gen.text_to_image import TextFontGenerator
 from .gen.handwriting import HandWritingGenerator
 from .pre.perspective import PerspectiveTransform
@@ -313,3 +317,96 @@ class RecogGen:
             cv2.imwrite(im_path, out_img)
         except ValueError:
             self.gen_img(template, ind)
+
+
+if __name__ == "__main__":
+
+
+        # get abspath of synthtext and data_folder, add them to sys.path
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--data_folder",
+                            help="The output path",
+                            type = str,
+                            default = None)
+        parser.add_argument("-d","--is_detect", 
+                            type = boolean,
+                            default = True)
+        parser.add_argument("-i","--input_csv_path", 
+                            help="The config csv path",
+                            type=str)
+        parser.add_argument('-f',"--force_remove", 
+                            help="increase output verbosity",
+                            type=boolean,
+                            default = False)                        
+        args = parser.parse_args()
+        args.background_folder = os.path.join(args.data_folder, 'backgrounds')
+        args.source_folder = os.path.join(args.data_folde, 'sources')
+        args.font_folder = os.path.join(args.data_folde, 'fonts')
+        args.object_folder = os.path.join(args.data_folde, 'objects')
+        args.outputs_folder = os.path.join(args.data_folde, 'outputs')
+
+
+        current_path = os.path.abspath('')
+        tree = current_path.split("/")        
+        i = 1
+        while True:
+            ocr_path = os.path.join("/".join(tree[:-i]), 'akaocr')
+            i += 1
+            if os.path.exists(ocr_path) and 'synthtext' in os.listdir(ocr_path):
+                break        
+        sys.path.append(ocr_path)
+        # Add libary of synthtext app
+        from synthtext.apps.white import whiteapp
+        from synthtext.apps.black import blackapp
+        from synthtext.apps.recog import recogapp
+        from synthtext.apps.doubleblack import doubleblackapp
+        from synthtext.utils.data_loader import lmdb_dataset_loader
+        from synthtext.utils.utils_func import check_valid, get_all_valid
+        
+        bg_df, source_df, font_df = get_all_valid(args.background_folder, args.source_folder, args.font_folder)
+
+        input_config_file = pd.read_csv(args.input_csv_path)
+        key = input_config_file.columns
+        checked_df = check_valid(args.input_config_file, bg_df, source_df, font_df)
+        key = key.insert(0, 'DETAIL')
+        key = key.insert(0, 'STATUS')
+        removed = False
+        # Convert input dataframe to dictionanry
+        input_config_dict  = []
+        for ind, values in enumerate(checked_df.values):
+            input_config_dict.append({k:v for k,v in zip(checked_df.columns, values)}  )
+
+        # Check out path and remove if existed
+        if force_remove and os.path.exists(args.output_path):
+            os.remove(args.output_path)
+        try:    
+            os.mkdir(args.output_path)
+            for input_dict in input_config_dict:
+                
+                if input_dict['STATUS'] is "INVALID":
+                    continue
+                begin_time = time.time()
+                Method = input_dict['Method']
+
+                if not is_detect:
+                    local_output_path = recogapp(input_dict,args)
+
+                elif Method == 'white':
+                    local_output_path = whiteapp(input_dict,args)
+
+                elif Method == 'black':
+                    local_output_path = blackapp(input_dict,args)
+
+                elif Method == 'double_black':
+                    local_output_path = doubleblackapp(input_dict,args)
+                else:
+                    local_output_path = None
+
+                for path in local_output_path:
+                    if not os.path.exists(output_path):
+                        os.mkdir(output_path)
+                    if path is not None:
+                        move_folder(path, output_path)
+        except FileExistsError:
+            raise FileExistsError('The folder %s exists.\nTry "-f" or "--force_remove" to remove existed folder, or change the output_path'%output_path)
