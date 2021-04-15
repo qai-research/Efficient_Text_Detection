@@ -156,284 +156,99 @@ train-recog-docker:
 
 ##test in docker
 
-# test-model-docker:
-#   extends:
-#     - .requires-trigger-merge-commit-message
-#   stage: test
-#   tags:
-#     - docker
-#   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
-#   script:
-#     # - mkdir runner_data_test
-#     # - mkdir runner_model_test
-#     - echo $CI_JOB_STAGE
-#     - cd akaocr/test
-#       #success code init
-#     - export exit_code=0 
-#     - export result=""
-#       #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
-#     # - nvidia-smi
-#       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
-#       #data test
-#     # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
-#       #saved model
-#     # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
-#     - python models_test.py --config_recog "../data/attention_resnet_base_v1.yaml"  || export exit_code=1
-#       #unmount data from NAS
-#     # - umount /builds/cuongvt/ocr-components/runner_data_test/
-#     # - umount /builds/cuongvt/ocr-components/runner_model_test/
-#       #base on exit_code to create badge result
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         export result="failed";
-#       else
-#         export result="passed";
-#       fi
-#     - echo $result
-#     - anybadge --label="test model" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_model.svg -o passed=green failed=red
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         exit 1;
-#       fi
-#   artifacts:
-#     paths:
-#       - akaocr/test/badge_test_model.svg
-#     when: always
-#   allow_failure:
-#     exit_codes: 137
+test-model-docker:
+  extends:
+    - .requires-trigger-merge-commit-message
+  stage: test
+  tags:
+    - docker
+  image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
+  script:
+    # - mkdir runner_data_test
+    # - mkdir runner_model_test
+    - echo $CI_JOB_STAGE
+    - cd akaocr/test
+      #success code init
+    - export exit_code=0 
+    - export result=""
+      #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
+    # - nvidia-smi
+      #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
+      #data test
+    # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
+      #saved model
+    # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
+    - python models_test.py --config_recog "../data/attention_resnet_base_v1.yaml"  || export exit_code=1
+      #unmount data from NAS
+    # - umount /builds/cuongvt/ocr-components/runner_data_test/
+    # - umount /builds/cuongvt/ocr-components/runner_model_test/
+      #base on exit_code to create badge result
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="test model" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_model.svg -o passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/test/badge_test_model.svg
+    when: always
+  allow_failure:
+    exit_codes: 137
 
-# test-config-docker:
-#   extends:
-#     - .requires-trigger-merge-commit-message
-#   stage: test
-#   tags:
-#     - docker
-#   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
-#   script:
-#     # - mkdir runner_data_test
-#     # - mkdir runner_model_test
-#     - echo $CI_JOB_STAGE
-#     - cd akaocr/test
-#       #success code init
-#     - export exit_code=0 
-#     - export result=""
-#       #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
-#     # - nvidia-smi
-#       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
-#       #data test
-#     # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
-#       #saved model
-#     # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
-#     - python config_test.py || export exit_code=1
-#       #unmount data from NAS
-#     # - umount /builds/cuongvt/ocr-components/runner_data_test/
-#     # - umount /builds/cuongvt/ocr-components/runner_model_test/
-#       #base on exit_code to create badge result
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         export result="failed";
-#       else
-#         export result="passed";
-#       fi
-#     - echo $result
-#     - anybadge --label="test config" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_config.svg -o passed=green failed=red
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         exit 1;
-#       fi
-#   artifacts:
-#     paths:
-#       - akaocr/test/badge_test_config.svg
-#     when: always
-#   allow_failure:
-#     exit_codes: 137
+test-config-docker:
+  extends:
+    - .requires-trigger-merge-commit-message
+  stage: test
+  tags:
+    - docker
+  image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
+  script:
+    # - mkdir runner_data_test
+    # - mkdir runner_model_test
+    - echo $CI_JOB_STAGE
+    - cd akaocr/test
+      #success code init
+    - export exit_code=0 
+    - export result=""
+      #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
+    # - nvidia-smi
+      #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
+      #data test
+    # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/
+      #saved model
+    # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/
+    - python config_test.py || export exit_code=1
+      #unmount data from NAS
+    # - umount /builds/cuongvt/ocr-components/runner_data_test/
+    # - umount /builds/cuongvt/ocr-components/runner_model_test/
+      #base on exit_code to create badge result
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="test config" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_config.svg -o passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/test/badge_test_config.svg
+    when: always
+  allow_failure:
+    exit_codes: 137
 
-# test-dataloader-docker:
-#   extends:
-#     - .requires-trigger-merge-commit-message
-#   stage: test
-#   tags:
-#     - docker
-#   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
-#   script:
-#     - mkdir runner_data_test
-#     - mkdir runner_model_test
-#     - echo $CI_JOB_STAGE
-#     - cd akaocr/test
-#       #success code init
-#     - export exit_code=0 
-#     - export result=""
-#       #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
-#     # - nvidia-smi
-#       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
-#       #data test
-#     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
-#       #saved model
-#     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
-#     - python test_dataloader.py --data_recog $DATA_RECOG_DOCKER --data_detec $DATA_DETEC_DOCKER || export exit_code=1
-#       #unmount data from NAS
-#     - umount /builds/cuongvt/ocr-components/runner_data_test/
-#     - umount /builds/cuongvt/ocr-components/runner_model_test/
-#       #base on exit_code to create badge result
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         export result="failed";
-#       else
-#         export result="passed";
-#       fi
-#     - echo $result
-#     - anybadge --label="test dataloader" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_dataloader.svg -o passed=green failed=red
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         exit 1;
-#       fi
-#   artifacts:
-#     paths:
-#       - akaocr/test/badge_test_dataloader.svg
-#     when: always
-#   allow_failure:
-#     exit_codes: 137
-    
-# test-eval-docker:
-#   extends:
-#     - .requires-trigger-merge-commit-message
-#   stage: test
-#   tags:
-#     - docker
-#   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
-#   script:
-#     - mkdir runner_data_test
-#     - mkdir runner_model_test
-#     - echo $CI_JOB_STAGE
-#     - cd akaocr/test
-#       #success code init
-#     - export exit_code=0 
-#     - export result=""
-#       #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
-#     # - nvidia-smi
-#       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
-#       #data test
-#     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
-#       #saved model
-#     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
-#     - python evaluation_test.py --w_detec $W_DETEC_DOCKER --data_test_detec $DATA_TEST_DETEC_DOCKER --w_recog $W_RECOG_DOCKER --data_recog $DATA_RECOG_DOCKER || export exit_code=1
-#       #unmount data from NAS
-#     - umount /builds/cuongvt/ocr-components/runner_data_test/
-#     - umount /builds/cuongvt/ocr-components/runner_model_test/
-#       #base on exit_code to create badge result
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         export result="failed";
-#       else
-#         export result="passed";
-#       fi
-#     - echo $result
-#     - anybadge --label="test evaluation" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_evaluation.svg -o passed=green failed=red
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         exit 1;
-#       fi
-#   artifacts:
-#     paths:
-#       - akaocr/test/badge_test_evaluation.svg
-#     when: always
-#   allow_failure:
-#     exit_codes: 137
-
-# test-train-loop:
-#   extends:
-#     - .requires-trigger-merge-commit-message
-#   stage: test
-#   tags:
-#     - docker
-#   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
-#   script:
-#     - mkdir runner_data_test
-#     - mkdir runner_model_test
-#     - echo $CI_JOB_STAGE
-#     - cd akaocr/test
-#       #success code init
-#     - export exit_code=0 
-#     - export result=""
-#       #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
-#     - nvidia-smi
-#       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
-#       #data test
-#     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
-#       #saved model
-#     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
-#     - python train_loop_test.py --test_train_type detec --config="../data/heatmap_1fpn_v1_ci_test.yaml" --data_detec $DATA_DETEC_DOCKER --data_test_detec $DATA_TEST_DETEC_DOCKER && python train_loop_test.py --test_train_type recog --config="../data/attention_resnet_base_v1_ci_test.yaml" --data_recog $DATA_RECOG_DOCKER || export exit_code=1
-#       #unmount data from NAS
-#     - umount /builds/cuongvt/ocr-components/runner_data_test/
-#     - umount /builds/cuongvt/ocr-components/runner_model_test/
-#       #base on exit_code to create badge result
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         export result="failed";
-#       else
-#         export result="passed";
-#       fi
-#     - echo $result
-#     - anybadge --label="test training loop" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_train_loop.svg -o passed=green failed=red
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         exit 1;
-#       fi
-#   artifacts:
-#     paths:
-#       - akaocr/test/badge_test_train_loop.svg
-#     when: always
-#   allow_failure:
-#     exit_codes: 137
-
-# test-augmentation-docker:
-#   extends:
-#     - .requires-trigger-merge-commit-message
-#   stage: test
-#   tags:
-#     - docker
-#   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
-#   script:
-#     - mkdir runner_data_test
-#     - mkdir runner_model_test
-#     - echo $CI_JOB_STAGE
-#     - cd akaocr/test
-#       #success code init
-#     - export exit_code=0 
-#     - export result=""
-#       #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
-#     # - nvidia-smi
-#       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
-#       #data test
-#     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
-#       #saved model
-#     # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
-#     - python augmentation_test.py --detec_lmdb=$DETEC_LMDB_AUG_DOCKER --num_samples=2 --output_folder=/builds/cuongvt/ocr-components/akaocr/test/
-#       #unmount data from NAS
-#     - umount /builds/cuongvt/ocr-components/runner_data_test/
-#     # - umount /builds/cuongvt/ocr-components/runner_model_test/
-#       #base on exit_code to create badge result
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         export result="failed";
-#       else
-#         export result="passed";
-#       fi
-#     - echo $result
-#     - anybadge --label="test augmentation" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_augmentation.svg -o passed=green failed=red
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         exit 1;
-#       fi
-#   artifacts:
-#     paths:
-#       - akaocr/test/badge_test_augmentation.svg
-#       - akaocr/test/*.jpg
-#     when: always
-#   allow_failure:
-#     exit_codes: 137
-    
-test-pipeline-docker:
+test-dataloader-docker:
   extends:
     - .requires-trigger-merge-commit-message
   stage: test
@@ -452,13 +267,12 @@ test-pipeline-docker:
     # - nvidia-smi
       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
       #data test
-    # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
       #saved model
     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
-    # - python pipeline_test.py --detec_lmdb=$DETEC_LMDB_AUG_DOCKER --num_samples=2 --output_folder=/builds/cuongvt/ocr-components/akaocr/test/
-    - python pipeline_test.py --w_detec=$W_DETEC_DOCKER --w_recog=$W_RECOG_DOCKER --font_path=input/default_vis_font.ttf --img_path=input/image_1.jpg --output_path=/builds/cuongvt/ocr-components/akaocr/test/
+    - python test_dataloader.py --data_recog $DATA_RECOG_DOCKER --data_detec $DATA_DETEC_DOCKER || export exit_code=1
       #unmount data from NAS
-    # - umount /builds/cuongvt/ocr-components/runner_data_test/
+    - umount /builds/cuongvt/ocr-components/runner_data_test/
     - umount /builds/cuongvt/ocr-components/runner_model_test/
       #base on exit_code to create badge result
     - >
@@ -468,18 +282,204 @@ test-pipeline-docker:
         export result="passed";
       fi
     - echo $result
-    - anybadge --label="test pipeline" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_pipeline.svg -o passed=green failed=red
+    - anybadge --label="test dataloader" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_dataloader.svg -o passed=green failed=red
     - >
       if [ ${exit_code} -ne 0 ]; then
         exit 1;
       fi
   artifacts:
     paths:
-      - akaocr/test/badge_test_pipeline.svg
+      - akaocr/test/badge_test_dataloader.svg
+    when: always
+  allow_failure:
+    exit_codes: 137
+    
+test-eval-docker:
+  extends:
+    - .requires-trigger-merge-commit-message
+  stage: test
+  tags:
+    - docker
+  image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
+  script:
+    - mkdir runner_data_test
+    - mkdir runner_model_test
+    - echo $CI_JOB_STAGE
+    - cd akaocr/test
+      #success code init
+    - export exit_code=0 
+    - export result=""
+      #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
+    # - nvidia-smi
+      #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
+      #data test
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
+      #saved model
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
+    - python evaluation_test.py --w_detec $W_DETEC_DOCKER --data_test_detec $DATA_TEST_DETEC_DOCKER --w_recog $W_RECOG_DOCKER --data_recog $DATA_RECOG_DOCKER || export exit_code=1
+      #unmount data from NAS
+    - umount /builds/cuongvt/ocr-components/runner_data_test/
+    - umount /builds/cuongvt/ocr-components/runner_model_test/
+      #base on exit_code to create badge result
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="test evaluation" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_evaluation.svg -o passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/test/badge_test_evaluation.svg
+    when: always
+  allow_failure:
+    exit_codes: 137
+
+test-train-loop:
+  extends:
+    - .requires-trigger-merge-commit-message
+  stage: test
+  tags:
+    - docker
+  image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
+  script:
+    - mkdir runner_data_test
+    - mkdir runner_model_test
+    - echo $CI_JOB_STAGE
+    - cd akaocr/test
+      #success code init
+    - export exit_code=0 
+    - export result=""
+      #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
+    - nvidia-smi
+      #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
+      #data test
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
+      #saved model
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
+    - python train_loop_test.py --test_train_type detec --config="../data/heatmap_1fpn_v1_ci_test.yaml" --data_detec $DATA_DETEC_DOCKER --data_test_detec $DATA_TEST_DETEC_DOCKER && python train_loop_test.py --test_train_type recog --config="../data/attention_resnet_base_v1_ci_test.yaml" --data_recog $DATA_RECOG_DOCKER || export exit_code=1
+      #unmount data from NAS
+    - umount /builds/cuongvt/ocr-components/runner_data_test/
+    - umount /builds/cuongvt/ocr-components/runner_model_test/
+      #base on exit_code to create badge result
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="test training loop" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_train_loop.svg -o passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/test/badge_test_train_loop.svg
+    when: always
+  allow_failure:
+    exit_codes: 137
+
+test-augmentation-docker:
+  extends:
+    - .requires-trigger-merge-commit-message
+  stage: test
+  tags:
+    - docker
+  image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
+  script:
+    - mkdir runner_data_test
+    - mkdir runner_model_test
+    - echo $CI_JOB_STAGE
+    - cd akaocr/test
+      #success code init
+    - export exit_code=0 
+    - export result=""
+      #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
+    # - nvidia-smi
+      #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
+      #data test
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
+      #saved model
+    # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
+    - python augmentation_test.py --detec_lmdb=$DETEC_LMDB_AUG_DOCKER --num_samples=2 --output_folder=/builds/cuongvt/ocr-components/akaocr/test/
+      #unmount data from NAS
+    - umount /builds/cuongvt/ocr-components/runner_data_test/
+    # - umount /builds/cuongvt/ocr-components/runner_model_test/
+      #base on exit_code to create badge result
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="test augmentation" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_augmentation.svg -o passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/test/badge_test_augmentation.svg
       - akaocr/test/*.jpg
     when: always
   allow_failure:
     exit_codes: 137
+    
+# test-pipeline-docker:
+#   extends:
+#     - .requires-trigger-merge-commit-message
+#   stage: test
+#   tags:
+#     - docker
+#   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
+#   script:
+#     - mkdir runner_data_test
+#     - mkdir runner_model_test
+#     - echo $CI_JOB_STAGE
+#     - cd akaocr/test
+#       #success code init
+#     - export exit_code=0 
+#     - export result=""
+#       #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
+#     # - nvidia-smi
+#       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
+#       #data test
+#     # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
+#       #saved model
+#     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
+#     # - python pipeline_test.py --detec_lmdb=$DETEC_LMDB_AUG_DOCKER --num_samples=2 --output_folder=/builds/cuongvt/ocr-components/akaocr/test/
+#     - python pipeline_test.py --w_detec=$W_DETEC_DOCKER --w_recog=$W_RECOG_DOCKER --font_path=input/default_vis_font.ttf --img_path=input/image_1.jpg --output_path=/builds/cuongvt/ocr-components/akaocr/test/
+#       #unmount data from NAS
+#     # - umount /builds/cuongvt/ocr-components/runner_data_test/
+#     - umount /builds/cuongvt/ocr-components/runner_model_test/
+#       #base on exit_code to create badge result
+#     - >
+#       if [ ${exit_code} -ne 0 ]; then
+#         export result="failed";
+#       else
+#         export result="passed";
+#       fi
+#     - echo $result
+#     - anybadge --label="test pipeline" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_pipeline.svg -o passed=green failed=red
+#     - >
+#       if [ ${exit_code} -ne 0 ]; then
+#         exit 1;
+#       fi
+#   artifacts:
+#     paths:
+#       - akaocr/test/badge_test_pipeline.svg
+#       - akaocr/test/*.jpg
+#     when: always
+#   allow_failure:
+#     exit_codes: 137
 
 ###############
 ## use shell
