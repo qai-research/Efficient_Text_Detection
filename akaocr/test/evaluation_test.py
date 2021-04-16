@@ -30,7 +30,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def detec_test_evaluation(args):
     cfg = setup("detec", args)
     model = HEAT()
-    model.load_state_dict(torch.load(args.w_detec, map_location=torch.device(device)))
+    model.load_state_dict(torch.load(args.w_detec, map_location=torch.device(device)), strict=False)
     model = model.to(device)
     test_loader = build_test_data_detec(cfg, args.data_test_detec, selected_data=None)
     evaluation = DetecEvaluation(cfg)
@@ -41,7 +41,14 @@ def recog_test_evaluation(args):
     cfg = setup("recog", args)
     model = Atten(cfg)
     model = torch.nn.DataParallel(model).to(device)
-    model.load_state_dict(torch.load(args.w_recog, map_location=torch.device(device)), strict=False)
+
+    pretrain = torch.load(args.w_recog, map_location=torch.device(device))
+    model_dict = model.state_dict()
+    pretrain = {k: v for k, v in pretrain.items() if
+                       (k in model_dict) and (model_dict[k].shape == pretrain[k].shape)}
+    model_dict.update(pretrain)
+    model.load_state_dict(model_dict, strict=False)
+    
     model = model.to(device)
     test_loader = build_dataloader(cfg, args.data_recog)
     evaluation = RecogEvaluation(cfg)
