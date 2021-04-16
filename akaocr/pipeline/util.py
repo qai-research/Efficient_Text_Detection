@@ -8,6 +8,7 @@ import numpy as np
 import cv2
 
 import uuid
+from collections import OrderedDict
 
 class AlignCollate(object):
     def __init__(self, img_h=32, img_w=128, keep_ratio_with_pad=False):
@@ -207,3 +208,14 @@ def experiment_loader(name='best_accuracy.pth', type='detec', data_path="../"):
             raise Exception("No model for experiment ", name, " in ", data_path.joinpath(saved_model_path))
         saved_model = str(saved_model_list[-1])
     return saved_model
+
+def copy_state_dict(state_dict):
+    if list(state_dict.keys())[0].startswith("module"):
+        start_inx = 1
+    else:
+        start_inx = 0
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        name = ".".join(k.split(".")[start_inx:])
+        new_state_dict[name] = v
+    return new_state_dict

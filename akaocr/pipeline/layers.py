@@ -12,7 +12,7 @@ import re
 from models.modules.converters import AttnLabelConverter
 import torch.nn.functional as F
 from engine.infer.heat2boxes import Heat2boxes
-from pipeline.util import AlignCollate, experiment_loader, Visualizer
+from pipeline.util import AlignCollate, experiment_loader, Visualizer, copy_state_dict
 from pre.image import ImageProc
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -170,10 +170,10 @@ class Recoglayer():
         self.cfg = setup("recog", args)
         if model_path is None:
             model_path = experiment_loader(type='recog')
-        # model_path = "/home/bacnv6/projects/model_hub/akaocr/data/saved_models_recog/smz_recog/best_accuracy.pth"
+
         model = Atten(self.cfg)
-        model = torch.nn.DataParallel(model).to(device)
-        model.load_state_dict(torch.load(model_path, map_location=torch.device(device)), strict=False)
+        state_dict = torch.load(model_path, map_location=torch.device(device))
+        model.load_state_dict(copy_state_dict(state_dict))
         model = model.to(device)
 
         self.recognizer = model
@@ -279,6 +279,7 @@ class Recoglayer():
                             # show_image(ro)
                 except:
                     text = ''
+                    score = -1
                     print('cant recog box ', roi.shape)
                 recog_result_list.append(text)
                 confidence_score_list.append(score)
