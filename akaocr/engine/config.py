@@ -57,7 +57,8 @@ def setup(tp="recog", args=None):
         exp_path = data_path.joinpath("exp_recog", args.exp)
         exp_config_path = str(exp_path.joinpath(args.exp + "_recog_config.yaml"))
         if not exp_path.exists():
-            config = "../data/attention_resnet_base_v1.yaml"
+            # config = "../data/attention_resnet_base_v1.yaml"
+            config = str(data_path.joinpath("attention_resnet_base_v1.yaml"))
             if args.config:
                 config = args.config
             logger.warning(f"Experiment {args.exp} do not exist.")
