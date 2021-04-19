@@ -95,7 +95,6 @@ class BlackList:
             self.samples = random.choice(len(self.list_background), size=self.config.num_images)
         else:
             self.samples = list(range(len(self.list_background)))
-        print(set(self.samples))
         output_path = self.config.output_path
 
         if self.config.output_path is not None:

@@ -31,7 +31,7 @@ import multiprocessing
 from scipy import optimize
 from functools import reduce
 from matplotlib import pyplot as plt
-from pre.image import ImageProc
+# from pre.image import ImageProc
 from synthtext.utils.utils_func import resize_with_char
 
 

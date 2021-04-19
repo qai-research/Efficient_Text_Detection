@@ -56,8 +56,11 @@ def recogapp(input_dict, config = None):
     status = input_dict['STATUS']
     detail = input_dict['DETAIL']
     
-    parser = argparse.ArgumentParser()
-    opt = parser.parse_args()
+    if config is None:
+        parser = argparse.ArgumentParser()
+        opt = parser.parse_args()
+    else:
+        opt = config
 
     opt.method = Method
     opt.TextGenType = TextGenType

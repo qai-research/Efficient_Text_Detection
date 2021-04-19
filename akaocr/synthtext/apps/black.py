@@ -26,8 +26,6 @@ def blackapp(input_dict, config = None):
     """
     Gen data with black modethod for training recognizition model
     """
-    if config is None:
-          config = default_config
     Method = input_dict['Method']
     NumCores = input_dict['NumCores']
     Fonts = input_dict['Fonts']
@@ -55,8 +53,12 @@ def blackapp(input_dict, config = None):
     status = input_dict['STATUS']
     detail = input_dict['DETAIL']
     
-    parser = argparse.ArgumentParser()
-    opt = parser.parse_args()
+    if config is None:
+        config = default_config
+        parser = argparse.ArgumentParser()
+        opt = parser.parse_args()
+    else:
+        opt = config
 
     opt.method = Method
     opt.TextGenType = TextGenType

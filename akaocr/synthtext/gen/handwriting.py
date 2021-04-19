@@ -36,9 +36,7 @@ class HandWritingGenerator:
 
     def __init__(self, lmdb_path, fonts_path, read_batch=32, font_size_range=None, char_spacing_range=None,
                  fixed_box=True):
-        print("Start")
         self.data = lmdb_dataset_loader(lmdb_path, batch_size=read_batch)
-        print("Loaded")
         self.possition_gen = TextFontGenerator(fonts_path,
                                                font_size_range=font_size_range,
                                                fixed_box=False,
