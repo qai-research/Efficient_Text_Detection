@@ -8,10 +8,12 @@ def test_pipeline(args):
     img = cv2.imread(args.img_path)
     slidewindow = SlideWindow(window=(1280, 800))
     deteclayer = Detectlayer(args=args, model_path = args.w_detec)
-    recoglayer = Recoglayer(args=args, model_path = args.w_recog)
+    recoglayer = Recoglayer(args=args, model_path = args.w_recog, output=args.output_path, fontpath=args.font_path)
     out = slidewindow(img)
     out = deteclayer(img)
-    out = recoglayer(img, boxes=out, output=args.output_path, fontpath=args.font_path)
+    recoglayer(img, boxes=out, vocab=None)
+    vocab = ['0','1','2','3','4','5','6','7','8','9']
+    recoglayer(img, boxes=out, vocab=vocab)
 
 def main():
     parser = parse_base()
