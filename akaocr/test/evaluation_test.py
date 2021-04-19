@@ -13,6 +13,7 @@ _____________________________________________________________________________
 import sys
 
 sys.path.append("../")
+from engine.solver import ModelCheckpointer
 from models.detec.heatmap import HEAT
 from models.recog.atten import Atten
 import torch
@@ -42,13 +43,16 @@ def recog_test_evaluation(args):
     model = Atten(cfg)
     model = torch.nn.DataParallel(model).to(device)
 
-    pretrain = torch.load(args.w_recog, map_location=torch.device(device))
-    model_dict = model.state_dict()
-    pretrain = {k: v for k, v in pretrain.items() if
-                       (k in model_dict) and (model_dict[k].shape == pretrain[k].shape)}
-    model_dict.update(pretrain)
-    model.load_state_dict(model_dict, strict=False)
-    
+    # pretrain = torch.load(args.w_recog, map_location=torch.device(device))
+    # model_dict = model.state_dict()
+    # pretrain = {k: v for k, v in pretrain.items() if
+    #                    (k in model_dict) and (model_dict[k].shape == pretrain[k].shape)}
+    # model_dict.update(pretrain)
+    # model.load_state_dict(model_dict, strict=False)
+
+    checkpointer = ModelCheckpointer(model, args.w_recog).load(args.w_recog)
+    model.load_state_dict(checkpointer, strict=False)
+
     model = model.to(device)
     test_loader = build_dataloader(cfg, args.data_recog)
     evaluation = RecogEvaluation(cfg)
