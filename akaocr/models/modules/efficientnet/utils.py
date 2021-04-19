@@ -1,6 +1,14 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-This file contains helper functions for building the model and for loading model parameters.
-These helper functions are built to mirror those in the official TensorFlow implementation.
+_____________________________________________________________________________
+Created By  : Nguyen Ngoc Nghia - Nghiann3
+Created Date: Fri March 12 13:00:00 VNT 2021
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contains helper functions for building the model and for loading model parameters
+_____________________________________________________________________________
 """
 
 import re
@@ -13,13 +21,7 @@ from torch.nn import functional as F
 from torch.utils import model_zoo
 from .utils_extra import Conv2dStaticSamePadding
 
-########################################################################
-############### HELPERS FUNCTIONS FOR MODEL ARCHITECTURE ###############
-########################################################################
-
-
 # Parameters for the entire model (stem, all blocks, and head)
-
 GlobalParams = collections.namedtuple('GlobalParams', [
     'batch_norm_momentum', 'batch_norm_epsilon', 'dropout_rate',
     'num_classes', 'width_coefficient', 'depth_coefficient',
@@ -33,7 +35,6 @@ BlockArgs = collections.namedtuple('BlockArgs', [
 # Change namedtuple defaults
 GlobalParams.__new__.__defaults__ = (None,) * len(GlobalParams._fields)
 BlockArgs.__new__.__defaults__ = (None,) * len(BlockArgs._fields)
-
 
 class SwishImplementation(torch.autograd.Function):
     @staticmethod
@@ -128,12 +129,6 @@ class Identity(nn.Module):
     def forward(self, input):
         return input
 
-
-########################################################################
-############## HELPERS FUNCTIONS FOR LOADING MODEL PARAMS ##############
-########################################################################
-
-
 def efficientnet_params(model_name):
     """ Map EfficientNet model name to parameter coefficients. """
     params_dict = {
@@ -151,10 +146,7 @@ def efficientnet_params(model_name):
     }
     return params_dict[model_name]
 
-
 class BlockDecoder(object):
-    """ Block Decoder for readability, straight from the official TensorFlow repository """
-
     @staticmethod
     def _decode_block_string(block_string):
         """ Gets a block through a string notation of arguments. """
@@ -255,7 +247,6 @@ def efficientnet(width_coefficient=None, depth_coefficient=None, dropout_rate=0.
 
     return blocks_args, global_params
 
-
 def get_model_params(model_name, override_params):
     """ Get the block args and global params for a given model """
     if model_name.startswith('efficientnet'):
@@ -269,44 +260,3 @@ def get_model_params(model_name, override_params):
         # ValueError will be raised here if override_params has fields not included in global_params.
         global_params = global_params._replace(**override_params)
     return blocks_args, global_params
-
-
-url_map = {
-    'efficientnet-b0': 'https://publicmodels.blob.core.windows.net/container/aa/efficientnet-b0-355c32eb.pth',
-    'efficientnet-b1': 'https://publicmodels.blob.core.windows.net/container/aa/efficientnet-b1-f1951068.pth',
-    'efficientnet-b2': 'https://publicmodels.blob.core.windows.net/container/aa/efficientnet-b2-8bb594d6.pth',
-    'efficientnet-b3': 'https://publicmodels.blob.core.windows.net/container/aa/efficientnet-b3-5fb5a3c3.pth',
-    'efficientnet-b4': 'https://publicmodels.blob.core.windows.net/container/aa/efficientnet-b4-6ed6700e.pth',
-    'efficientnet-b5': 'https://publicmodels.blob.core.windows.net/container/aa/efficientnet-b5-b6417697.pth',
-    'efficientnet-b6': 'https://publicmodels.blob.core.windows.net/container/aa/efficientnet-b6-c76e70fd.pth',
-    'efficientnet-b7': 'https://publicmodels.blob.core.windows.net/container/aa/efficientnet-b7-dcc49843.pth',
-}
-
-url_map_advprop = {
-    'efficientnet-b0': 'https://publicmodels.blob.core.windows.net/container/advprop/efficientnet-b0-b64d5a18.pth',
-    'efficientnet-b1': 'https://publicmodels.blob.core.windows.net/container/advprop/efficientnet-b1-0f3ce85a.pth',
-    'efficientnet-b2': 'https://publicmodels.blob.core.windows.net/container/advprop/efficientnet-b2-6e9d97e5.pth',
-    'efficientnet-b3': 'https://publicmodels.blob.core.windows.net/container/advprop/efficientnet-b3-cdd7c0f4.pth',
-    'efficientnet-b4': 'https://publicmodels.blob.core.windows.net/container/advprop/efficientnet-b4-44fb3a87.pth',
-    'efficientnet-b5': 'https://publicmodels.blob.core.windows.net/container/advprop/efficientnet-b5-86493f6b.pth',
-    'efficientnet-b6': 'https://publicmodels.blob.core.windows.net/container/advprop/efficientnet-b6-ac80338e.pth',
-    'efficientnet-b7': 'https://publicmodels.blob.core.windows.net/container/advprop/efficientnet-b7-4652b6dd.pth',
-    'efficientnet-b8': 'https://publicmodels.blob.core.windows.net/container/advprop/efficientnet-b8-22a8fe65.pth',
-}
-
-
-def load_pretrained_weights(model, model_name, load_fc=True, advprop=False):
-    """ Loads pretrained weights, and downloads if loading for the first time. """
-    # AutoAugment or Advprop (different preprocessing)
-    url_map_ = url_map_advprop if advprop else url_map
-    state_dict = model_zoo.load_url(url_map_[model_name], map_location=torch.device('cpu'))
-    # state_dict = torch.load('../../weights/backbone_efficientnetb0.pth')
-    if load_fc:
-        ret = model.load_state_dict(state_dict, strict=False)
-        print(ret)
-    else:
-        state_dict.pop('_fc.weight')
-        state_dict.pop('_fc.bias')
-        res = model.load_state_dict(state_dict, strict=False)
-        assert set(res.missing_keys) == set(['_fc.weight', '_fc.bias']), 'issue loading pretrained weights'
-    print('Loaded pretrained weights for {}'.format(model_name))

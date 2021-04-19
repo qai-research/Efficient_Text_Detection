@@ -1,21 +1,24 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Ngoc Nghia - Nghiann3
+Created Date: Fri March 12 13:00:00 VNT 2021
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contains modules of EfficientDet
+_____________________________________________________________________________
+"""
+
 import torch.nn as nn
 import torch
-# from torchvision.ops.boxes import nms as nms_torch
-# import numpy as np
-# import cv2
 from models.modules.efficientnet import EfficientNet as EffNet
 from models.modules.efficientnet.utils import MemoryEfficientSwish, Swish
 from models.modules.efficientnet.utils_extra import Conv2dStaticSamePadding, MaxPool2dStaticSamePadding
-
 import torch.nn.functional as F
-# def nms(dets, thresh):
-#     return nms_torch(dets[:, :4], dets[:, 4], thresh)
 
 class SeparableConvBlock(nn.Module):
-    """
-    created by Zylo117
-    """
-
     def __init__(self, in_channels, out_channels=None, norm=True, activation=False, onnx_export=False):
         super(SeparableConvBlock, self).__init__()
         if out_channels is None:
@@ -51,12 +54,7 @@ class SeparableConvBlock(nn.Module):
 
         return x
 
-
 class BiFPN(nn.Module):
-    """
-    modified by Zylo117
-    """
-
     def __init__(self, num_channels, conv_channels, first_time=False, epsilon=1e-4, onnx_export=False, attention=True,
                  use_p8=False):
         """
@@ -395,126 +393,30 @@ class BiFPN(nn.Module):
 
             return p3_out, p4_out, p5_out, p6_out, p7_out
 
-
-# class Regressor(nn.Module):
-#     """
-#     modified by Zylo117
-#     """
-
-#     def __init__(self, in_channels, num_anchors, num_layers, pyramid_levels=5, onnx_export=False):
-#         super(Regressor, self).__init__()
-#         self.num_layers = num_layers
-
-#         self.conv_list = nn.ModuleList(
-#             [SeparableConvBlock(in_channels, in_channels, norm=False, activation=False) for i in range(num_layers)])
-#         self.bn_list = nn.ModuleList(
-#             [nn.ModuleList([nn.BatchNorm2d(in_channels, momentum=0.01, eps=1e-3) for i in range(num_layers)]) for j in
-#              range(pyramid_levels)])
-#         self.header = SeparableConvBlock(in_channels, num_anchors * 4, norm=False, activation=False)
-#         self.swish = MemoryEfficientSwish() if not onnx_export else Swish()
-
-#     def forward(self, inputs):
-#         feats = []
-#         for feat, bn_list in zip(inputs, self.bn_list):
-#             for i, bn, conv in zip(range(self.num_layers), bn_list, self.conv_list):
-#                 feat = conv(feat)
-#                 feat = bn(feat)
-#                 feat = self.swish(feat)     # apply sigmoid
-#             feat = self.header(feat)        #[1,36,x,y]
-#             feat = feat.permute(0, 2, 3, 1) #[1,x,y,36]
-#             feat = feat.contiguous().view(feat.shape[0], -1, 4) #[1,num_anchors = x*y*36, 4]
-#             feats.append(feat)
-
-#         feats = torch.cat(feats, dim=1)
-
-#         return feats
-
-
-# class Classifier(nn.Module):
-#     """
-#     modified by Zylo117
-#     """
-
-#     def __init__(self, in_channels, num_anchors, num_classes, num_layers, pyramid_levels=5, onnx_export=False):
-#         super(Classifier, self).__init__()
-#         self.num_anchors = num_anchors
-#         self.num_classes = num_classes
-#         self.num_layers = num_layers
-#         self.conv_list = nn.ModuleList(
-#             [SeparableConvBlock(in_channels, in_channels, norm=False, activation=False) for i in range(num_layers)])
-#         self.bn_list = nn.ModuleList(
-#             [nn.ModuleList([nn.BatchNorm2d(in_channels, momentum=0.01, eps=1e-3) for i in range(num_layers)]) for j in
-#              range(pyramid_levels)])
-#         self.header = SeparableConvBlock(in_channels, num_anchors * num_classes, norm=False, activation=False)
-#         self.swish = MemoryEfficientSwish() if not onnx_export else Swish()
-
-#     def forward(self, inputs):
-#         feats = []
-#         feat_header = []
-#         for feat, bn_list in zip(inputs, self.bn_list):
-#             for i, bn, conv in zip(range(self.num_layers), bn_list, self.conv_list):
-#                 feat = conv(feat)           #conv with the same size
-#                 feat = bn(feat)             #apply batch normalization
-#                 feat = self.swish(feat)     #appply sigmoid()
-#             feat = self.header(feat)    #[1,18,x,y]
-#             feat_header.append(feat)
-#             feat = feat.permute(0, 2, 3, 1) #[1,x,y,18]
-#             feat = feat.contiguous().view(feat.shape[0], feat.shape[1], feat.shape[2], self.num_anchors,    #[1,x,y,num_anchors=9, num_class=2] num_anchors for each cell
-#                                           self.num_classes)
-#             feat = feat.contiguous().view(feat.shape[0], -1, self.num_classes)  #[1,num_anchors = x*y*9, num_class=2] num_anchors of whole image
-#             feats.append(feat)
-#         feats = torch.cat(feats, dim=1)
-#         feats = feats.sigmoid()
-#         return feats, feat_header
-
-
 class Classifier(nn.Module):
-    """
-    modified by Zylo117
-    """
-
     def __init__(self, in_channels, num_classes, num_layers, pyramid_levels=5, onnx_export=False):
         super(Classifier, self).__init__()
         self.num_classes = num_classes
         self.num_layers = num_layers
         self.conv_list = nn.ModuleList(
             [SeparableConvBlock(in_channels, in_channels, norm=False, activation=False) for i in range(num_layers)])
-        # self.bn_list = nn.ModuleList(
-        #     [nn.ModuleList([nn.BatchNorm2d(in_channels, momentum=0.01, eps=1e-3) for i in range(num_layers)]) for j in
-            #  range(pyramid_levels)])
         self.bn_list = nn.ModuleList([nn.BatchNorm2d(in_channels, momentum=0.01, eps=1e-3) for i in range(num_layers)])
         self.header = SeparableConvBlock(in_channels, num_classes, norm=False, activation=False)
         self.swish = MemoryEfficientSwish() if not onnx_export else Swish()
 
     def forward(self, inputs):
-        feats = []
-        # feat_header = []
-        # for feat, bn_list in zip(inputs, self.bn_list):
         feat = inputs
         for i, bn, conv in zip(range(self.num_layers), self.bn_list, self.conv_list):
             feat = conv(feat)           #conv with the same size
             feat = bn(feat)             #apply batch normalization
             feat = self.swish(feat)     #appply sigmoid()
         feat = self.header(feat)    #[1,18,x,y]
-            # feat_header.append(feat)
-            # feat = feat.permute(0, 2, 3, 1) #[1,x,y,18]
-            # feat = feat.contiguous().view(feat.shape[0], feat.shape[1], feat.shape[2], self.num_anchors,    #[1,x,y,num_anchors=9, num_class=2] num_anchors for each cell
-            #                               self.num_classes)
-            # feat = feat.contiguous().view(feat.shape[0], -1, self.num_classes)  #[1,num_anchors = x*y*9, num_class=2] num_anchors of whole image
-            # feats.append(feat)
-        # feats = torch.cat(feats, dim=1)
-        # feats = feats.sigmoid()
-        # feat = feat.sigmoid()
         return feat
 
 class EfficientNet(nn.Module):
-    """
-    modified by Zylo117
-    """
-
-    def __init__(self, compound_coef, load_weights=False):
+    def __init__(self, compound_coef):
         super(EfficientNet, self).__init__()
-        model = EffNet.from_pretrained(f'efficientnet-b{compound_coef}', load_weights)
+        model = EffNet.from_name(f'efficientnet-b{compound_coef}')
         del model._conv_head
         del model._bn1
         del model._avg_pooling
@@ -545,11 +447,3 @@ class EfficientNet(nn.Module):
             last_x = x
         del last_x
         return feature_maps
-
-
-if __name__ == '__main__':
-    from tensorboardX import SummaryWriter
-
-
-    def count_parameters(model):
-        return sum(p.numel() for p in model.parameters() if p.requires_grad)

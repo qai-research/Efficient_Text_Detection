@@ -1,17 +1,18 @@
-# Author: Zylo117
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Ngoc Nghia - Nghiann3
+Created Date: Fri March 12 13:00:00 VNT 2021
+Project : AkaOCR core
+_____________________________________________________________________________
+"""
 
 import math
-
 from torch import nn
 import torch.nn.functional as F
 
-
 class Conv2dStaticSamePadding(nn.Module):
-    """
-    created by Zylo117
-    The real keras/tensorflow conv2d with same padding
-    """
-
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, bias=True, groups=1, dilation=1, **kwargs):
         super().__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride,
@@ -46,11 +47,6 @@ class Conv2dStaticSamePadding(nn.Module):
 
 
 class MaxPool2dStaticSamePadding(nn.Module):
-    """
-    created by Zylo117
-    The real keras/tensorflow MaxPool2d with same padding
-    """
-
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.pool = nn.MaxPool2d(*args, **kwargs)

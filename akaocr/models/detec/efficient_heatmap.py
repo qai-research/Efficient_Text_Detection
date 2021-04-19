@@ -1,9 +1,21 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Ngoc Nghia - Nghiann3
+Created Date: Fri March 12 13:00:00 VNT 2021
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contains heatmap model with efficientnet backbone for text detection
+_____________________________________________________________________________
+"""
 import torch
 from torch import nn
 from models.modules.efficientdet.model import BiFPN, EfficientNet, Classifier
 
 class HEAT_EFFICIENT(nn.Module):
-    def __init__(self, num_classes=2, compound_coef=0, load_weights=False, **kwargs):
+    def __init__(self, num_classes=2, compound_coef=0, **kwargs):
         super(HEAT_EFFICIENT, self).__init__()
         self.compound_coef = compound_coef
 
@@ -12,19 +24,19 @@ class HEAT_EFFICIENT(nn.Module):
         self.fpn_cell_repeats = [3, 4, 5, 6, 7, 7, 8, 8, 8]
         # self.input_sizes = [512, 640, 768, 896, 1024, 1280, 1280, 1536, 1536]
         self.box_class_repeats = [3, 3, 3, 4, 4, 4, 5, 5, 5]
-        self.pyramid_levels = [7, 5, 5, 5, 5, 5, 5, 5, 6]
+        self.pyramid_levels = [7, 7, 7, 7, 7, 7, 7, 7, 8]
        
         conv_channel_coef = {
             # the channels of P3/P4/P5.
             0: [16, 24, 40, 112, 320],
-            1: [40, 112, 320],
-            2: [48, 120, 352],
-            3: [48, 136, 384],
-            4: [56, 160, 448],
-            5: [64, 176, 512],
-            6: [72, 200, 576],
-            7: [72, 200, 576],
-            8: [80, 224, 640],
+            1: [16, 24, 40, 112, 320],
+            2: [16, 24, 48, 120, 352],
+            3: [24, 32, 48, 136, 384],
+            4: [24, 32, 56, 160, 448],
+            5: [24, 40, 64, 176, 512],
+            6: [32, 40, 72, 200, 576],
+            7: [32, 40, 72, 200, 576],
+            8: [32, 48, 80, 224, 640],
         }
 
         self.bifpn = nn.Sequential(
@@ -42,7 +54,7 @@ class HEAT_EFFICIENT(nn.Module):
                                      num_layers=self.box_class_repeats[self.compound_coef],
                                      pyramid_levels=self.pyramid_levels[self.compound_coef])
 
-        self.backbone_net = EfficientNet(self.backbone_compound_coef[compound_coef], load_weights)
+        self.backbone_net = EfficientNet(self.backbone_compound_coef[compound_coef])
 
     def freeze_bn(self):
         for m in self.modules():
@@ -52,17 +64,8 @@ class HEAT_EFFICIENT(nn.Module):
     def forward(self, inputs):
         max_size = inputs.shape[-1]
         p1, p2, p3, p4, p5 = self.backbone_net(inputs)
- 
         features = (p1, p2, p3, p4, p5)
 
         features = self.bifpn(features)[0]
         feat = self.classifier(features)
         return feat.permute(0, 2, 3, 1), features
-
-    def init_backbone(self, path):
-        state_dict = torch.load(path)
-        try:
-            ret = self.load_state_dict(state_dict, strict=False)
-            print(ret)
-        except RuntimeError as e:
-            print('Ignoring ' + str(e) + '"')

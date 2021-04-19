@@ -1,7 +1,18 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Ngoc Nghia - Nghiann3
+Created Date: Fri March 12 13:00:00 VNT 2021
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contains modules of efficientnet
+_____________________________________________________________________________
+"""
 import torch
 from torch import nn
 from torch.nn import functional as F
-
 from .utils import (
     round_filters,
     round_repeats,
@@ -9,7 +20,6 @@ from .utils import (
     get_same_padding_conv2d,
     get_model_params,
     efficientnet_params,
-    load_pretrained_weights,
     Swish,
     MemoryEfficientSwish,
 )
@@ -210,24 +220,8 @@ class EfficientNet(nn.Module):
     def from_name(cls, model_name, override_params=None):
         cls._check_model_name_is_valid(model_name)
         blocks_args, global_params = get_model_params(model_name, override_params)
-        return cls(blocks_args, global_params)
-
-    @classmethod
-    def from_pretrained(cls, model_name, load_weights=True, advprop=False, num_classes=1000, in_channels=3):
-        model = cls.from_name(model_name, override_params={'num_classes': num_classes})
-        if load_weights:
-            load_pretrained_weights(model, model_name, load_fc=(num_classes == 1000), advprop=advprop)
-        if in_channels != 3:
-            Conv2d = get_same_padding_conv2d(image_size = model._global_params.image_size)
-            out_channels = round_filters(32, model._global_params)
-            model._conv_stem = Conv2d(in_channels, out_channels, kernel_size=3, stride=2, bias=False)
+        model = cls(blocks_args, global_params)
         return model
-
-    @classmethod
-    def get_image_size(cls, model_name):
-        cls._check_model_name_is_valid(model_name)
-        _, _, res, _ = efficientnet_params(model_name)
-        return res
 
     @classmethod
     def _check_model_name_is_valid(cls, model_name):
