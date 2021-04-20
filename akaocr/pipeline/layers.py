@@ -9,6 +9,7 @@ import os
 from engine.config import setup
 from PIL import Image
 import re
+from engine.solver import ModelCheckpointer
 from models.modules.converters import AttnLabelConverter
 import torch.nn.functional as F
 from engine.infer.heat2boxes import Heat2boxes
@@ -79,7 +80,11 @@ class Detectlayer():
         if model_path is None:
             model_path = experiment_loader(type='detec')
         model = HEAT()
-        model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
+
+        checkpointer = ModelCheckpointer(model)
+        #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
+        checkpointer.resume_or_load(model_path, strict_mode=True)
+
         model = model.to(device)
         self.window_shape = window
         self.bufferx = bufferx
@@ -170,10 +175,13 @@ class Recoglayer():
         self.cfg = setup("recog", args)
         if model_path is None:
             model_path = experiment_loader(type='recog')
-        # model_path = "/home/bacnv6/projects/model_hub/akaocr/data/saved_models_recog/smz_recog/best_accuracy.pth"
         model = Atten(self.cfg)
+
+        checkpointer = ModelCheckpointer(model)
+        #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
+        checkpointer.resume_or_load(model_path, strict_mode=True)
+
         model = torch.nn.DataParallel(model).to(device)
-        model.load_state_dict(torch.load(model_path, map_location=torch.device(device)), strict=False)
         model = model.to(device)
 
         self.recognizer = model
