@@ -21,6 +21,7 @@ from fvcore.common.checkpoint import (
 )
 from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Tuple
 import torch.nn as nn
+from utils.torchutils import copy_state_dict
 from fvcore.common.checkpoint import Checkpointer, PeriodicCheckpointer
 
 TORCH_VERSION: Tuple[int, ...] = tuple(int(x) for x in torch.__version__.split(".")[:2])
@@ -145,7 +146,7 @@ class ModelCheckpointer(Checkpointer):
                 the checkpointer dict["model"] must be a dict which maps strings
                 to torch.Tensor or numpy arrays.
         """
-        return torch.load(f, map_location=torch.device("cpu"))
+        return copy_state_dict(torch.load(f, map_location=torch.device("cpu")))
 
     def _load_model(self, checkpoint: Any, strict_mode) -> _IncompatibleKeys:
         """

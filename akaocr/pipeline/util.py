@@ -68,6 +68,7 @@ class Visualizer:
         suf : str or "random", optional, default: "random"
             the suffix to be appended after the given image's name
         """
+        print(2,output_folder)
         self.output_folder = Path(output_folder)
         self.pre = pre
         self.suf = suf
