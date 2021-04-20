@@ -316,7 +316,7 @@ test-eval-docker:
     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
       #saved model
     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
-    - python evaluation_test.py --w_detec $W_DETEC_DOCKER --data_test_detec $DATA_TEST_DETEC_DOCKER --w_recog $W_RECOG_DOCKER --data_recog $DATA_TEST_RECOG_DOCKER || export exit_code=1
+    - python evaluation_test.py --w_detec $W_DETEC_DOCKER --data_test_detec $DATA_TEST_DETEC_DOCKER --w_recog $W_RECOG_DOCKER --data_test_recog $DATA_TEST_RECOG_DOCKER || export exit_code=1
       #unmount data from NAS
     - umount /builds/cuongvt/ocr-components/runner_data_test/
     - umount /builds/cuongvt/ocr-components/runner_model_test/
