@@ -49,7 +49,8 @@ _C.MODEL.HIDDEN_SIZE = 128
 # name of the vocab file
 _C.MODEL.VOCAB = None
 #########config model for detec
-
+# name of model detec (CRAFT, RESNET, EFFICIENT)
+_C.MODEL.NAME = "CRAFT"
 # the minimum size of the image's longer dimension, int
 _C.MODEL.MIN_SIZE = 700
 # the maximum size of the image's longer dimension, int

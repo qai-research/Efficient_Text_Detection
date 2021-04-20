@@ -15,6 +15,8 @@ import sys
 sys.path.append("../")
 from engine.solver import ModelCheckpointer
 from models.detec.heatmap import HEAT
+from models.detec.resnet_fpn_heatmap import HEAT_RESNET
+from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from models.recog.atten import Atten
 import torch
 from utils.utility import initial_logger
@@ -30,9 +32,14 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def detec_test_evaluation(args):
     cfg = setup("detec", args)
-    model = HEAT()
-    # model.load_state_dict(torch.load(args.w_detec, map_location=torch.device(device)), strict=False)
 
+    if cfg.MODEL.NAME == "CRAFT":
+        model = HEAT()
+    elif cfg.MODEL.NAME == "RESNET":
+        model = HEAT_RESNET()
+    elif cfg.MODEL.NAME == "EFFICIENT":
+        model = HEAT_EFFICIENT()
+    
     checkpointer = ModelCheckpointer(model)
     #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
     checkpointer.resume_or_load(args.w_detec, strict_mode=False)
