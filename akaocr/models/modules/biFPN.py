@@ -7,58 +7,19 @@ Created Date: Fri March 12 13:00:00 VNT 2021
 Project : AkaOCR core
 _____________________________________________________________________________
 
-This file contains modules of EfficientDet
+This file contains module BiFPN
 _____________________________________________________________________________
 """
 
 import torch.nn as nn
 import torch
-from models.modules.efficientnet import EfficientNet as EffNet
-from models.modules.efficientnet.utils import MemoryEfficientSwish, Swish
-from models.modules.efficientnet.utils_extra import Conv2dStaticSamePadding, MaxPool2dStaticSamePadding
+from models.modules.utils import MemoryEfficientSwish, Swish, Conv2dStaticSamePadding, MaxPool2dStaticSamePadding
 import torch.nn.functional as F
-
-class SeparableConvBlock(nn.Module):
-    def __init__(self, in_channels, out_channels=None, norm=True, activation=False, onnx_export=False):
-        super(SeparableConvBlock, self).__init__()
-        if out_channels is None:
-            out_channels = in_channels
-
-        # Q: whether separate conv
-        #  share bias between depthwise_conv and pointwise_conv
-        #  or just pointwise_conv apply bias.
-        # A: Confirmed, just pointwise_conv applies bias, depthwise_conv has no bias.
-
-        self.depthwise_conv = Conv2dStaticSamePadding(in_channels, in_channels,
-                                                      kernel_size=3, stride=1, groups=in_channels, bias=False)
-        self.pointwise_conv = Conv2dStaticSamePadding(in_channels, out_channels, kernel_size=1, stride=1)
-
-        self.norm = norm
-        if self.norm:
-            # Warning: pytorch momentum is different from tensorflow's, momentum_pytorch = 1 - momentum_tensorflow
-            self.bn = nn.BatchNorm2d(num_features=out_channels, momentum=0.01, eps=1e-3)
-
-        self.activation = activation
-        if self.activation:
-            self.swish = MemoryEfficientSwish() if not onnx_export else Swish()
-
-    def forward(self, x):
-        x = self.depthwise_conv(x)
-        x = self.pointwise_conv(x)
-
-        if self.norm:
-            x = self.bn(x)
-
-        if self.activation:
-            x = self.swish(x)
-
-        return x
 
 class BiFPN(nn.Module):
     def __init__(self, num_channels, conv_channels, first_time=False, epsilon=1e-4, onnx_export=False, attention=True,
                  use_p8=False):
         """
-
         Args:
             num_channels:
             conv_channels:
@@ -70,20 +31,21 @@ class BiFPN(nn.Module):
         super(BiFPN, self).__init__()
         self.epsilon = epsilon
         self.use_p8 = use_p8
-        # print(num_channels, 'num_channel')
-        # Conv layers
+      
         self.conv6_up = SeparableConvBlock(num_channels, onnx_export=onnx_export)
         self.conv5_up = SeparableConvBlock(num_channels, onnx_export=onnx_export)
         self.conv4_up = SeparableConvBlock(num_channels, onnx_export=onnx_export)
         self.conv3_up = SeparableConvBlock(num_channels, onnx_export=onnx_export)
         self.conv2_up = SeparableConvBlock(num_channels, onnx_export=onnx_export)
         self.conv1_up = SeparableConvBlock(num_channels, onnx_export=onnx_export)
+
         self.conv2_down = SeparableConvBlock(num_channels, onnx_export=onnx_export)
         self.conv3_down = SeparableConvBlock(num_channels, onnx_export=onnx_export)
         self.conv4_down = SeparableConvBlock(num_channels, onnx_export=onnx_export)
         self.conv5_down = SeparableConvBlock(num_channels, onnx_export=onnx_export)
         self.conv6_down = SeparableConvBlock(num_channels, onnx_export=onnx_export)
         self.conv7_down = SeparableConvBlock(num_channels, onnx_export=onnx_export)
+
         if use_p8:
             self.conv7_up = SeparableConvBlock(num_channels, onnx_export=onnx_export)
             self.conv8_down = SeparableConvBlock(num_channels, onnx_export=onnx_export)
@@ -94,6 +56,7 @@ class BiFPN(nn.Module):
         # self.p5_upsample = nn.Upsample(scale_factor=2, mode='nearest')
         # self.p4_upsample = nn.Upsample(scale_factor=2, mode='nearest')
         # self.p3_upsample = nn.Upsample(scale_factor=2, mode='nearest')
+
         self.p2_downsample = MaxPool2dStaticSamePadding(3, 2)
         self.p3_downsample = MaxPool2dStaticSamePadding(3, 2)
         self.p4_downsample = MaxPool2dStaticSamePadding(3, 2)
@@ -226,49 +189,43 @@ class BiFPN(nn.Module):
             p6_in = self.p5_to_p6(p5)
             p7_in = self.p6_to_p7(p6_in)
         else:
-            # P3_0, P4_0, P5_0, P6_0 and P7_0
+            # P1_0, P2_0, P3_0, P4_0, P5_0, P6_0 and P7_0
             p1_in, p2_in, p3_in, p4_in, p5_in, p6_in, p7_in = inputs
         # P7_0 to P7_2
         # Weights for P6_0 and P7_0 to P6_1
         p6_w1 = self.p6_w1_relu(self.p6_w1)
         weight = p6_w1 / (torch.sum(p6_w1, dim=0) + self.epsilon)
         # Connections for P6_0 and P7_0 to P6_1 respectively
-        # p6_up = self.conv6_up(self.swish(weight[0] * p6_in + weight[1] * self.p6_upsample(p7_in)))
         p6_up = self.conv6_up(self.swish(weight[0] * p6_in + weight[1] * self.up_sample(p7_in, p6_in)))
 
         # Weights for P5_0 and P6_1 to P5_1
         p5_w1 = self.p5_w1_relu(self.p5_w1)
         weight = p5_w1 / (torch.sum(p5_w1, dim=0) + self.epsilon)
         # Connections for P5_0 and P6_1 to P5_1 respectively
-        # p5_up = self.conv5_up(self.swish(weight[0] * p5_in + weight[1] * self.p5_upsample(p6_up)))
         p5_up = self.conv5_up(self.swish(weight[0] * p5_in + weight[1] * self.up_sample(p6_up, p5_in)))
 
         # Weights for P4_0 and P5_1 to P4_1
         p4_w1 = self.p4_w1_relu(self.p4_w1)
         weight = p4_w1 / (torch.sum(p4_w1, dim=0) + self.epsilon)
         # Connections for P4_0 and P5_1 to P4_1 respectively
-        # p4_up = self.conv4_up(self.swish(weight[0] * p4_in + weight[1] * self.p4_upsample(p5_up)))
         p4_up = self.conv4_up(self.swish(weight[0] * p4_in + weight[1] * self.up_sample(p5_up, p4_in)))
 
         # Weights for P3_0 and P4_1 to P3_2
         p3_w1 = self.p3_w1_relu(self.p3_w1)
         weight = p3_w1 / (torch.sum(p3_w1, dim=0) + self.epsilon)
         # Connections for P3_0 and P4_1 to P3_2 respectively
-        # p3_out = self.conv3_up(self.swish(weight[0] * p3_in + weight[1] * self.p3_upsample(p4_up)))
         p3_up = self.conv3_up(self.swish(weight[0] * p3_in + weight[1] * self.up_sample(p4_up, p3_in)))
 
         # Weights for P3_0 and P4_1 to P3_2
         p2_w1 = self.p2_w1_relu(self.p2_w1)
         weight = p2_w1 / (torch.sum(p2_w1, dim=0) + self.epsilon)
         # Connections for P3_0 and P4_1 to P3_2 respectively
-        # p3_out = self.conv3_up(self.swish(weight[0] * p3_in + weight[1] * self.p3_upsample(p4_up)))
         p2_up = self.conv2_up(self.swish(weight[0] * p2_in + weight[1] * self.up_sample(p3_up, p2_in)))
 
         # Weights for P3_0 and P4_1 to P3_2
         p1_w1 = self.p1_w1_relu(self.p1_w1)
         weight = p1_w1 / (torch.sum(p1_w1, dim=0) + self.epsilon)
         # Connections for P3_0 and P4_1 to P3_2 respectively
-        # p3_out = self.conv3_up(self.swish(weight[0] * p3_in + weight[1] * self.p3_upsample(p4_up)))
         p1_out = self.conv1_up(self.swish(weight[0] * p1_in + weight[1] * self.up_sample(p2_up, p1_in)))
 
         if self.first_time:
@@ -316,56 +273,63 @@ class BiFPN(nn.Module):
         # Connections for P7_0 and P6_2 to P7_2
         p7_out = self.conv7_down(self.swish(weight[0] * p7_in + weight[1] * self.p7_downsample(p6_out)))
         return p1_out, p2_out, p3_out, p4_out, p5_out, p6_out, p7_out
-        # return p1_out
-        # return p7_out
 
     def _forward(self, inputs):
         if self.first_time:
-            p3, p4, p5 = inputs
-
+            p1, p2, p3, p4, p5 = inputs
+            p1_in = self.p1_down_channel(p1)
+            p2_in = self.p2_down_channel(p2)
+            p3_in = self.p3_down_channel(p3)
+            p4_in = self.p4_down_channel(p4)
+            p5_in = self.p5_down_channel(p5)
             p6_in = self.p5_to_p6(p5)
             p7_in = self.p6_to_p7(p6_in)
             if self.use_p8:
                 p8_in = self.p7_to_p8(p7_in)
-
-            p3_in = self.p3_down_channel(p3)
-            p4_in = self.p4_down_channel(p4)
-            p5_in = self.p5_down_channel(p5)
-
         else:
             if self.use_p8:
                 # P3_0, P4_0, P5_0, P6_0, P7_0 and P8_0
-                p3_in, p4_in, p5_in, p6_in, p7_in, p8_in = inputs
+                p1_in, p2_in, p3_in, p4_in, p5_in, p6_in, p7_in, p8_in = inputs
             else:
                 # P3_0, P4_0, P5_0, P6_0 and P7_0
-                p3_in, p4_in, p5_in, p6_in, p7_in = inputs
+                p1_in, p2_in, p3_in, p4_in, p5_in, p6_in, p7_in = inputs
 
         if self.use_p8:
             # P8_0 to P8_2
 
             # Connections for P7_0 and P8_0 to P7_1 respectively
-            p7_up = self.conv7_up(self.swish(p7_in + self.p7_upsample(p8_in)))
+            p7_up = self.conv7_up(self.swish(p7_in + self.up_sample(p8_in, p7_in)))
 
             # Connections for P6_0 and P7_0 to P6_1 respectively
-            p6_up = self.conv6_up(self.swish(p6_in + self.p6_upsample(p7_up)))
+            p6_up = self.conv6_up(self.swish(p6_in + self.up_sample(p7_up, p6_in)))
         else:
             # P7_0 to P7_2
 
             # Connections for P6_0 and P7_0 to P6_1 respectively
-            p6_up = self.conv6_up(self.swish(p6_in + self.p6_upsample(p7_in)))
+            p6_up = self.conv6_up(self.swish(p6_in + self.up_sample(p7_in, p6_in)))
 
         # Connections for P5_0 and P6_1 to P5_1 respectively
-        p5_up = self.conv5_up(self.swish(p5_in + self.p5_upsample(p6_up)))
+        p5_up = self.conv5_up(self.swish(p5_in + self.up_sample(p6_up, p5_in)))
 
         # Connections for P4_0 and P5_1 to P4_1 respectively
-        p4_up = self.conv4_up(self.swish(p4_in + self.p4_upsample(p5_up)))
+        p4_up = self.conv4_up(self.swish(p4_in + self.up_sample(p5_up, p4_in)))
 
         # Connections for P3_0 and P4_1 to P3_2 respectively
-        p3_out = self.conv3_up(self.swish(p3_in + self.p3_upsample(p4_up)))
+        p3_up = self.conv3_up(self.swish(p3_in + self.up_sample(p4_up, p3_in)))
+
+        p2_up = self.conv2_up(self.swish(p2_in + self.up_sample(p3_up, p2_in)))
+
+        p1_out = self.conv1_up(self.swish(p1_in + self.up_sample(p2_up, p1_in)))
 
         if self.first_time:
             p4_in = self.p4_down_channel_2(p4)
             p5_in = self.p5_down_channel_2(p5)
+
+        p2_out = self.conv2_down(
+            self.swish(p2_in + p2_up + self.p2_downsample(p1_out)))
+
+        p3_out = self.conv3_down(
+            self.swish(p3_in + p3_up + self.p3_downsample(p2_out)))
 
         # Connections for P4_0, P4_1 and P3_2 to P4_2 respectively
         p4_out = self.conv4_down(
@@ -386,64 +350,45 @@ class BiFPN(nn.Module):
             # Connections for P8_0 and P7_2 to P8_2
             p8_out = self.conv8_down(self.swish(p8_in + self.p8_downsample(p7_out)))
 
-            return p3_out, p4_out, p5_out, p6_out, p7_out, p8_out
+            return p1_out, p2_out, p3_out, p4_out, p5_out, p6_out, p7_out, p8_out
         else:
             # Connections for P7_0 and P6_2 to P7_2
             p7_out = self.conv7_down(self.swish(p7_in + self.p7_downsample(p6_out)))
 
-            return p3_out, p4_out, p5_out, p6_out, p7_out
+            return p1_out, p2_out, p3_out, p4_out, p5_out, p6_out, p7_out
 
-class Classifier(nn.Module):
-    def __init__(self, in_channels, num_classes, num_layers, pyramid_levels=5, onnx_export=False):
-        super(Classifier, self).__init__()
-        self.num_classes = num_classes
-        self.num_layers = num_layers
-        self.conv_list = nn.ModuleList(
-            [SeparableConvBlock(in_channels, in_channels, norm=False, activation=False) for i in range(num_layers)])
-        self.bn_list = nn.ModuleList([nn.BatchNorm2d(in_channels, momentum=0.01, eps=1e-3) for i in range(num_layers)])
-        self.header = SeparableConvBlock(in_channels, num_classes, norm=False, activation=False)
-        self.swish = MemoryEfficientSwish() if not onnx_export else Swish()
+class SeparableConvBlock(nn.Module):
+    def __init__(self, in_channels, out_channels=None, norm=True, activation=False, onnx_export=False):
+        super(SeparableConvBlock, self).__init__()
+        if out_channels is None:
+            out_channels = in_channels
 
-    def forward(self, inputs):
-        feat = inputs
-        for i, bn, conv in zip(range(self.num_layers), self.bn_list, self.conv_list):
-            feat = conv(feat)           #conv with the same size
-            feat = bn(feat)             #apply batch normalization
-            feat = self.swish(feat)     #appply sigmoid()
-        feat = self.header(feat)    #[1,18,x,y]
-        return feat
+        # Q: whether separate conv
+        #  share bias between depthwise_conv and pointwise_conv
+        #  or just pointwise_conv apply bias.
+        # A: Confirmed, just pointwise_conv applies bias, depthwise_conv has no bias.
 
-class EfficientNet(nn.Module):
-    def __init__(self, compound_coef):
-        super(EfficientNet, self).__init__()
-        model = EffNet.from_name(f'efficientnet-b{compound_coef}')
-        del model._conv_head
-        del model._bn1
-        del model._avg_pooling
-        del model._dropout
-        del model._fc
-        self.model = model
+        self.depthwise_conv = Conv2dStaticSamePadding(in_channels, in_channels,
+                                                      kernel_size=3, stride=1, groups=in_channels, bias=False)
+        self.pointwise_conv = Conv2dStaticSamePadding(in_channels, out_channels, kernel_size=1, stride=1)
+
+        self.norm = norm
+        if self.norm:
+            # Warning: pytorch momentum is different from tensorflow's, momentum_pytorch = 1 - momentum_tensorflow
+            self.bn = nn.BatchNorm2d(num_features=out_channels, momentum=0.01, eps=1e-3)
+
+        self.activation = activation
+        if self.activation:
+            self.swish = MemoryEfficientSwish() if not onnx_export else Swish()
 
     def forward(self, x):
-        x = self.model._conv_stem(x)
-        x = self.model._bn0(x)
-        x = self.model._swish(x)
-        feature_maps = []
+        x = self.depthwise_conv(x)
+        x = self.pointwise_conv(x)
 
-        # TODO: temporarily storing extra tensor last_x and del it later might not be a good idea,
-        #  try recording stride changing when creating efficientnet,
-        #  and then apply it here.
-        last_x = None
-        for idx, block in enumerate(self.model._blocks):
-            drop_connect_rate = self.model._global_params.drop_connect_rate
-            if drop_connect_rate:
-                drop_connect_rate *= float(idx) / len(self.model._blocks)
-            x = block(x, drop_connect_rate=drop_connect_rate)
+        if self.norm:
+            x = self.bn(x)
 
-            if block._depthwise_conv.stride == [2, 2]:
-                feature_maps.append(last_x)
-            elif idx == len(self.model._blocks) - 1:
-                feature_maps.append(x)
-            last_x = x
-        del last_x
-        return feature_maps
+        if self.activation:
+            x = self.swish(x)
+
+        return x

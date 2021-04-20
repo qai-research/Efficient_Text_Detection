@@ -12,13 +12,14 @@ _____________________________________________________________________________
 """
 import torch
 from torch import nn
-from models.modules.efficientdet.model import BiFPN, EfficientNet, Classifier
+from models.modules.biFPN import BiFPN, SeparableConvBlock
+from models.modules.backbones.EfficientNet import EfficientNet
+from models.modules.utils import MemoryEfficientSwish
 
 class HEAT_EFFICIENT(nn.Module):
     def __init__(self, num_classes=2, compound_coef=0, **kwargs):
         super(HEAT_EFFICIENT, self).__init__()
         self.compound_coef = compound_coef
-
         self.backbone_compound_coef = [0, 1, 2, 3, 4, 5, 6, 6, 7]
         self.fpn_num_filters = [64, 88, 112, 160, 224, 288, 384, 384, 384]
         self.fpn_cell_repeats = [3, 4, 5, 6, 7, 7, 8, 8, 8]
@@ -49,10 +50,10 @@ class HEAT_EFFICIENT(nn.Module):
 
         self.num_classes = num_classes
         
-        self.classifier = Classifier(in_channels=self.fpn_num_filters[self.compound_coef],
+        self.header = Header(in_channels=self.fpn_num_filters[self.compound_coef],
                                      num_classes=self.num_classes,
                                      num_layers=self.box_class_repeats[self.compound_coef],
-                                     pyramid_levels=self.pyramid_levels[self.compound_coef])
+                                     )
 
         self.backbone_net = EfficientNet(self.backbone_compound_coef[compound_coef])
 
@@ -62,10 +63,29 @@ class HEAT_EFFICIENT(nn.Module):
                 m.eval()
 
     def forward(self, inputs):
-        max_size = inputs.shape[-1]
         p1, p2, p3, p4, p5 = self.backbone_net(inputs)
         features = (p1, p2, p3, p4, p5)
 
         features = self.bifpn(features)[0]
-        feat = self.classifier(features)
+        feat = self.header(features)
         return feat.permute(0, 2, 3, 1), features
+
+class Header(nn.Module):
+    def __init__(self, in_channels, num_classes, num_layers, onnx_export=False):
+        super(Header, self).__init__()
+        self.num_classes = num_classes
+        self.num_layers = num_layers
+        self.conv_list = nn.ModuleList(
+            [SeparableConvBlock(in_channels, in_channels, norm=False, activation=False) for i in range(num_layers)])
+        self.bn_list = nn.ModuleList([nn.BatchNorm2d(in_channels, momentum=0.01, eps=1e-3) for i in range(num_layers)])
+        self.header = SeparableConvBlock(in_channels, num_classes, norm=False, activation=False)
+        self.swish = MemoryEfficientSwish() if not onnx_export else Swish()
+
+    def forward(self, inputs):
+        feat = inputs
+        for i, bn, conv in zip(range(self.num_layers), self.bn_list, self.conv_list):
+            feat = conv(feat)           #conv with the same size
+            feat = bn(feat)             #apply batch normalization
+            feat = self.swish(feat)     #appply sigmoid()
+        feat = self.header(feat)    
+        return feat

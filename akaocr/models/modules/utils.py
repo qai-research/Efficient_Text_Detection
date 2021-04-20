@@ -18,14 +18,12 @@ from functools import partial
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.utils import model_zoo
-from .utils_extra import Conv2dStaticSamePadding
 
 # Parameters for the entire model (stem, all blocks, and head)
 GlobalParams = collections.namedtuple('GlobalParams', [
-    'batch_norm_momentum', 'batch_norm_epsilon', 'dropout_rate',
+    'batch_norm_momentum', 'batch_norm_epsilon',
     'num_classes', 'width_coefficient', 'depth_coefficient',
-    'depth_divisor', 'min_depth', 'drop_connect_rate', 'image_size'])
+    'depth_divisor', 'min_depth', 'drop_connect_rate'])
 
 # Parameters for an individual model block
 BlockArgs = collections.namedtuple('BlockArgs', [
@@ -60,27 +58,25 @@ class Swish(nn.Module):
 
 
 def round_filters(filters, global_params):
-    """ Calculate and round number of filters based on depth multiplier. """
-    multiplier = global_params.width_coefficient
-    if not multiplier:
+    """ Calculate and round number of filters based on depth factor. """
+    factor = global_params.width_coefficient
+    if not factor:
         return filters
     divisor = global_params.depth_divisor
     min_depth = global_params.min_depth
-    filters *= multiplier
+    filters *= factor
     min_depth = min_depth or divisor
     new_filters = max(min_depth, int(filters + divisor / 2) // divisor * divisor)
     if new_filters < 0.9 * filters:  # prevent rounding by more than 10%
         new_filters += divisor
     return int(new_filters)
 
-
 def round_repeats(repeats, global_params):
-    """ Round number of filters based on depth multiplier. """
-    multiplier = global_params.depth_coefficient
-    if not multiplier:
+    """ Round number of filters based on depth factor. """
+    factor = global_params.depth_coefficient
+    if not factor:
         return repeats
-    return int(math.ceil(multiplier * repeats))
-
+    return int(math.ceil(factor * repeats))
 
 def drop_connect(inputs, p, training):
     """ Drop connect. """
@@ -93,41 +89,71 @@ def drop_connect(inputs, p, training):
     output = inputs / keep_prob * binary_tensor
     return output
 
+class Conv2dStaticSamePadding(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, bias=True, groups=1, dilation=1, **kwargs):
+        super().__init__()
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride,
+                              bias=bias, groups=groups)
+        self.stride = self.conv.stride
+        self.kernel_size = self.conv.kernel_size
+        self.dilation = self.conv.dilation
 
-def get_same_padding_conv2d(image_size=None):
-    """ Chooses static padding if you have specified an image size, and dynamic padding otherwise.
-        Static padding is necessary for ONNX exporting of models. """
-    if image_size is None:
-        return Conv2dDynamicSamePadding
-    else:
-        return partial(Conv2dStaticSamePadding, image_size=image_size)
-
-
-class Conv2dDynamicSamePadding(nn.Conv2d):
-    """ 2D Convolutions like TensorFlow, for a dynamic image size """
-
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, dilation=1, groups=1, bias=True):
-        super().__init__(in_channels, out_channels, kernel_size, stride, 0, dilation, groups, bias)
-        self.stride = self.stride if len(self.stride) == 2 else [self.stride[0]] * 2
+        if isinstance(self.stride, int):
+            self.stride = [self.stride] * 2
+        elif len(self.stride) == 1:
+            self.stride = [self.stride[0]] * 2
+        
+        if isinstance(self.kernel_size, int):
+            self.kernel_size = [self.kernel_size] * 2
+        elif len(self.kernel_size) == 1:
+            self.kernel_size = [self.kernel_size[0]] * 2
 
     def forward(self, x):
-        ih, iw = x.size()[-2:]
-        kh, kw = self.weight.size()[-2:]
-        sh, sw = self.stride
-        oh, ow = math.ceil(ih / sh), math.ceil(iw / sw)
-        pad_h = max((oh - 1) * self.stride[0] + (kh - 1) * self.dilation[0] + 1 - ih, 0)
-        pad_w = max((ow - 1) * self.stride[1] + (kw - 1) * self.dilation[1] + 1 - iw, 0)
-        if pad_h > 0 or pad_w > 0:
-            x = F.pad(x, [pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2])
-        return F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+        h, w = x.shape[-2:]
+        extra_h = (math.ceil(w / self.stride[1]) - 1) * self.stride[1] - w + self.kernel_size[1]
+        extra_v = (math.ceil(h / self.stride[0]) - 1) * self.stride[0] - h + self.kernel_size[0]
+        
+        left = extra_h // 2
+        right = extra_h - left
+        top = extra_v // 2
+        bottom = extra_v - top
 
+        x = F.pad(x, [left, right, top, bottom])
+        x = self.conv(x)
+        return x
 
-class Identity(nn.Module):
-    def __init__(self, ):
-        super(Identity, self).__init__()
+class MaxPool2dStaticSamePadding(nn.Module):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.pool = nn.MaxPool2d(*args, **kwargs)
+        self.stride = self.pool.stride
+        self.kernel_size = self.pool.kernel_size
 
-    def forward(self, input):
-        return input
+        if isinstance(self.stride, int):
+            self.stride = [self.stride] * 2
+        elif len(self.stride) == 1:
+            self.stride = [self.stride[0]] * 2
+
+        if isinstance(self.kernel_size, int):
+            self.kernel_size = [self.kernel_size] * 2
+        elif len(self.kernel_size) == 1:
+            self.kernel_size = [self.kernel_size[0]] * 2
+
+    def forward(self, x):
+        h, w = x.shape[-2:]
+        
+        extra_h = (math.ceil(w / self.stride[1]) - 1) * self.stride[1] - w + self.kernel_size[1]
+        extra_v = (math.ceil(h / self.stride[0]) - 1) * self.stride[0] - h + self.kernel_size[0]
+
+        left = extra_h // 2
+        right = extra_h - left
+        top = extra_v // 2
+        bottom = extra_v - top
+
+        x = F.pad(x, [left, right, top, bottom])
+
+        x = self.pool(x)
+        return x
 
 def efficientnet_params(model_name):
     """ Map EfficientNet model name to parameter coefficients. """
@@ -218,8 +244,7 @@ class BlockDecoder(object):
             block_strings.append(BlockDecoder._encode_block_string(block))
         return block_strings
 
-
-def efficientnet(width_coefficient=None, depth_coefficient=None, dropout_rate=0.2,
+def efficientnet(width_coefficient=None, depth_coefficient=None,
                  drop_connect_rate=0.2, image_size=None, num_classes=1000):
     """ Creates a efficientnet model. """
 
@@ -230,33 +255,22 @@ def efficientnet(width_coefficient=None, depth_coefficient=None, dropout_rate=0.
         'r1_k3_s11_e6_i192_o320_se0.25',
     ]
     blocks_args = BlockDecoder.decode(blocks_args)
-
+    
     global_params = GlobalParams(
         batch_norm_momentum=0.99,
         batch_norm_epsilon=1e-3,
-        dropout_rate=dropout_rate,
         drop_connect_rate=drop_connect_rate,
-        # data_format='channels_last',  # removed, this is always true in PyTorch
         num_classes=num_classes,
         width_coefficient=width_coefficient,
         depth_coefficient=depth_coefficient,
         depth_divisor=8,
         min_depth=None,
-        image_size=image_size,
     )
-
     return blocks_args, global_params
 
-def get_model_params(model_name, override_params):
+def get_model_params(compound_coef):
     """ Get the block args and global params for a given model """
-    if model_name.startswith('efficientnet'):
-        w, d, s, p = efficientnet_params(model_name)
-        # note: all models have drop connect rate = 0.2
-        blocks_args, global_params = efficientnet(
-            width_coefficient=w, depth_coefficient=d, dropout_rate=p, image_size=s)
-    else:
-        raise NotImplementedError('model name is not pre-defined: %s' % model_name)
-    if override_params:
-        # ValueError will be raised here if override_params has fields not included in global_params.
-        global_params = global_params._replace(**override_params)
+    model_name = "efficientnet-b"+str(compound_coef)
+    w, d,_,_ = efficientnet_params(model_name)
+    blocks_args, global_params = efficientnet(width_coefficient=w, depth_coefficient=d)
     return blocks_args, global_params
