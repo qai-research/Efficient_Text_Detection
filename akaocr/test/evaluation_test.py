@@ -35,7 +35,7 @@ def detec_test_evaluation(args):
 
     checkpointer = ModelCheckpointer(model)
     #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
-    checkpointer.resume_or_load(args.w_detec, strict_mode=True)
+    checkpointer.resume_or_load(args.w_detec, strict_mode=False)
 
     model = model.to(device)
     test_loader = build_test_data_detec(cfg, args.data_test_detec, selected_data=None)

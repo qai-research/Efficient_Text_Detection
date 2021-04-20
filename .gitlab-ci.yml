@@ -433,53 +433,53 @@ test-augmentation-docker:
   allow_failure:
     exit_codes: 137
     
-# test-pipeline-docker:
-#   extends:
-#     - .requires-trigger-merge-commit-message
-#   stage: test
-#   tags:
-#     - docker
-#   image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
-#   script:
-#     - mkdir runner_data_test
-#     - mkdir runner_model_test
-#     - echo $CI_JOB_STAGE
-#     - cd akaocr/test
-#       #success code init
-#     - export exit_code=0 
-#     - export result=""
-#       #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
-#     # - nvidia-smi
-#       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
-#       #data test
-#     # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
-#       #saved model
-#     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
-#     # - python pipeline_test.py --detec_lmdb=$DETEC_LMDB_AUG_DOCKER --num_samples=2 --output_folder=/builds/cuongvt/ocr-components/akaocr/test/
-#     - python pipeline_test.py --w_detec=$W_DETEC_DOCKER --w_recog=$W_RECOG_DOCKER --font_path=input/default_vis_font.ttf --img_path=input/image_1.jpg --output_path=/builds/cuongvt/ocr-components/akaocr/test/
-#       #unmount data from NAS
-#     # - umount /builds/cuongvt/ocr-components/runner_data_test/
-#     - umount /builds/cuongvt/ocr-components/runner_model_test/
-#       #base on exit_code to create badge result
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         export result="failed";
-#       else
-#         export result="passed";
-#       fi
-#     - echo $result
-#     - anybadge --label="test pipeline" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_pipeline.svg -o passed=green failed=red
-#     - >
-#       if [ ${exit_code} -ne 0 ]; then
-#         exit 1;
-#       fi
-#   artifacts:
-#     paths:
-#       - akaocr/test/badge_test_pipeline.svg
-#       - akaocr/test/*.jpg
-#     when: always
-#   allow_failure:
-#     exit_codes: 137
+test-pipeline-docker:
+  extends:
+    - .requires-trigger-merge-commit-message
+  stage: test
+  tags:
+    - docker
+  image: $CI_REGISTRY_IMAGE:${DOCKER_TAG}
+  script:
+    - mkdir runner_data_test
+    - mkdir runner_model_test
+    - echo $CI_JOB_STAGE
+    - cd akaocr/test
+      #success code init
+    - export exit_code=0 
+    - export result=""
+      #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
+    # - nvidia-smi
+      #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
+      #data test
+    # - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
+      #saved model
+    - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\QAI_STORAGE\Trained_models\' /builds/cuongvt/ocr-components/runner_model_test/ || export exit_code=1
+    # - python pipeline_test.py --detec_lmdb=$DETEC_LMDB_AUG_DOCKER --num_samples=2 --output_folder=/builds/cuongvt/ocr-components/akaocr/test/
+    - python pipeline_test.py --w_detec=$W_DETEC_DOCKER --w_recog=$W_RECOG_DOCKER --font_path=input/default_vis_font.ttf --img_path=input/image_1.jpg --output_path=/builds/cuongvt/ocr-components/akaocr/test/output
+      #unmount data from NAS
+    # - umount /builds/cuongvt/ocr-components/runner_data_test/
+    - umount /builds/cuongvt/ocr-components/runner_model_test/
+      #base on exit_code to create badge result
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        export result="failed";
+      else
+        export result="passed";
+      fi
+    - echo $result
+    - anybadge --label="test pipeline" --value=${result} --file=/builds/cuongvt/ocr-components/akaocr/test/badge_test_pipeline.svg -o passed=green failed=red
+    - >
+      if [ ${exit_code} -ne 0 ]; then
+        exit 1;
+      fi
+  artifacts:
+    paths:
+      - akaocr/test/badge_test_pipeline.svg
+      - akaocr/test/output/*.jpg
+    when: always
+  allow_failure:
+    exit_codes: 137
 
 ###############
 ## use shell
