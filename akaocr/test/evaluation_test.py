@@ -31,11 +31,17 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def detec_test_evaluation(args):
     cfg = setup("detec", args)
     model = HEAT()
-    model.load_state_dict(torch.load(args.w_detec, map_location=torch.device(device)), strict=False)
+    # model.load_state_dict(torch.load(args.w_detec, map_location=torch.device(device)), strict=False)
+
+    checkpointer = ModelCheckpointer(model)
+    #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
+    checkpointer.resume_or_load(args.w_detec, strict_mode=True)
+
     model = model.to(device)
     test_loader = build_test_data_detec(cfg, args.data_test_detec, selected_data=None)
     evaluation = DetecEvaluation(cfg)
-    evaluation.run(model, test_loader)
+    _, mess= evaluation.run(model, test_loader)
+    print(mess)
 
 
 def recog_test_evaluation(args):
@@ -43,34 +49,28 @@ def recog_test_evaluation(args):
     model = Atten(cfg)
     model = torch.nn.DataParallel(model).to(device)
 
-    pretrain = torch.load(args.w_recog, map_location=torch.device(device))
-    model_dict = model.state_dict()
-    pretrain = {k: v for k, v in pretrain.items() if
-                       (k in model_dict) and (model_dict[k].shape == pretrain[k].shape)}
-    model_dict.update(pretrain)
-    model.load_state_dict(model_dict, strict=False)
+    checkpointer = ModelCheckpointer(model)
 
-    # checkpointer = ModelCheckpointer(model, args.w_recog).load(args.w_recog)
-    # model.load_state_dict(checkpointer, strict=False)
-
+    #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
+    checkpointer.resume_or_load(args.w_recog, strict_mode=False)
     model = model.to(device)
-    test_loader = build_dataloader(cfg, args.data_recog)
+    test_loader = build_dataloader(cfg, args.data_test_recog)
     evaluation = RecogEvaluation(cfg)
-    evaluation.run(model, test_loader)
-
+    _, mess = evaluation.run(model, test_loader)
+    print(mess)
 
 def main():
     parser = parse_base()
     parser.add_argument('--w_detec', type=str, help='path to detect model')
     parser.add_argument('--data_test_detec', type=str, help='path to detect data')
     parser.add_argument('--w_recog', type=str, help='path to test detect data')
-    parser.add_argument('--data_recog', type=str, help='path to test detect data')
+    parser.add_argument('--data_test_recog', type=str, help='path to test detect data')
     args = parser.parse_args()
 
     if args.w_detec is not None and args.data_test_detec is not None:
         detec_test_evaluation(args)
 
-    if args.w_recog is not None and args.data_recog is not None:
+    if args.w_recog is not None and args.data_test_recog is not None:
         recog_test_evaluation(args)
 
 
