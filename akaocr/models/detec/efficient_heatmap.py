@@ -26,7 +26,8 @@ class HEAT_EFFICIENT(nn.Module):
         # self.input_sizes = [512, 640, 768, 896, 1024, 1280, 1280, 1536, 1536]
         self.box_class_repeats = [3, 3, 3, 4, 4, 4, 5, 5, 5]
         self.pyramid_levels = [7, 7, 7, 7, 7, 7, 7, 7, 8]
-       
+        self.num_classes = num_classes
+        
         conv_channel_coef = {
             # the channels of P3/P4/P5.
             0: [16, 24, 40, 112, 320],
@@ -47,8 +48,6 @@ class HEAT_EFFICIENT(nn.Module):
                     attention=True if compound_coef < 6 else False,
                     use_p8=compound_coef > 7)
               for _ in range(self.fpn_cell_repeats[compound_coef])])
-
-        self.num_classes = num_classes
         
         self.header = Header(in_channels=self.fpn_num_filters[self.compound_coef],
                                      num_classes=self.num_classes,
