@@ -444,6 +444,7 @@ test-pipeline-docker:
     - mkdir runner_data_test
     - mkdir runner_model_test
     - echo $CI_JOB_STAGE
+    - pip install opencv-python==4.4.0.42
     - cd akaocr/test
       #success code init
     - export exit_code=0 
