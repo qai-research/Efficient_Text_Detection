@@ -51,7 +51,7 @@ class Trainer:
             self.model, self.cfg.SOLVER.EXP, optimizer=optimizer, scheduler=scheduler
         )
         self.cfg.SOLVER.START_ITER = (
-                checkpointer.resume_or_load(self.cfg.SOLVER.WEIGHT, resume=self.resume).get("iteration", -1) + 1
+                checkpointer.resume_or_load(self.cfg.SOLVER.WEIGHT, resume=self.resume, strict_mode=False).get("iteration", -1) + 1
         )
         
         periodic_checkpointer = PeriodicCheckpointer(
