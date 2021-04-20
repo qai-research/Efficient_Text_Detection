@@ -26,7 +26,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def test_model_detec():
     model = HEAT()
     model = model.to(device)
-    x = torch.randn(1, 3, 700, 700).to(device)
+    x = torch.randn(1, 3, 768, 768).to(device)
     print(x.shape)
     y = model(x)
     print(y[0].shape)
