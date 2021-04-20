@@ -264,7 +264,7 @@ test-dataloader-docker:
     - export exit_code=0 
     - export result=""
       #configured [runner.docker]'s gpus="all" in runner config (config.toml), nano /etc/gitlab-runner/config.toml
-    # - nvidia-smi
+    # - nvidia-smi #check gpus
       #mount data from NAS to runner's container; note: configure [runner.docker]'s shm_size big enough
       #data test
     - mount -t cifs -o username=coeteam,password=Qai@2021,dir_mode=0777,file_mode=0777 '\\10.134.181.67\qai_storage\Synthtext_output\DATA_PROJECT\' /builds/cuongvt/ocr-components/runner_data_test/ || export exit_code=1
