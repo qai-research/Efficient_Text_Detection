@@ -16,7 +16,6 @@ sys.path.append("../")
 import torch
 
 from models.detec.heatmap import HEAT
-from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from models.recog.atten import Atten
 from models.modules.converters import AttnLabelConverter
 from engine.config import setup, dict2namespace, load_yaml_config
@@ -25,8 +24,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def test_model_detec():
-    # model = HEAT()
-    model = HEAT_EFFICIENT()
+    model = HEAT()
     model = model.to(device)
     x = torch.randn(1, 3, 700, 700).to(device)
     print(x.shape)
@@ -61,7 +59,7 @@ def main():
     opt = parser.parse_args()
 
     test_model_detec()
-    # test_model_recog(opt.config_recog)
+    test_model_recog(opt.config_recog)
 
 
 if __name__ == '__main__':
