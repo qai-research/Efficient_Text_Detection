@@ -277,9 +277,8 @@ class Recoglayer():
         else:
             self.intercept = None
         if self.output:
-            if os.path.exists(self.output):
-                shutil.rmtree(self.output)
-            os.makedirs(self.output)
+            if not os.path.exists(self.output):
+                os.makedirs(self.output)
         if boxes is None:
             text, score = self.recog(img)
             if self.output:
