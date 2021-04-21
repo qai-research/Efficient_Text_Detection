@@ -450,8 +450,8 @@ test-pipeline-docker:
     - mkdir runner_model_test
     - echo $CI_JOB_STAGE
     - pip uninstall -y opencv-python
-    - pip install -y opencv-python
     - pip install --upgrade pip
+    - pip install opencv-python
     - pip install opencv-contrib-python
     - cd akaocr/test
       #success code init
