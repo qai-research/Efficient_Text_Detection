@@ -450,7 +450,7 @@ test-pipeline-docker:
     - mkdir runner_model_test
     - echo $CI_JOB_STAGE
     - cd akaocr/test
-    - pip uninstall opencv-python-headless
+    - pip uninstall -y opencv-python-headless
       #success code init
     - export exit_code=0 
     - export result=""
