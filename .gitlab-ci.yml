@@ -456,7 +456,7 @@ test-pipeline-docker:
     - sudo apt-get install libqt4-dev
     - cmake -D WITH_QT=ON ..
     - make
-    - sudo make install
+    - make install
     - cd akaocr/test
       #success code init
     - export exit_code=0 
