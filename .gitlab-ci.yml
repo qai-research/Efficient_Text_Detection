@@ -449,8 +449,8 @@ test-pipeline-docker:
     - mkdir runner_data_test
     - mkdir runner_model_test
     - echo $CI_JOB_STAGE
-    - conda remove opencv
-    - conda install -c menpo opencv
+    - pip uninstall -y opencv-python
+    - pip install -y opencv-python
     - pip install --upgrade pip
     - pip install opencv-contrib-python
     - cd akaocr/test
