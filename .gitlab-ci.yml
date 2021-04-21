@@ -452,7 +452,7 @@ test-pipeline-docker:
     #- pip uninstall -y opencv-python
     #- pip install --upgrade pip
     - apt update
-    - apt install libgl1-mesa-glx
+    - apt install -y libgl1-mesa-glx
     - pip install opencv-python==4.4.0.42
     - pip install opencv-contrib-python
     - cd akaocr/test
