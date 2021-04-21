@@ -453,7 +453,7 @@ test-pipeline-docker:
     #- pip install --upgrade pip
     #- pip install opencv-python
     #- pip install opencv-contrib-python
-    - sudo apt-get install libqt4-dev
+    - apt-get install libqt4-dev
     - cmake -D WITH_QT=ON ..
     - make
     - make install
