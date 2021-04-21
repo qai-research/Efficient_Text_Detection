@@ -28,7 +28,7 @@ stages:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^trigger train recog/
 
-.requires-trigger-merge-commit-message:
+.requires-trigger-merge-pipeline-commit-message:
   only:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^trigger merge/ #test before merge
@@ -435,7 +435,7 @@ test-augmentation-docker:
     
 test-pipeline-docker:
   extends:
-    - .requires-trigger-merge-commit-message
+    - .requires-trigger-merge-pipeline-commit-message
   stage: test
   tags:
     - docker
@@ -444,8 +444,8 @@ test-pipeline-docker:
     - mkdir runner_data_test
     - mkdir runner_model_test
     - echo $CI_JOB_STAGE
-    - pip install opencv-python==4.4.0.42
     - cd akaocr/test
+    - pip uninstall opencv-python-headless
       #success code init
     - export exit_code=0 
     - export result=""
