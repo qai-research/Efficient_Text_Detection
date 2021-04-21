@@ -453,10 +453,7 @@ test-pipeline-docker:
     #- pip install --upgrade pip
     #- pip install opencv-python
     #- pip install opencv-contrib-python
-    - apt-get install libqt4-dev
-    - cmake -D WITH_QT=ON ..
-    - make
-    - make install
+    - pip install opencv=2.4.11
     - cd akaocr/test
       #success code init
     - export exit_code=0 
