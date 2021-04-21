@@ -28,10 +28,15 @@ stages:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^trigger train recog/
 
-.requires-trigger-merge-pipeline-commit-message:
+.requires-trigger-merge-commit-message:
   only:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^trigger merge/ #test before merge
+
+.requires-trigger-merge-pipeline-commit-message:
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^trigger exp/ #test before merge
 
 #build docker image using kaniko
 build-image:
