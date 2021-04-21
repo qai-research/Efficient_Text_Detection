@@ -453,7 +453,7 @@ test-pipeline-docker:
     #- pip install --upgrade pip
     #- pip install opencv-python
     #- pip install opencv-contrib-python
-    - pip install opencv=2.4.11
+    - pip install opencv==2.4.11
     - cd akaocr/test
       #success code init
     - export exit_code=0 
