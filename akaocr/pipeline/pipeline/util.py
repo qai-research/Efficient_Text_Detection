@@ -139,7 +139,7 @@ class Visualizer:
         return img
 
     def visualizer(self, image_ori, contours=None, boxes=None, lines=None, bcolor=(0, 255, 0), texts=None,
-                   font=None, font_size=30, thick=2, windows=None, show=True, name='demo', tcolor=(255, 0, 0), 
+                   font=None, font_size=30, thick=2, windows=None, show=False, name='demo', tcolor=(255, 0, 0), 
                    gt_text=None, gt_color=(0, 0, 255)):
         image = image_ori.copy()
         imshape = image.shape
