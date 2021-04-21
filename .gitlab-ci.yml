@@ -451,9 +451,9 @@ test-pipeline-docker:
     - echo $CI_JOB_STAGE
     #- pip uninstall -y opencv-python
     #- pip install --upgrade pip
-    #- pip install opencv-python
-    #- pip install opencv-contrib-python
-    - pip install opencv==2.4.11
+
+    - pip install opencv-python==4.4.0.42
+    - pip install opencv-contrib-python
     - cd akaocr/test
       #success code init
     - export exit_code=0 
