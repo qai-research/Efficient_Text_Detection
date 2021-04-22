@@ -49,7 +49,7 @@ MODEL:
   HIDDEN_SIZE : 128
 
   # name of the vocab file
-  VOCAB : char_jpn_v2.txt
+  VOCAB : char_eng.txt
 
 SOLVER:
   # number of data loading workers default=0, int
@@ -62,15 +62,14 @@ SOLVER:
   STEPS : [30000, 60000, 90000, 120000, 150000]
 
   # number of samples to eval
-  # NUM_SAMPLES : 5000
-  NUM_SAMPLES : 1000
+  NUM_SAMPLES : 5000
 
   # threshold of iters to stop training when no F1 improvement
-  EARLY_STOP_AFTER : 5
+  EARLY_STOP_AFTER : 1000000
 
   # interval of iteration to do validation
   EVAL_PERIOD: 5000
-  # EVAL_PERIOD: 500
+
   # IDs of devices that host the data, model, etc.
   DEVICE_IDS : None
 
@@ -81,7 +80,11 @@ SOLVER:
   BEAM_SIZE : 1
 
   # initial learning rate, float
-  BASE_LR : 3.2768e-3
+  # lr for model CRAFT
+  # BASE_LR : 3.2768e-3
+  
+  # lr for model EFFICIENT
+  BASE_LR : 3.2768e-4
 
   # for data_filtering mode
   DATA_FILTERING : True

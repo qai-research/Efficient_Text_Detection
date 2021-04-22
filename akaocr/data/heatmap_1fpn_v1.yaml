@@ -29,7 +29,7 @@ SOLVER:
   NUM_SAMPLES : 200
 
   # threshold of iters to stop training when no F1 improvement
-  EARLY_STOP_AFTER : 5
+  EARLY_STOP_AFTER : 1000000
 
   # interval of iteration to do validation
   EVAL_PERIOD: 5000
@@ -41,7 +41,11 @@ SOLVER:
   BATCH_SIZE : 1
 
   # initial learning rate, float
-  BASE_LR : 3.2768e-3
+  # lr for model CRAFT
+  # BASE_LR : 3.2768e-3
+  
+  # lr for model EFFICIENT
+  BASE_LR : 3.2768e-4
 
 INFERENCE:
   # threshold for texts heat map, 0 < text_threshold < 1, smaller means fewer text filtered, float
