@@ -1,7 +1,7 @@
 FROM python:3.7
 MAINTAINER huukim98@gmail.com(kimnh3)
 
-COPY akaocr/requirements.txt .
+COPY requirements.txt .
 RUN pwd
 RUN pip install -r requirements.txt && rm -rf requirements.txt
 RUN pip install dvc dvc[ssh]
