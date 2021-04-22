@@ -1,4 +1,0 @@
-[core]
-    remote = nas_storage
-['remote "nas_storage"']
-    url = ssh://kimnh3@10.134.181.67:/dvc_nas/ocr_components_data

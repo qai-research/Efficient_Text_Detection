@@ -2,59 +2,29 @@
 <!-- PROJECT SHIELDS -->
 <!--
 -->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
 
 
 <!-- PROJECT LOGO -->
+
+# Efficient Text Detection
+This repo combine the power of heat map based text detection method with advance backbone from efficient line-up.
+
 ### CI-CD Pipeline status
-Pipelines in detail (run on develop):
-<br />
-| Test: [![Overall test status](https://gitlab.com/cuongvt/ocr-components/badges/develop/pipeline.svg)](https://gitlab.com/cuongvt/ocr-components/-/pipelines)        | Train           |
-| :-------------: |:-------------:|
-| [![Config test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_config.svg?job=test-config-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      | [![Train detec status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_train_detec.svg?job=train-detec-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs) |
-| [![Model test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_model.svg?job=test-model-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      | [![Train recog status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_train_recog.svg?job=train-recog-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |
-| [![Dataloader test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_dataloader.svg?job=test-dataloader-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
-| [![Evaluation test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_evaluation.svg?job=test-eval-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
-| [![Training loop test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_train_loop.svg?job=test-train-loop-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
-| [![Augmentation test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_augmentation.svg?job=test-augmentation-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
-| [![Pipeline test status](https://gitlab.com/cuongvt/ocr-components/-/jobs/artifacts/develop/raw/akaocr/test/badge_test_pipeline.svg?job=test-pipeline-docker)](https://gitlab.com/cuongvt/ocr-components/-/jobs)      |       |
 
-# AkaOCR
-
-OCR pre-train for japanese + custom process to create OCR engine for new project
-<br />
-<a href="https://git3.fsoft.com.vn/GROUP/DPS/rnd/akaocr"><strong>Explore the docs »</strong></a>
-<br />
-<a href="https://git3.fsoft.com.vn/GROUP/DPS/rnd/akaocr">View Demo</a>
-
-
-<!-- ABOUT THE PROJECT -->
 ## Project Structure
 
 ```
 ├── detec
-│   ├── craft
-│   └── tesseract
-├── recog
-│   ├── clova
-│   └── tesseract
-└── synth
-    ├── stdoc
-    ├── stimg
-    └── stscene
+│   ├── efficient
+│   └── craft
+└── recog
+    └── atten
 ```
 
 ### Built With
 
 * [Python](https://www.python.org/)
 * [Torch](https://pytorch.org/)
-* [Matlab](https://www.mathworks.com/products/matlab.html)
 
 
 
@@ -97,33 +67,12 @@ imgaug==0.4.0
 <!-- LICENSE -->
 ## License
 
-The source code belong to FPT software do not use without authorization
 
 <!-- CONTACT -->
 ## Contact
 
-Email - [bacnv6@fsoft.com.vn](bacnv6@fsoft.com.vn)
-
-Email - [trangnm5@fsoft.com.vn](trangnm5@fsoft.com.vn)
-
-Project Link: [https://git3.fsoft.com.vn/GROUP/DPS/rnd/akaocr](https://git3.fsoft.com.vn/GROUP/DPS/rnd/akaocr)
+Email - [nguyenvietbac1@gmail.com](nguyenvietbac1@gmail.com)
 
 
 <!-- ACKNOWLEDGEMENTS -->
 ## Acknowledgements
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/github_username/repo.svg?style=flat-square
-[contributors-url]: https://github.com/github_username/repo/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/github_username/repo.svg?style=flat-square
-[forks-url]: https://github.com/github_username/repo/network/members
-[stars-shield]: https://img.shields.io/github/stars/github_username/repo.svg?style=flat-square
-[stars-url]: https://github.com/github_username/repo/stargazers
-[issues-shield]: https://img.shields.io/github/issues/github_username/repo.svg?style=flat-square
-[issues-url]: https://github.com/github_username/repo/issues
-[license-shield]: https://img.shields.io/github/license/github_username/repo.svg?style=flat-square
-[license-url]: https://github.com/github_username/repo/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/github_username
-[product-screenshot]: images/screenshot.png
