@@ -3,8 +3,8 @@ _BASE_:
   MODEL_TYPE: HEAT_BASE
 
 MODEL:
-  # name of model detec (CRAFT, RESNET, EFFICIENT)
-  NAME : CRAFT
+  # name of model detec (CRAFT, EFFICIENT)
+  NAME : EFFICIENT
 
   # the minimum size of the image's longer dimension, int
   MIN_SIZE : 700

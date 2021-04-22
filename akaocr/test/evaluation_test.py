@@ -15,7 +15,6 @@ import sys
 sys.path.append("../")
 from engine.solver import ModelCheckpointer
 from models.detec.heatmap import HEAT
-from models.detec.resnet_fpn_heatmap import HEAT_RESNET
 from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from models.recog.atten import Atten
 import torch
@@ -35,8 +34,6 @@ def detec_test_evaluation(args):
 
     if cfg.MODEL.NAME == "CRAFT":
         model = HEAT()
-    elif cfg.MODEL.NAME == "RESNET":
-        model = HEAT_RESNET()
     elif cfg.MODEL.NAME == "EFFICIENT":
         model = HEAT_EFFICIENT()
     

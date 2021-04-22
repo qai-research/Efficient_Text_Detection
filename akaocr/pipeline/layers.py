@@ -17,7 +17,6 @@ import numpy as np
 import shutil
 
 from models.detec.heatmap import HEAT
-from models.detec.resnet_fpn_heatmap import HEAT_RESNET
 from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from models.recog.atten import Atten
 import os
@@ -100,8 +99,6 @@ class Detectlayer():
         
         if self.cfg.MODEL.NAME == "CRAFT":
             model = HEAT()
-        elif self.cfg.MODEL.NAME == "RESNET":
-            model = HEAT_RESNET()
         elif self.cfg.MODEL.NAME == "EFFICIENT":
             model = HEAT_EFFICIENT()
         
