@@ -17,7 +17,6 @@ import argparse
 
 import lmdb
 from PIL import Image
-# noinspection PyCompatibility
 from pip._vendor import six
 import numpy as np
 

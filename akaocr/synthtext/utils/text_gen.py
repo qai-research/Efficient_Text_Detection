@@ -39,13 +39,11 @@ class Numberic:
         """
         if self.high is None:
             if self.low >= 10:
-                min_p = 1
                 max_p = len(str(int(self.low))) + 1
                 out = np.random.randint(1, max_p)
                 new_M = min(10 ** out, self.low)
                 new_m = max(10 ** (out - 1), self.low)
             else:
-                out = 1
                 new_M = self.low
                 new_m = 0
         else:
@@ -76,7 +74,7 @@ class Text:
                  replace_percentage=0.5, text_gen_type='randoms'):
 
         with open(source_text_path, "r", encoding='utf-8-sig') as f:
-            self.source_sentences = [i for i in f.read().strip().split("\n") if len(i)>= min_text_length]
+            self.source_sentences = [i for i in f.read().strip().split("\n") if len(i) >= min_text_length]
 
         self.vocab_dict = {}
         if vocab_group_path is not None:
@@ -158,16 +156,14 @@ class Text:
         """
         if type(opt_len) == int:
             min_text_length = max(1, opt_len - 1)
-            max_text_length = max(2, opt_len + 1)
         else:
             if opt_len is None:
                 min_text_length = self.min_text_length
-                max_text_length = self.max_text_length
             elif type(opt_len) is tuple and len(opt_len) == 2:
                 min_text_length, max_text_length = opt_len
             else:
                 raise ValueError
-                
+
         template = random.choice(self.source_sentences)
         if len(template) == min_text_length:
             return template
@@ -175,12 +171,14 @@ class Text:
             wakati = MeCab.Tagger("-Owakati")
             template = [word for word in wakati.parse(template).split()]
             s_ind = np.random.randint(len(template))
-            l_ind = np.random.randint(1,len(template) - s_ind+1)
+            l_ind = np.random.randint(1, len(template) - s_ind + 1)
             return "".join(template[s_ind:s_ind + l_ind])
 
 
 class TextGenerator:
-
+    """
+    The text generator class
+    """
     def __init__(self, source_text_path, vocab_group_path=None, min_text_length=1, max_text_length=15,
                  replace_percentage=0.5, text_gen_type='words'):
         if not os.path.exists(source_text_path):
@@ -195,4 +193,8 @@ class TextGenerator:
                                   text_gen_type)
 
     def generate(self, opt_len=None):
+        """
+        @param opt_len: len of output
+        @return:
+        """
         return self.generator.gen(opt_len=opt_len)

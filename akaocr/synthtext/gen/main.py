@@ -40,6 +40,22 @@ class BlackList:
         self.out_name = out_name
         self.num_cores = num_cores
 
+        self.list_background = os.listdir(self.config.backgrounds_path)
+        if self.is_random_background:
+            self.samples = random.choice(len(self.list_background), size=self.config.num_images)
+        else:
+            self.samples = list(range(len(self.list_background)))
+        output_path = self.config.output_path
+
+        if self.config.output_path is not None:
+            _date = str(datetime.datetime.now().date()).replace("-", '')
+            _time = str(datetime.datetime.now().time()).replace(":", '')[:6]
+            self.output_path = "_".join([output_path, self.out_name, _date, _time])
+            if not os.path.exists(output_path):
+                os.mkdir(self.output_path)
+                os.mkdir(os.path.join(self.output_path, 'images'))
+                os.mkdir(os.path.join(self.output_path, 'annotations'))
+
     def gen_img(self, ind):
         """
         @param ind: index of background image
@@ -89,23 +105,6 @@ class BlackList:
         """
         Running the blacklist method
         """
-        
-        self.list_background = os.listdir(self.config.backgrounds_path)
-        if self.is_random_background:
-            self.samples = random.choice(len(self.list_background), size=self.config.num_images)
-        else:
-            self.samples = list(range(len(self.list_background)))
-        output_path = self.config.output_path
-
-        if self.config.output_path is not None:
-            _date = str(datetime.datetime.now().date()).replace("-", '')
-            _time = str(datetime.datetime.now().time()).replace(":", '')[:6]
-            self.output_path = "_".join([output_path, self.out_name, _date, _time])
-            if not os.path.exists(output_path):
-                os.mkdir(self.output_path)
-                os.mkdir(os.path.join(self.output_path, 'images'))
-                os.mkdir(os.path.join(self.output_path, 'annotations'))
-        begin = time.time()
         with Pool(self.num_cores) as pool:
             pool.map(self.gen_img, list(set(self.samples)))
 
@@ -123,11 +122,7 @@ class WhiteList:
         self.is_random_background = is_random_background
         self.out_name = out_name
         self.num_cores = num_cores
-
-    def run(self):
-        """
-        Running the whitelist method
-        """
+        
         self.list_background = os.listdir(self.config.backgrounds_path)
         if self.is_random_background:
             self.samples = random.choice(len(self.list_background), size=self.config.num_images)
@@ -144,6 +139,11 @@ class WhiteList:
                 os.mkdir(self.output_path)
                 os.mkdir(os.path.join(self.output_path, 'images'))
                 os.mkdir(os.path.join(self.output_path, 'annotations'))
+
+    def run(self):
+        """
+        Running the whitelist method
+        """
         with Pool(self.num_cores) as pool:
             pool.map(self.gen_img, list(set(self.samples)))
 

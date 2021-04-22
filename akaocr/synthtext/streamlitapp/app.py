@@ -42,14 +42,12 @@ def main():
         ocr_path = os.path.join("/".join(tree[:-i]), 'akaocr')
         i += 1
         if os.path.exists(ocr_path) and 'synthtext' in os.listdir(ocr_path):
-            break        
-    css_path = os.path.join(ocr_path, 'synthtext/streamlitapp/style.css')
+            break
     background_folder = os.path.join(data, 'backgrounds')
     source_folder = os.path.join(data, 'sources')
     font_folder = os.path.join(data, 'fonts')
-    object_folder = os.path.join(data, 'objects')
-    outputs_folder = os.path.join(data, 'outputs')
     sys.path.append(ocr_path)
+
     # Add libary of synthtext app
     from synthtext.apps.white import whiteapp
     from synthtext.apps.black import blackapp
@@ -57,7 +55,7 @@ def main():
     from synthtext.apps.doubleblack import doubleblackapp
     from synthtext.utils.data_loader import lmdb_dataset_loader
     from synthtext.utils.utils_func import check_valid, get_all_valid
-    
+
     bg_df, source_df, font_df = get_all_valid(background_folder, source_folder, font_folder)
 
     st.markdown("<h3 style='text-align: left; color: Blue;'>Backgrounds List</h3>", unsafe_allow_html=True)
@@ -90,9 +88,9 @@ def main():
         outpath = st.text_input("Insert Output Name")
         removed = False
         # Convert input dataframe to dictionanry
-        input_config_dict  = []
+        input_config_dict = []
         for ind, values in enumerate(checked_df.values):
-            input_config_dict.append({k:v for k,v in zip(checked_df.columns, values)}  )
+            input_config_dict.append({k: v for k, v in zip(checked_df.columns, values)})
 
         # Check out path and remove if existed
         if outpath != '':
@@ -116,12 +114,13 @@ def main():
                     empty1.empty()
                     empty2.empty()
                     for input_dict in input_config_dict:
-                        
+
                         if input_dict['STATUS'] is "INVALID":
                             continue
                         begin_time = time.time()
                         Method = input_dict['Method']
-                        st.warning("Begin running %s Method SynthText with folder %s " % (Method, input_dict["Backgrounds"]))
+                        st.warning(
+                            "Begin running %s Method SynthText with folder %s " % (Method, input_dict["Backgrounds"]))
 
                         if not is_detect:
                             local_output_path = recogapp(input_dict)
@@ -150,6 +149,9 @@ if __name__ == '__main__':
 
 
     def local_css(file_name):
+        """
+        @param file_name: Load css file for streamlit app font-end
+        """
         with open(file_name) as f:
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 

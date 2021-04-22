@@ -47,6 +47,23 @@ class BlackList:
         self.out_name = out_name
         self.num_cores = num_cores
 
+        self.list_background = os.listdir(self.config.backgrounds_path)
+        if self.is_random_background:
+            self.samples = random.choice(len(self.list_background), size=self.config.num_images)
+        else:
+            self.samples = list(range(len(self.list_background)))
+
+        output_path = self.config.output_path
+
+        if self.config.output_path is not None:
+            _date = str(datetime.datetime.now().date()).replace("-", '')
+            _time = str(datetime.datetime.now().time()).replace(":", '')[:6]
+            self.output_path = "_".join([output_path, self.out_name, _date, _time])
+            if not os.path.exists(output_path):
+                os.mkdir(self.output_path)
+                os.mkdir(os.path.join(self.output_path, 'images'))
+                os.mkdir(os.path.join(self.output_path, 'annotations'))
+
     def gen_img(self, ind):
         """
         @param ind: index of background image
@@ -90,29 +107,13 @@ class BlackList:
                            aug_option=self.config.aug_option,
                            from_font=not self.config.is_handwriting,
                            handwriting_path=self.config.handwriting_path,
-                           text_gen_type = self.config.TextGenType,
+                           text_gen_type=self.config.TextGenType,
                            )
 
     def run(self):
         """
         Running the blacklist method
         """
-        begin = time.time()
-        self.list_background = os.listdir(self.config.backgrounds_path)
-        if self.is_random_background:
-            self.samples = random.choice(len(self.list_background), size=self.config.num_images)
-        else:
-            self.samples = list(range(len(self.list_background)))
-        output_path = self.config.output_path
-
-        if self.config.output_path is not None:
-            _date = str(datetime.datetime.now().date()).replace("-", '')
-            _time = str(datetime.datetime.now().time()).replace(":", '')[:6]
-            self.output_path = "_".join([output_path, self.out_name, _date, _time])
-            if not os.path.exists(output_path):
-                os.mkdir(self.output_path)
-                os.mkdir(os.path.join(self.output_path, 'images'))
-                os.mkdir(os.path.join(self.output_path, 'annotations'))
         sample_set = list(set(self.samples))
         if self.num_cores <= 1:
             for i in sample_set:
@@ -141,10 +142,6 @@ class WhiteList:
         self.out_name = out_name
         self.num_cores = num_cores
 
-    def run(self):
-        """
-        Running the whitelist method
-        """
         self.list_background = os.listdir(self.config.backgrounds_path)
         if self.is_random_background:
             self.samples = random.choice(len(self.list_background), size=self.config.num_images)
@@ -161,6 +158,11 @@ class WhiteList:
                 os.mkdir(self.output_path)
                 os.mkdir(os.path.join(self.output_path, 'images'))
                 os.mkdir(os.path.join(self.output_path, 'annotations'))
+
+    def run(self):
+        """
+        Running the whitelist method
+        """
         sample_set = list(set(self.samples))
         if self.num_cores <= 1:
             for i in sample_set:
@@ -205,7 +207,7 @@ class WhiteList:
                        aug_option=self.config.aug_option,
                        from_font=not self.config.is_handwriting,
                        handwriting_path=self.config.handwriting_path,
-                       text_gen_type = self.config.TextGenType,
+                       text_gen_type=self.config.TextGenType,
                        )
 
 
@@ -232,11 +234,22 @@ class RecogGen:
                     if char != '':
                         self.vocab_dict[char] = group
 
+        self.list_background = os.listdir(self.config.backgrounds_path)
+        output_path = self.config.output_path
+        if self.config.output_path is not None:
+            _date = str(datetime.datetime.now().date()).replace("-", '')
+            _time = str(datetime.datetime.now().time()).replace(":", '')[:6]
+            self.output_path = "_".join([output_path, self.out_name, _date, _time])
+            if not os.path.exists(output_path):
+                os.mkdir(self.output_path)
+                os.mkdir(os.path.join(self.output_path, 'images'))
+                os.path.join(self.output_path, 'labels.txt')
+
         self.text_gen = TextGenerator(self.config.source_path,
                                       min_text_length=self.config.min_text_length,
                                       max_text_length=self.config.max_text_length,
                                       replace_percentage=1,
-                                      text_gen_type = self.config.TextGenType,)
+                                      text_gen_type=self.config.TextGenType, )
 
         if not self.config.is_handwriting:
             self.main_text_to_image_gen = TextFontGenerator(self.config.fonts_path,
@@ -255,18 +268,6 @@ class RecogGen:
         """
         Running the whitelist method
         """
-        self.list_background = os.listdir(self.config.backgrounds_path)
-
-        output_path = self.config.output_path
-
-        if self.config.output_path is not None:
-            _date = str(datetime.datetime.now().date()).replace("-", '')
-            _time = str(datetime.datetime.now().time()).replace(":", '')[:6]
-            self.output_path = "_".join([output_path, self.out_name, _date, _time])
-            if not os.path.exists(output_path):
-                os.mkdir(self.output_path)
-                os.mkdir(os.path.join(self.output_path, 'images'))
-                os.path.join(self.output_path, 'labels.txt')
         fw = open(os.path.join(self.output_path, 'labels.txt'), 'w', encoding='utf-8-sig')
         if self.num_cores <= 1:
             for ind in range(self.config.num_images):
@@ -291,6 +292,7 @@ class RecogGen:
 
     def gen_img(self, template, ind):
         """
+        @param template: Input text or length of output text
         @param ind: index of background image
         @return: None
         """
@@ -299,7 +301,7 @@ class RecogGen:
         bg = cv2.imread(target_image)
         h, w, _ = bg.shape
         img, _ = self.main_text_to_image_gen.generator(template)
-        img[img!=255] = 0
+        img[img != 255] = 0
         out_h, out_w, _ = np.array(img).shape
         try:
             bg_y = random.choice(range(h - out_h))

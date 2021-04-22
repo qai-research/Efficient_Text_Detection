@@ -85,8 +85,8 @@ def Augmentator(images, points=None, option=None):
                                iaa.GaussianBlur(sigma=option['blur']['v'])))
     if 'elastic' in option:
         base.add(iaa.Sometimes(option['elastic']['p'],
-                               iaa.ElasticTransformation(alpha=(40,60), sigma=(6,12))))
-                               
+                               iaa.ElasticTransformation(alpha=(40, 60), sigma=(6, 12))))
+
     if points is not None:
         kps = []
         for img_info in points:
@@ -147,6 +147,13 @@ def check_valid(dataframe, bg_df, source_df, fonts_df):
 
 
 def get_all_valid(background_folder, source_folder, font_folder):
+    """
+
+    @param background_folder: Path of all background folders
+    @param source_folder: path of all text source or object source folders
+    @param font_folder: path of all font folders
+    @return: A dataframe with valid data to use
+    """
     # CREATE BACKGROUND DATAFRAME
     existed_background = sorted(
         [os.path.join(background_folder, name) for name in os.listdir(background_folder)])

@@ -9,7 +9,7 @@ _____________________________________________________________________________
 
 
 
-The Module Has Been Build for...
+The Module Has Been Build for handwriting generator
 _____________________________________________________________________________
 """
 import os
@@ -127,9 +127,14 @@ class HandWritingGenerator:
         return results, target_poss
 
     def char_img(self, char):
+        """
+
+        @param char:input character to gen image
+        @return:
+        """
         try:
             source_img = self.data.random_sample(char)
-        except Exception:
+        except KeyError:
             source_img, _ = self.possition_gen.generator(char)
             h, w, _ = np.array(source_img).shape
             source_img = np.reshape(np.array(source_img)[:, :, 0], (h, w))

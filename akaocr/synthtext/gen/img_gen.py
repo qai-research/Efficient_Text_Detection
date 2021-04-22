@@ -47,7 +47,7 @@ def ImageGenerator(fonts_path=None,
                    is_return=False,
                    aug_option=None,
                    from_font=True,
-                   text_gen_type = 'randoms',
+                   text_gen_type='randoms',
                    **kwargs):
     """
     The image generator with each background and bounding box
@@ -63,43 +63,43 @@ def ImageGenerator(fonts_path=None,
                                   (char['x4'], char['y4'])]]) for char in input_json['words']]
 
     # if not is_object:
-    if (method != 'white' or text_gen_type != 'template'):
+    if method != 'white' or text_gen_type != 'template':
         new_text_gen = True
         # Create new text generator
         try:
             text_gen = TextGenerator(source_path,
-                                        vocab_group_path=vocab_path,
-                                        min_text_length=kwargs.pop('min_text_length'),
-                                        max_text_length=kwargs.pop('max_text_length'),
-                                        text_gen_type = text_gen_type,
-                                        replace_percentage=1)
+                                     vocab_group_path=vocab_path,
+                                     min_text_length=kwargs.pop('min_text_length'),
+                                     max_text_length=kwargs.pop('max_text_length'),
+                                     text_gen_type=text_gen_type,
+                                     replace_percentage=1)
         except KeyError:
             try:
                 text_gen = TextGenerator(source_path,
-                                            vocab_group_path=vocab_path,
-                                            min_text_length=kwargs.pop('min_text_length'),
-                                            text_gen_type = text_gen_type,
-                                            replace_percentage=1)
+                                         vocab_group_path=vocab_path,
+                                         min_text_length=kwargs.pop('min_text_length'),
+                                         text_gen_type=text_gen_type,
+                                         replace_percentage=1)
             except KeyError:
                 text_gen = TextGenerator(source_path,
-                                            vocab_group_path=vocab_path,
-                                            text_gen_type=text_gen_type,
-                                            replace_percentage=1)
+                                         vocab_group_path=vocab_path,
+                                         text_gen_type=text_gen_type,
+                                         replace_percentage=1)
 
     # Create font to images generator
     if from_font:
         main_text_to_image_gen = TextFontGenerator(fonts_path,
-                                                    font_size_range,
-                                                    fixed_box=fixed_box,
-                                                    random_color=random_color,
-                                                    char_spacing_range=None,
-                                                    font_color=font_color)
+                                                   font_size_range,
+                                                   fixed_box=fixed_box,
+                                                   random_color=random_color,
+                                                   char_spacing_range=None,
+                                                   font_color=font_color)
     else:
         main_text_to_image_gen = HandWritingGenerator(kwargs.pop('handwriting_path'),
-                                                        fonts_path,
-                                                        read_batch=32,
-                                                        char_spacing_range=None,
-                                                        fixed_box=True)
+                                                      fonts_path,
+                                                      read_batch=32,
+                                                      char_spacing_range=None,
+                                                      fixed_box=True)
         # Generator new text to replace old text
     for _ in range(num_samples):
         if not is_object:
@@ -151,10 +151,12 @@ def ImageGenerator(fonts_path=None,
 
         source_images, source_chars_coor = Augmentator(source_images, source_chars_coor, aug_option)
         # Preprocess the clean background
-        if method == 'white':            
-            trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image, max_size=max_size, inpainting = False)
-        else:            
-            trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image, max_size=max_size)
+        if method == 'white':
+            trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image,
+                                         max_size=max_size, inpainting=False)
+        else:
+            trans = PerspectiveTransform(source_images, source_chars_coor, target_points, target_image,
+                                         max_size=max_size)
         # for _ in range(num_samples):
         if is_object:
             sample_index = np.random.choice(range(len(source_images)), size=len(target_points))
