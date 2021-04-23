@@ -1,0 +1,60 @@
+_BASE_:
+  # for random seed setting, int
+  MODEL_TYPE: HEAT_BASE
+
+MODEL:
+  # name of model detec (CRAFT, EFFICIENT)
+  NAME : EFFICIENT
+
+  # the minimum size of the image's longer dimension, int
+  MIN_SIZE : 700
+
+  # the maximum size of the image's longer dimension, int
+  MAX_SIZE : 1200
+
+  # type of image input rgb or gray
+  RGB : True
+
+SOLVER:
+  # number of data loading workers default=0, int
+  WORKERS : 4
+
+  # maximum number of iteration
+  MAX_ITER: 300000
+
+  # milestone to update lr
+  STEPS : [30000, 60000, 90000, 120000, 150000]
+
+  # number of samples to eval
+  NUM_SAMPLES : 200
+
+  # threshold of iters to stop training when no F1 improvement
+  EARLY_STOP_AFTER : 1000000
+
+  # interval of iteration to do validation
+  EVAL_PERIOD: 5000
+
+  # IDs of devices that host the data, model, etc.
+  DEVICE_IDS : None
+
+  # batch size of training default=1, int
+  BATCH_SIZE : 1
+
+  # initial learning rate, float
+  # lr for model CRAFT
+  # BASE_LR : 3.2768e-3
+  
+  # lr for model EFFICIENT
+  BASE_LR : 3.2768e-4
+
+INFERENCE:
+  # threshold for texts heat map, 0 < text_threshold < 1, smaller means fewer text filtered, float
+  TEXT_THRESHOLD : 0.7
+
+  # threshold for affinities heat map between characters, 0 < link_threshold < 1, bigger means fewer link filtered, float
+  LINK_THRESHOLD : 0.4
+
+  # threshold for accept a word to be detected, 0 < text_threshold < 1, smaller means fewer text filtered, float
+  LOW_TEXT_SCORE : 0.4
+
+VERSION: 0.1
