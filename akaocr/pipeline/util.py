@@ -57,7 +57,7 @@ class Visualizer:
         write the image to output_folder
     """
 
-    def __init__(self, output_folder='./', pre='', suf='random'):
+    def __init__(self, pre='', suf='random'):
         """
         Parameters
         ----------
@@ -68,11 +68,10 @@ class Visualizer:
         suf : str or "random", optional, default: "random"
             the suffix to be appended after the given image's name
         """
-        self.output_folder = Path(output_folder)
         self.pre = pre
         self.suf = suf
 
-    def imwrite(self, image, file_name):
+    def imwrite(self, image, file_name, output_folder="./"):
         """
         Parameters
         ----------
@@ -91,10 +90,10 @@ class Visualizer:
 
         new_name_base = self.pre + name_base + post
         file_type = file_path.suffix
-        write_file_path = self.output_folder.joinpath(new_name_base + file_type)
+        write_file_path = output_folder.joinpath(new_name_base + file_type)
 
-        if not self.output_folder.exists():
-            self.output_folder.mkdir()
+        if not output_folder.exists():
+            output_folder.mkdir()
 
         is_success, im_buf_arr = cv2.imencode(file_type, image)
         im_buf_arr.tofile(str(write_file_path))

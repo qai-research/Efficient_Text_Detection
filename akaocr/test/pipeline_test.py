@@ -21,7 +21,7 @@ def test_pipeline(args):
     img = cv2.imread(args.img_path)
     slidewindow = SlideWindow(window=(1280, 800))
     deteclayer = Detectlayer(args=args, model_path = args.w_detec)
-    recoglayer = Recoglayer(args=args, model_path = args.w_recog, output=args.output_path, fontpath=args.font_path)
+    recoglayer = Recoglayer(args=args, model_path = args.w_recog, output=args.output_path, fontpath=args.font_path, visulize=True)
     out = slidewindow(img)
     out = deteclayer(img)
     recoglayer(img, boxes=out, subvocab=None)

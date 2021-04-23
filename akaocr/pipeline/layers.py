@@ -188,7 +188,7 @@ class Recoglayer():
         image : crop image to recognize or big image with bounding boxes to crop and return list of recognized results
     """
 
-    def __init__(self, args=None, model_path=None, output=None, seperator=None, fontpath=None):
+    def __init__(self, args=None, model_path=None, output=None, seperator=None, fontpath=None, visulize=False):
         super().__init__()
         self.cfg = setup("recog", args)
         if model_path is None:
@@ -208,7 +208,8 @@ class Recoglayer():
         self.output = output
         self.seperator = seperator
         self.fontpath = fontpath
-        self.vis = Visualizer(output_folder = self.output)
+        self.visulize = visulize
+        self.vis = Visualizer()
         
     def _remove_unknown(self, text):
         text = re.sub(f'[{self.cfg.SOLVER.UNKNOWN}]+', "", text)
@@ -276,12 +277,10 @@ class Recoglayer():
             self.intercept = InterceptVocab(subvocab, self.converter)
         else:
             self.intercept = None
-        if self.output:
-            if not os.path.exists(self.output):
-                os.makedirs(self.output)
+        
         if boxes is None:
             text, score = self.recog(img)
-            if self.output:
+            if self.output and self.fontpath:
                 cv2.imwrite(os.path.join(self.output, text + '.jpg'), img)
             return text
         else:
@@ -316,8 +315,10 @@ class Recoglayer():
                 confidence_score_list.append(score)
             
             # visulize result
-            if self.output and self.fontpath:
+            if self.visulize:
                 img = self.vis.visualizer(image_ori=img, contours=boxes, font=self.fontpath, texts=recog_result_list)
-                # save result image
+            
+            # save result image
+            if self.output and self.fontpath:
                 cv2.imwrite(os.path.join(self.output, "result.jpg"), img)
             return recog_result_list

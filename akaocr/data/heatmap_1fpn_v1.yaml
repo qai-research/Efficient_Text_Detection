@@ -6,6 +6,7 @@ MODEL:
   # name of model detec (CRAFT, RESNET, EFFICIENT)
   NAME : CRAFT
 
+
   # the minimum size of the image's longer dimension, int
   MIN_SIZE : 700
 
