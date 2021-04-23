@@ -1,17 +1,35 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Ngoc Nghia - Nghiann3
+Created Date: Fri March 12 13:00:00 VNT 2021
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contains pipeline of whole model
+_____________________________________________________________________________
+"""
+
 import torch
 import cv2
 import numpy as np
 import shutil
 
 from models.detec.heatmap import HEAT
+from models.detec.resnet_fpn_heatmap import HEAT_RESNET
+from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from models.recog.atten import Atten
 import os
-from engine.config import setup, parse_base
+from engine.solver import ModelCheckpointer
+from engine.config import setup
 from PIL import Image
 import re
 from models.modules.converters import AttnLabelConverter
 import torch.nn.functional as F
 from engine.infer.heat2boxes import Heat2boxes
+from engine.infer.intercept_vocab import InterceptVocab
+from utils.torchutils import copy_state_dict
 from pipeline.util import AlignCollate, experiment_loader, Visualizer
 from pre.image import ImageProc
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -73,21 +91,29 @@ class Detectlayer():
         execute the pipeline
     """
 
-    def __init__(self, model_path=None, window=(1280, 800), bufferx=50, buffery=20):
+    def __init__(self, args=None, model_path=None, window=(1280, 800), bufferx=50, buffery=20):
         super().__init__()
-        parse = parse_base()
-        args = parse.parse_args()
         self.cfg = setup("detec", args)
+        # print(args)
         if model_path is None:
             model_path = experiment_loader(type='detec')
-        model = HEAT()
-        model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
+        
+        if self.cfg.MODEL.NAME == "CRAFT":
+            model = HEAT()
+        elif self.cfg.MODEL.NAME == "RESNET":
+            model = HEAT_RESNET()
+        elif self.cfg.MODEL.NAME == "EFFICIENT":
+            model = HEAT_EFFICIENT()
+        
+        checkpointer = ModelCheckpointer(model)
+        #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
+        checkpointer.resume_or_load(model_path, strict_mode=True)
+
         model = model.to(device)
         self.window_shape = window
         self.bufferx = bufferx
         self.buffery = buffery
         self.detector = model
-        self.cfg.MODEL.MAX_SIZE = 1200
 
     def detect(self, img):
         img, target_ratio = ImageProc.resize_aspect_ratio(
@@ -151,6 +177,7 @@ class Detectlayer():
             result = self.detect(imgs)
         return result
 
+
 class Recoglayer():
     """
     A basic pipeline for performing recognition.
@@ -168,17 +195,18 @@ class Recoglayer():
         image : crop image to recognize or big image with bounding boxes to crop and return list of recognized results
     """
 
-    def __init__(self, model_path=None):
+    def __init__(self, args=None, model_path=None, output=None, seperator=None, fontpath=None):
         super().__init__()
-        parse = parse_base()
-        args = parse.parse_args()
         self.cfg = setup("recog", args)
         if model_path is None:
             model_path = experiment_loader(type='recog')
-        # model_path = "/home/bacnv6/projects/model_hub/akaocr/data/saved_models_recog/smz_recog/best_accuracy.pth"
+
         model = Atten(self.cfg)
-        model = torch.nn.DataParallel(model).to(device)
-        model.load_state_dict(torch.load(model_path, map_location=torch.device(device)), strict=False)
+
+        checkpointer = ModelCheckpointer(model)
+        #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
+        checkpointer.resume_or_load(model_path, strict_mode=True)
+
         model = model.to(device)
 
         self.recognizer = model
@@ -187,7 +215,11 @@ class Recoglayer():
         self.max_w = self.cfg.MODEL.IMG_W
         self.pad = self.cfg.MODEL.PAD
         self.max_label_length = self.cfg.MODEL.MAX_LABEL_LENGTH
-    
+        self.output = output
+        self.seperator = seperator
+        self.fontpath = fontpath
+        self.vis = Visualizer(output_folder = self.output)
+        
     def _remove_unknown(self, text):
         text = re.sub(f'[{self.cfg.SOLVER.UNKNOWN}]+', "", text)
         return text
@@ -212,12 +244,13 @@ class Recoglayer():
             if 'Attn' in self.cfg.MODEL.PREDICTION:
                 preds = self.recognizer(image, text_for_pred, is_train=False)
                 # select max probability (greedy decoding) then decode index to character
+                if self.intercept:
+                    preds = self.intercept.intercept_vocab(preds)
                 _, preds_index = preds.max(2)
                 preds_str = self.converter.decode(preds_index, length_for_pred)
 
                 preds_prob = F.softmax(preds, dim=2)
                 preds_max_prob, _ = preds_prob.max(dim=2)
-
                 pred_eos = preds_str[0].find('[s]')
                 pred = preds_str[0][:pred_eos]  # prune after "end of sentence" token ([s])
                 preds_max_prob = preds_max_prob[0][:pred_eos]
@@ -248,15 +281,19 @@ class Recoglayer():
             text = self._remove_unknown(pred)
             return text, confidence_score
 
-    def __call__(self, img, boxes=None, output=None, seperator=None, fontpath=None):
-        if output:
-            if os.path.exists(output):
-                shutil.rmtree(output)
-            os.makedirs(output)
+    def __call__(self, img, boxes=None, subvocab = None):
+        if subvocab:
+            self.intercept = InterceptVocab(subvocab, self.converter)
+        else:
+            self.intercept = None
+        if self.output:
+            if os.path.exists(self.output):
+                shutil.rmtree(self.output)
+            os.makedirs(self.output)
         if boxes is None:
             text, score = self.recog(img)
-            if output:
-                cv2.imwrite(os.path.join(output, text + '.jpg'), img)
+            if self.output:
+                cv2.imwrite(os.path.join(self.output, text + '.jpg'), img)
             return text
         else:
             recog_result_list = list()
@@ -272,9 +309,9 @@ class Recoglayer():
                 roi = img[y0:y1, x0:x1]
                 # print(roi)
                 try:
-                    if not seperator:
+                    if not self.seperator:
                         text, score = self.recog(roi)
-                    elif seperator == 'logic':
+                    elif self.seperator == 'logic':
                         _, l_roi = logic_seperator(roi)
                         text = ''
                         for ro in l_roi:
@@ -284,11 +321,16 @@ class Recoglayer():
                             # show_image(ro)
                 except:
                     text = ''
+                    score = -1
                     print('cant recog box ', roi.shape)
                 recog_result_list.append(text)
                 confidence_score_list.append(score)
-            if output and fontpath:
-                vis = Visualizer(output_folder = output)
-                img = vis.visualizer(image_ori=img, contours=boxes, font=fontpath, texts=recog_result_list)
-                cv2.imwrite(os.path.join(output, "result.jpg"), img)
+            
+            # visulize result
+            if self.output and self.fontpath:
+                img = self.vis.visualizer(image_ori=img, contours=boxes, font=self.fontpath, texts=recog_result_list)
+                # save result image
+                cv2.imwrite(os.path.join(self.output, "result.jpg"), img)
             return recog_result_list
+
+

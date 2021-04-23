@@ -115,7 +115,7 @@ class LoadDataset:
                 'translate':{'p':0.8, 'v':{"x": (-0.2, 0.2), "y": (-0.2, 0.2)}},
                 'rotate':{'p':0.8, 'v':(-45, 45)},
                 'dropout':{'p':0.6,'v':(0.0, 0.5)},
-                'blur'   :{'p':0.6,'v':(0.0, 4.0)},
+                'blur'   :{'p':0.6,'v':(0.0, 2.0)},
                 'elastic':{'p':0.85}}
         augmentation = Augmentation(self.cfg, option=option)
         try:

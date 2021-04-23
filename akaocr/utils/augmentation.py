@@ -43,6 +43,18 @@ class Augmentation():
 
         # base.add(iaa.Sometimes(0.85,
         #                        iaa.ElasticTransformation(alpha=(40, 60), sigma=(6, 12))))
+        if 'rotate' in self.option:
+            base.add(iaa.Sometimes(self.option['rotate']['p'],
+                                iaa.Affine(rotate=self.option['rotate']['v'])))
+        
+        if 'translate' in self.option:
+            base.add(iaa.Sometimes(self.option['translate']['p'],
+                                iaa.Affine(translate_percent=self.option['translate']['v'])))
+
+        if 'scale' in self.option:
+            base.add(iaa.Sometimes(self.option['scale']['p'],
+                                iaa.Affine(scale=self.option['scale']['v'])))
+                                
         if 'elastic' in self.option:
             base.add(iaa.Sometimes(self.option['elastic']['p'],
                                 iaa.ElasticTransformation(alpha=(40,60), sigma=(6,12))))

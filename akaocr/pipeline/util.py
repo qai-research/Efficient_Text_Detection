@@ -68,6 +68,7 @@ class Visualizer:
         suf : str or "random", optional, default: "random"
             the suffix to be appended after the given image's name
         """
+        print(2,output_folder)
         self.output_folder = Path(output_folder)
         self.pre = pre
         self.suf = suf
@@ -138,7 +139,7 @@ class Visualizer:
         return img
 
     def visualizer(self, image_ori, contours=None, boxes=None, lines=None, bcolor=(0, 255, 0), texts=None,
-                   font=None, font_size=30, thick=2, windows=None, show=True, name='demo', tcolor=(255, 0, 0), 
+                   font=None, font_size=30, thick=2, windows=None, show=False, name='demo', tcolor=(255, 0, 0), 
                    gt_text=None, gt_color=(0, 0, 255)):
         image = image_ori.copy()
         imshape = image.shape
