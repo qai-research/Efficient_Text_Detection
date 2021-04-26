@@ -29,15 +29,16 @@ This repo combine the power of heat map based text detection method with advance
 
 <!-- GETTING STARTED -->
 ## Getting Started
-Train detec:
-    python tools/train_detec.py --data_detec=<data train> --data_test_detec=<data test> --exp=<experiment name> --config=<config path> --weight=<pretrain model> --gpu
-Train recog:
-    python train_recog.py --data_recog=<data train> --data_test_recog=<data test> --exp=<experiment name> --config=<config path> --weight=<pretrain model> --gpu
+Train detec: <br>
+>python tools/train_detec.py --data_detec=\<data train> --data_test_detec=\<data test> --exp=\<experiment name> --config=\<config path> --weight=\<pretrain model>
+
+Train recog: <br>
+>python tools/train_recog.py --data_recog=\<data train> --data_test_recog=\<data test> --exp=\<experiment name> --config=\<config path> --weight=\<pretrain model>
     
 ### Prerequisites
 
 List of dependencies
-* [cuda compatible installation](https://pytorch.org/)
+* [cuda compatible installation](https://pytorch.org/get-started/locally/)
 ```
 torch==1.5.1
 torchvision==0.6.1
@@ -69,7 +70,7 @@ imgaug==0.4.0
 
 <!-- LICENSE -->
 ## License
-
+MIT License
 
 <!-- CONTACT -->
 ## Contact

@@ -65,7 +65,7 @@ SOLVER:
   NUM_SAMPLES : 5000
 
   # threshold of iters to stop training when no F1 improvement
-  EARLY_STOP_AFTER : 1000000
+  EARLY_STOP_AFTER : 20
 
   # interval of iteration to do validation
   EVAL_PERIOD: 5000
