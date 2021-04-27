@@ -14,6 +14,7 @@ _____________________________________________________________________________
 import six
 import lmdb
 import json
+import shutil
 import configparser
 import numpy as np
 from pathlib import Path
@@ -106,6 +107,35 @@ def read_json_annotation(js_label):
             bboxes.append(bo)
         character_boxes.append(np.array(bboxes))
     return words, character_boxes
+
+
+def copy_files(src, des, move=False, clean_des=False):
+    """Copy or move file(or list of file) of Path object(from pathlib)
+
+    Args:
+        src: source file(or list of source file)
+        des: destination folder
+        move: move file or copy file
+        clean_des: clean destination folder or not
+
+    """
+    if clean_des:
+        shutil.rmtree(des, ignore_errors=True)
+    des_path = Path(des)
+    des_path.mkdir(exist_ok=True, parents=True)
+
+    if isinstance(src, list):
+        if move:
+            for file in src:
+                shutil.move(str(file), str(des_path.joinpath(file.name)))
+        else:
+            for file in src:
+                shutil.copyfile(str(file), str(des_path.joinpath(file.name)))
+    else:
+        if move:
+            shutil.move(str(src), str(des_path.joinpath(src.name)))
+        else:
+            shutil.copyfile(str(src), str(des_path.joinpath(src.name)))
 
 
 class LmdbReader:

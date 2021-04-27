@@ -6,7 +6,7 @@ Created Date: Tue December 29 13:00:00 VNT 2020
 Project : AkaOCR core
 _____________________________________________________________________________
 
-This file contain config methods
+Build initial folder tree and setup environment for running a training experiment
 _____________________________________________________________________________
 """
 
@@ -19,10 +19,13 @@ from argparse import Namespace
 import torch
 from engine.solver.default import _C
 from utils.utility import initial_logger
+
 logger = initial_logger()
-from utils.file_utils import read_vocab
+from utils.file_utils import read_vocab, copy_files
 from models.modules.converters import AttnLabelConverter
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 def get_cfg_defaults():
     """Get a yacs CfgNode object with default values for my_project."""
@@ -37,78 +40,102 @@ def load_yaml_config(config_path):
     return config
 
 
-def parse_base(add_help=True):
-    parser = argparse.ArgumentParser(add_help=add_help)
-    # params for prediction engine
-    parser.add_argument("-e", "--exp", type=str, default="test")
-    parser.add_argument("--config", type=str, default=None)
-    parser.add_argument("-w", "--weight", type=str, default=None)
-    parser.add_argument("-g", "--gpu", nargs="+")
-    parser.add_argument("--data", type=str, default="../data")
-    # return parser.parse_args()
+def parse_base():
+    """
+    Basic parse arguments.
+
+    Returns: parse object to call or add more arguments
+
+    """
+    parser = argparse.ArgumentParser(add_help=True)
+    parser.add_argument("-e", "--exp", type=str, default="test", help="experiment name to save training result or "
+                                                                      "model source for inference")
+    parser.add_argument("-c", "--config", type=str, default=None, help="path to custom config define by user, this "
+                                                                       "parameter will overwrite the default path to "
+                                                                       "config(./data/config/config_base_v1.yaml for "
+                                                                       "training the first time or overwrite the "
+                                                                       "config in experiment folder for continue "
+                                                                       "training or inference)")
+    parser.add_argument("-w", "--weight", type=str, default=None, help="path to custom weight define by user, this "
+                                                                       "parameter can be use to overwrite default "
+                                                                       "path to weight in experiment folder or to "
+                                                                       "provide pre-train model for training new "
+                                                                       "model")
+    parser.add_argument("-g", "--gpu", nargs="+", help="specify GPU or GPUs that train the model(Exp: -g 1, -g 0 2 4)")
+    parser.add_argument("-d", "--data", type=str, default="../data", help="path to data path to get train data and save"
+                                                                          "experiment results")
+
     return parser
 
 
 def setup(tp="recog", args=None):
     """setup config environment and working space"""
     data_path = Path(args.data)
-    exp_exist = True
-    if tp == "recog":
-        exp_path = data_path.joinpath("exp_recog", args.exp)
-        exp_config_path = str(exp_path.joinpath(args.exp + "_recog_config.yaml"))
-        if not exp_path.exists():
-            config = "../data/attention_resnet_base_v1.yaml"
-            if args.config:
-                config = args.config
-            logger.warning(f"Experiment {args.exp} do not exist.")
-            logger.warning("Creating new experiment folder")
-            exp_exist = False
-            exp_path.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(config, exp_config_path)
-        else:
-            config = exp_config_path
-            logger.warning(f"Experiment {args.exp} exist")
-            logger.warning(f"Use current experiment folder")
 
+    if tp == "recog":
+        config = str(data_path.joinpath("attention_resnet_base_v1.yaml"))
+        exp_path = data_path.joinpath("exp_recog", args.exp)
     elif tp == "detec":
+        config = str(data_path.joinpath("heatmap_1fpn_v1.yaml"))
         exp_path = data_path.joinpath("exp_detec", args.exp)
-        exp_config_path = str(exp_path.joinpath(args.exp + "_detec_config.yaml"))
-        if not exp_path.exists():
-            config = "../data/heatmap_1fpn_v1.yaml"
-            if args.config:
-                config = args.config
-            logger.info(f"Experiment {args.exp} do not exist")
-            logger.info("Creating new experiment folder")
-            exp_exist = False
-            exp_path.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(config, exp_config_path)
-        else:
-            config = exp_config_path
-            logger.info(f"Experiment {args.exp} exist")
-            logger.info(f"Use current experiment folder")
     else:
         logger.error("Training type not in [detec, recog]")
         raise ValueError("Invalid type for setup")
 
-    if exp_exist:
-        model_path, iteration = get_model_weight(str(exp_path))
-    else:
-        model_path, iteration = None, 0
+    backup_folder = exp_path.joinpath("backup")
+    exp_config_path = str(exp_path.joinpath(args.exp + "_config.yaml"))
 
-    if args.config is not None:
-        config = args.config
-        assert not (
-                    exp_exist and model_path is not None), f"Experiment {args.exp} exist so you can not use custom config"
-        shutil.copyfile(config, exp_config_path)
-    #########################################
+    lcf = list(exp_path.glob("*.yaml"))
+    if len(lcf) > 0:
+        config = lcf[0]
 
-    if args.weight:
-        if model_path is None or Path(args.weight).parent == exp_path:
-            model_path = args.weight
-            iteration = 0
+    checkpoint = None
+    iteration = 0
+
+    if not exp_path.exists():
+        exp_path.mkdir(parents=True)
+        # default config for EATS
+        logger.info(f"Experiment {args.exp} do not exist.")
+        logger.info("Creating new experiment folder")
+        if args.config:
+            config = args.config
+            logger.warning(f"New config provided by flag -c/--config {config}")
         else:
-            assert not model_path, f"Weight exist for experiment folder: {str(exp_path)}. Please remove old " \
-                                   f"model weights before load new weight"
+            logger.info(f"Default config copy from {config}")
+        shutil.copyfile(config, exp_config_path)
+        if args.weight:
+            checkpoint = args.weight
+            logger.info(f"User checkpoint provided by flag -w/--weight {checkpoint}")
+        else:
+            logger.info(f"No checkpoint provided by -w/--weight.")
+    else:
+        logger.info(f"Experiment {args.exp} exist")
+        logger.info(f"Use current experiment folder")
+        exist_checkpoint = list(exp_path.glob("*.pth"))
+        if args.weight:
+            if len(exist_checkpoint) == 0:
+                checkpoint = args.weight
+            elif Path(args.weight).parent == exp_path:
+                checkpoint_name = Path(args.weight).name
+                copy_files(exist_checkpoint, backup_folder)
+                checkpoint = str(backup_folder.joinpath(checkpoint_name))
+            else:
+                assert f"Weight exist for experiment folder: {str(exp_path)}. Please remove old " \
+                       f"model weights before load new weight"
+            logger.info(f"User checkpoint provided by flag -w/--weight {args.weight}")
+        else:
+            _, cp_name = get_exp_weight(str(exp_path))
+            if cp_name is not None:
+                copy_files(exist_checkpoint, backup_folder, move=True, clean_des=True)
+                checkpoint = str(backup_folder.joinpath(cp_name))
+        if args.config is not None:
+            config = args.config
+            assert not (
+                    checkpoint is not None and not args.weight), f"Experiment {args.exp} and checkpoint exist so you " \
+                                                                 f"can not use custom config "
+            shutil.copyfile(config, exp_config_path)
+            logger.warning(f"New config provided by flag -c/--config {config}")
+            logger.warning(f"Overwrite current config in {str(exp_path)}")
 
     cfg = get_cfg_defaults()
 
@@ -116,12 +143,12 @@ def setup(tp="recog", args=None):
     cfg.merge_from_file(config)
 
     cfg.SOLVER.START_ITER = iteration
-    cfg.SOLVER.WEIGHT = model_path
+    cfg.SOLVER.WEIGHT = checkpoint
     cfg.SOLVER.GPU = args.gpu
     cfg.SOLVER.DATA = args.data
     cfg.SOLVER.EXP = str(exp_path)
     if cfg.MODEL.VOCAB is not None:
-        cfg.MODEL.VOCAB = os.path.join(cfg.SOLVER.DATA, "vocabs", cfg.MODEL.VOCAB)   
+        cfg.MODEL.VOCAB = os.path.join(cfg.SOLVER.DATA, "vocabs", cfg.MODEL.VOCAB)
     if cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
         cfg.SOLVER.DEVICE = str(device)
         if cfg.MODEL.VOCAB:  # vocabulary is given
@@ -177,9 +204,60 @@ def get_model_weight(exp_path, cp_type="best"):
     logger.info(f"Latest checkpoints {str(latest_model)} found")
     return str(latest_model), max_iter
 
-def dict2namespace(di):
-    for d in di:
-        if type(di[d]) is dict:
-            di[d] = Namespace(**di[d])
-    di = Namespace(**di)
-    return di
+
+def get_exp_weight(exp_path):
+    """Extract weight from experiment folder.
+
+    If exist any checkpoint in the experiment folder this method will return the path to checkpoint.
+    If multiple checkpoint exist => ask user for which checkpoint to load.
+    Move all the exist checkpoint to experiment_folder/backup.
+
+    Args:
+        exp_path: Path to the current experiment folder
+
+    Returns:
+        None if do not found any checkpoint
+        String path_to_checkpoint if exist checkpoint in experiment folder
+
+    """
+    exp_path = Path(exp_path)
+    list_checkpoint = list(exp_path.glob("*.pth"))
+    # list_checkpoint = sorted(list_checkpoint)
+    if len(list_checkpoint) == 0:
+        logger.info(f"No checkpoint found in experiment folder {str(exp_path)}")
+        found_checkpoint = None
+        cp_name = None
+        return found_checkpoint, cp_name
+    elif len(list_checkpoint) == 1:
+        logger.info(f"Single checkpoint exist in folder {str(exp_path)}")
+        cp_name = list_checkpoint[0].name
+    else:
+        logger.warning(f"Multiple checkpoint found in experiment folder {str(exp_path)}")
+        logger.warning("Available option is : ")
+        for cp in list_checkpoint:
+            print("===> ", str(cp.name))
+        print(f"Please enter the checkpoint name that you want to load :", end=" ")
+        cp_name = input()
+
+        # extract checkpoint of largest iteration
+        if not cp_name:
+            list_index = list()
+            for cp in list_checkpoint:
+                cp_index = ''.join([n for n in str(cp.name) if n.isdigit()])
+                if cp_index.isdigit():
+                    list_index.append(int(cp_index))
+                else:
+                    list_index.append(0)
+            id_get = list_index.index(max(list_index))
+            cp_name = list_checkpoint[id_get].name
+            logger.warning(f"No checkpoint chosen. Get the checkpoint : " + cp_name)
+
+    found_checkpoint = str(exp_path.joinpath(cp_name))
+    return found_checkpoint, cp_name
+
+# def dict2namespace(di):
+#     for d in di:
+#         if type(di[d]) is dict:
+#             di[d] = Namespace(**di[d])
+#     di = Namespace(**di)
+#     return di

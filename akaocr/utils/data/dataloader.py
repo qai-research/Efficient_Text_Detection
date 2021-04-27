@@ -10,10 +10,13 @@ This file contain base loader for lmdb type data + wrapper
 _____________________________________________________________________________
 """
 
+import json
+import random
 import torch
 import logging
+import numpy as np
 from pathlib import Path
-import random
+
 from torch.utils.data import Dataset, ConcatDataset, Subset
 from utils.file_utils import LmdbReader
 from utils.file_utils import Constants, read_vocab
@@ -24,14 +27,12 @@ from utils.augmentation import Augmentation
 
 logger = initial_logger()
 
-import numpy as np
-import json
-import random
 
 class LmdbDataset(Dataset):
     """
     Base loader for lmdb type dataset
     """
+
     def __init__(self, root, rgb=False, labelproc=None, augmentation=None):
         """
         :param root: path to lmdb dataset
@@ -78,15 +79,11 @@ class LoadDataset:
         :param root: path to lmdb dataset
         :return: dataloader
         """
-        # try:
-        #     chars = read_vocab(self.vocab)
-        # except TypeError:
-        #     raise Exception(f"vocab path {self.vocab} not found")
         chars = self.vocab
         labelproc = label_handler.TextLableHandle(character=chars,
                                                   sensitive=self.cfg.MODEL.SENSITIVE,
                                                   unknown=self.cfg.SOLVER.UNKNOWN,
-                                                  max_length = self.cfg.MODEL.MAX_LABEL_LENGTH)
+                                                  max_length=self.cfg.MODEL.MAX_LABEL_LENGTH)
         try:
             dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc, augmentation=None)
         except Exception:
@@ -110,13 +107,13 @@ class LoadDataset:
         :return: dataloader
         """
         labelproc = label_handler.JsonLabelHandle()
-        option = {'shear':{'p':0.8, 'v':{'x':(-15,15), 'y':(-15,15)}},
-                'scale':{'p':0.8, 'v':{"x": (0.8, 1.2), "y": (0.8, 1.2)}},
-                'translate':{'p':0.8, 'v':{"x": (-0.2, 0.2), "y": (-0.2, 0.2)}},
-                'rotate':{'p':0.8, 'v':(-45, 45)},
-                'dropout':{'p':0.6,'v':(0.0, 0.5)},
-                'blur'   :{'p':0.6,'v':(0.0, 2.0)},
-                'elastic':{'p':0.85}}
+        option = {'shear': {'p': 0.8, 'v': {'x': (-15, 15), 'y': (-15, 15)}},
+                  'scale': {'p': 0.8, 'v': {"x": (0.8, 1.2), "y": (0.8, 1.2)}},
+                  'translate': {'p': 0.8, 'v': {"x": (-0.2, 0.2), "y": (-0.2, 0.2)}},
+                  'rotate': {'p': 0.8, 'v': (-45, 45)},
+                  'dropout': {'p': 0.6, 'v': (0.0, 0.5)},
+                  'blur': {'p': 0.6, 'v': (0.0, 2.0)},
+                  'elastic': {'p': 0.85}}
         augmentation = Augmentation(self.cfg, option=option)
         try:
             dataset = LmdbDataset(root, rgb=self.cfg.MODEL.RGB, labelproc=labelproc, augmentation=augmentation)
@@ -132,26 +129,6 @@ class LoadDataset:
             collate_fn=gaussian_collate,
             pin_memory=True)
         return data_loader
-
-    def _load_multiple_dataset(self, cfg, selected_data=None):
-        """
-        Wrapper to load multiple dataset
-        :param cfg: config namespace
-        :param selected_data: list of selected data from lake
-        :return: list of datasets
-        """
-        root_path = Path(cfg.SOLVER.DATA_SOURCE)
-        list_dataset = list()
-        for dataset_name in selected_data:
-            dataset_path = root_path.joinpath(dataset_name)
-            if cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
-                dataset = self.load_dataset_recog_ocr(str(dataset_path))
-            elif cfg._BASE_.MODEL_TYPE == "HEAT_BASE":
-                dataset = self.load_dataset_detec_heatmap(str(dataset_path))
-            else:
-                raise ValueError(f"invalid mode type_dataset : {cfg._BASE_.MODEL_TYPE} for _load_multiple_dataset")
-            list_dataset.append(dataset)
-        return list_dataset
 
 
 class LoadDatasetIterator:
@@ -188,6 +165,8 @@ class LoadDatasetIterator:
             if self.idi > len(self.list_iterator) - 1:
                 self.idi = 0
             try:
+                logger.debug(len(self.list_iterator))
+                logger.debug(self.idi)
                 data_loader_iter = self.list_iterator[self.idi]
                 data = data_loader_iter.next()
                 self.idi += 1
@@ -198,10 +177,17 @@ class LoadDatasetIterator:
             except ValueError:
                 logger.warning(f"Getting data from dataloader failed")
 
+
 class LoadDatasetDetecBBox():
     def __init__(self, data, cfg):
+        """
+        Load detection data with bouding boxes label
+        Args:
+            data: path to LMDB data source
+            cfg: config name space
+        """
         self.lmdbreader = LmdbReader(data, rgb=cfg.MODEL.RGB)
-        self.index_list = random.sample(range(1, self.get_length()+1), self.get_length())
+        self.index_list = random.sample(range(1, self.get_length() + 1), self.get_length())
 
     def get_length(self):
         return self.lmdbreader.num_samples

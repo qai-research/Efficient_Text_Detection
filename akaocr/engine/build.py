@@ -14,7 +14,7 @@ from pathlib import Path
 from utils.data.dataloader import LoadDatasetIterator, LoadDatasetDetecBBox
 from models.detec.heatmap import HEAT
 from models.recog.atten import Atten
-from engine.config import setup, dict2namespace
+from engine.config import setup
 from utils.utility import initial_logger
 
 logger = initial_logger()
@@ -30,7 +30,8 @@ def build_dataloader(cfg, source, selected_data=None):
     """
     data_path = Path(source)
     if selected_data is None:
-        datalist = [str(dataset.name) for dataset in data_path.iterdir()]
+        datalist = [str(dataset.name) for dataset in data_path.iterdir() if dataset.is_dir()]
+        datalist = datalist + ["."]
     else:
         datalist = selected_data
     iterator = LoadDatasetIterator(cfg, source, selected_data=datalist)
@@ -48,6 +49,7 @@ def build_model(config):
         raise ValueError("invalid _BASE_.MODEL_TYPE in config file(accept HEAT_BASE and ATTEN_BASE)")
     model.to(device=config.SOLVER.DEVICE)
     return model
+
 
 def build_test_data_detec(cfg, source, selected_data=None):
     root_path = Path(source)
