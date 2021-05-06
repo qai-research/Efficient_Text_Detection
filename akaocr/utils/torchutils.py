@@ -16,7 +16,6 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 
-
 def copy_state_dict(state_dict):
     if list(state_dict.keys())[0].startswith("module"):
         start_idx = 1

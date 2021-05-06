@@ -167,7 +167,7 @@ def get_det_boxes_core(text_map, link_map, text_threshold, link_threshold, low_t
             ey = img_h
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1 + niter, 1 + niter))
 
-        cv2.imwrite("data/vis/" + str(k) + "crop.jpg", segmap[sy:ey, sx:ex])
+        # cv2.imwrite("data/vis/" + str(k) + "crop.jpg", segmap[sy:ey, sx:ex])
 
         sep_seg = heat_spliter(segmap[sy:ey, sx:ex], k)
         for seg in sep_seg:
