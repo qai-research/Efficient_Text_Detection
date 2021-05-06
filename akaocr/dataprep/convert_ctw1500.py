@@ -1,3 +1,21 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Huu Kim - huukim911
+Created Date: May 5, 2021 3:04pm GMT+0700
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contains function to convert from data source of CTW1500 to desire groundtruth format
+_____________________________________________________________________________
+
+Data source:
+    Refer: https://github.com/Yuliang-Liu/Curve-Text-Detector
+    Annot: https://drive.google.com/open?id=13sNLo3s8hO8_2ldkVapL7Q7LRBp8Yr-g
+    Image: https://1drv.ms/u/s!Aplwt7jiPGKilH4XzZPoKrO7Aulk
+"""
+
 import os
 import pathlib
 import shutil

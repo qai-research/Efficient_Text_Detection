@@ -1,3 +1,27 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+_____________________________________________________________________________
+Created By  : Nguyen Huu Kim - huukim911
+Created Date: May 5, 2021 3:04pm GMT+0700
+Project : AkaOCR core
+_____________________________________________________________________________
+
+This file contains function to convert from data source of Cocotext to desire groundtruth format
+_____________________________________________________________________________
+
+Refer API from https://github.com/bgshih/coco-text (coco_text.py)
+Cocotext just has annot for train set only, split train/test/eval by yourself
+
+Data source: 
+    #refer: https://vision.cornell.edu/se3/coco-text-2/
+    #annot: https://vision.cornell.edu/se3/wp-content/uploads/2019/05/COCO_Text.zip
+    #image
+            http://images.cocodataset.org/zips/train2014.zip
+            http://images.cocodataset.org/zips/val2014.zip
+            http://images.cocodataset.org/zips/test2014.zip
+"""
+
 import coco_text
 import shutil
 import json
@@ -6,10 +30,7 @@ import argparse
 from tqdm import tqdm
 from pathlib import Path
 
-'''
-Refer API from https://github.com/bgshih/coco-text
-Cocotext just has annot for train set only, split train/test/eval by yourself
-'''
+
 
 def convert(src_path, annot_path, des_path):
     #remove old if exist for clean data
