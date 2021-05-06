@@ -7,7 +7,7 @@
 # Project : AkaOCR core
 # _____________________________________________________________________________
 
-# This file contain sh script for update feature for public repo
+# This file contain sh script to update feature for public repo
 # _____________________________________________________________________________
 # """
 git remote -v
