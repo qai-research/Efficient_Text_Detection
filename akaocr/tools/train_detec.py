@@ -14,18 +14,17 @@ import torch
 
 sys.path.append("../")
 from models.detec.heatmap import HEAT
-# from models.detec.resnet_fpn_heatmap import RESNET_FPN_HEAT
+from models.detec.resnet_fpn_heatmap import HEAT_RESNET
+from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from engine import Trainer
 from engine.config import setup, parse_base
 from engine.trainer.loop import CustomLoopHeat, CustomLoopAtten
 from engine.build import build_dataloader
 from engine.build import build_dataloader, build_test_data_detec
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 from engine.metric.accuracy import RecogAccuracy, DetecAccuracy
 from engine.metric.evaluation import DetecEvaluation, RecogEvaluation
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def test_detec(args):
     cfg = setup("detec", args)
@@ -33,8 +32,12 @@ def test_detec(args):
     cfg.SOLVER.DEVICE = str(device)
     cfg.SOLVER.DATA_SOURCE = args.data_detec
 
-    model = HEAT(cfg)
-    # model = RESNET_FPN_HEAT(cfg)
+    if cfg.MODEL.NAME == "CRAFT":
+        model = HEAT()
+    elif cfg.MODEL.NAME == "RESNET":
+        model = HEAT_RESNET()
+    elif cfg.MODEL.NAME == "EFFICIENT":
+        model = HEAT_EFFICIENT()    
     model.to(device=device)
 
     evaluate = DetecEvaluation(cfg)
@@ -46,7 +49,6 @@ def test_detec(args):
                       evaluation=evaluate, resume=True)
     trainer.do_train()
 
-
 def main():
     parser = parse_base()
     parser.add_argument('--data_detec', type=str, default="../data/data_detec/train", help='path to detect data')
@@ -54,7 +56,6 @@ def main():
                         help='path to test detect data')
     args = parser.parse_args()
     test_detec(args)
-
 
 if __name__ == '__main__':
     main()

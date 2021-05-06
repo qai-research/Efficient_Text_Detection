@@ -15,23 +15,26 @@ import torch
 import cv2
 import numpy as np
 import shutil
+import os
+import re
+from PIL import Image
+import torch.nn.functional as F
 
+from utils.file_utils import read_vocab
 from models.detec.heatmap import HEAT
 from models.detec.resnet_fpn_heatmap import HEAT_RESNET
 from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from models.recog.atten import Atten
-import os
 from engine.solver import ModelCheckpointer
-from engine.config import setup
-from PIL import Image
-import re
 from models.modules.converters import AttnLabelConverter
-import torch.nn.functional as F
 from engine.infer.heat2boxes import Heat2boxes
 from engine.infer.intercept_vocab import InterceptVocab
-from utils.torchutils import copy_state_dict
-from pipeline.util import AlignCollate, experiment_loader, Visualizer
+from engine.config import get_cfg_defaults
+from utils.utility import initial_logger
+from pipeline.util import AlignCollate, experiment_loader
 from pre.image import ImageProc
+
+logger = initial_logger()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class SlideWindow():
@@ -90,58 +93,71 @@ class Detectlayer():
     __call__
         execute the pipeline
     """
-
-    def __init__(self, args=None, model_path=None, window=(1280, 800), bufferx=50, buffery=20):
+    def __init__(self, config=None, model_path=None, model_name='test', data_path='./data',
+                 window=(1280, 800), bufferx=50, buffery=20, preprocess=None, postprocess=None):
         super().__init__()
-        self.cfg = setup("detec", args)
-        # print(args)
-        if model_path is None:
-            model_path = experiment_loader(type='detec')
-        
+        if not config:
+            detec_model_path, detec_model_config = experiment_loader(name=model_name, type='detec',
+                                                                       data_path=data_path)
+            config = detec_model_config
+            model_path = detec_model_path
+        logger.info(f"load model from : {model_path}")
+
+        self.cfg = get_cfg_defaults()
+        self.cfg.merge_from_file(config)
+
         if self.cfg.MODEL.NAME == "CRAFT":
             model = HEAT()
         elif self.cfg.MODEL.NAME == "RESNET":
             model = HEAT_RESNET()
         elif self.cfg.MODEL.NAME == "EFFICIENT":
             model = HEAT_EFFICIENT()
-        
+
         checkpointer = ModelCheckpointer(model)
         #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
         checkpointer.resume_or_load(model_path, strict_mode=True)
-
         model = model.to(device)
+
         self.window_shape = window
         self.bufferx = bufferx
         self.buffery = buffery
         self.detector = model
 
     def detect(self, img):
-        img, target_ratio = ImageProc.resize_aspect_ratio(
+        img_resized, target_ratio = ImageProc.resize_aspect_ratio(
             img, self.cfg.MODEL.MAX_SIZE, interpolation=cv2.INTER_LINEAR
         )
         ratio_h = ratio_w = 1 / target_ratio
-        img = ImageProc.normalize_mean_variance(img)
-        img = torch.from_numpy(img).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
-        img = (img.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
-        img = img.to(device)
-        y,_ = self.detector(img)
+        img_resized = ImageProc.normalize_mean_variance(img_resized)
+        img_resized = torch.from_numpy(img_resized).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
+        img_resized = (img_resized.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
+        img_resized = img_resized.to(device)
+        y,_ = self.detector(img_resized)
         box_list = Heat2boxes(self.cfg, y, ratio_w, ratio_h)
-        box_list,_ = box_list.convert()
+        box_list, heatmap = box_list.convert()
         for i in range(len(box_list)):
             box_list[i] = [[box_list[i][0], box_list[i][4]],
                             [box_list[i][1], box_list[i][5]],
                             [box_list[i][2], box_list[i][6]],
                             [box_list[i][3], box_list[i][7]]]
-        return np.array(box_list)
+        heatmap = cv2.resize(heatmap, (img.shape[1], img.shape[0]))
+        return np.array(box_list), heatmap
 
     def __call__(self, imgs):
         if isinstance(imgs, list):
             all_boxes = []
+            all_heat = []
             for i, row in enumerate(imgs):
                 for j, img in enumerate(row):
-                    boxes = self.detect(img)
+                    boxes, heatmap = self.detect(img)
+                    list_heat = list()
+                    for bo in boxes:
+                        y0, x0 = np.min(bo, axis=0)
+                        y1, x1 = np.max(bo, axis=0)
+                        roi = heatmap[int(x0):int(x1), int(y0):int(y1)]
+                        list_heat.append(roi)
                     center = [(sum(box[:, :1]) / 4, sum(box[:, 1:2]) / 4) for box in boxes]
-                    for ce, bo in zip(center, boxes):
+                    for ce, bo, he in zip(center, boxes, list_heat):
                         correct = 1
                         buffx = self.bufferx / 2
                         buffy = self.buffery / 2
@@ -172,10 +188,11 @@ class Detectlayer():
                             y_plus = (self.window_shape[1] - self.buffery) * i
                             bo = [[b[0] + x_plus, b[1] + y_plus] for b in bo]
                             all_boxes.append(np.array(bo))
+                            all_heat.append(he)
             result = np.array(all_boxes)
         else:
-            result = self.detect(imgs)
-        return result
+            result, all_heat = self.detect(imgs)
+        return result, all_heat
 
 
 class Recoglayer():
@@ -194,31 +211,51 @@ class Recoglayer():
     __call__(image, boxes)
         image : crop image to recognize or big image with bounding boxes to crop and return list of recognized results
     """
-
-    def __init__(self, args=None, model_path=None, output=None, seperator=None, fontpath=None):
+    def __init__(self, config=None, model_path=None, model_name='test', data_path='./data',
+                 preprocess=None, postprocess=None, lang='eng+jpn'):
         super().__init__()
-        self.cfg = setup("recog", args)
-        if model_path is None:
-            model_path = experiment_loader(type='recog')
 
+        self.preprocess = preprocess
+        self.postprocess = postprocess
+      
+        if not config:
+            recog_model_path, recog_model_config = experiment_loader(name=model_name, type='recog',
+                                                                       data_path=data_path)
+            config = recog_model_config
+            model_path = recog_model_path
+        logger.info(f"load model from : {model_path}")
+        
+        self.cfg = get_cfg_defaults()
+        self.cfg.merge_from_file(config)
+        if self.cfg.MODEL.VOCAB is not None:
+            self.cfg.MODEL.VOCAB = os.path.join(data_path, "vocabs", self.cfg.MODEL.VOCAB)
+        self.cfg.SOLVER.DEVICE = str(device)
+        if self.cfg.MODEL.VOCAB:  # vocabulary is given
+            self.cfg.MODEL.VOCAB = read_vocab(self.cfg.MODEL.VOCAB)
+            self.cfg["character"] = self.cfg.MODEL.VOCAB
+        else:  # use character list instead
+            self.cfg["character"] = list(self.cfg["character"])
+        if self.cfg.SOLVER.UNKNOWN:
+            self.cfg["character"].append(self.cfg.SOLVER.UNKNOWN)
+        self.cfg["character"].sort()
+        if 'CTC' in self.cfg.MODEL.PREDICTION:
+            self.converter = CTCLabelConverter(self.cfg["character"])
+        else:
+            self.converter = AttnLabelConverter(self.cfg["character"], device=self.cfg.SOLVER.DEVICE)
+        self.cfg.MODEL.NUM_CLASS = len(self.converter.character)
+       
         model = Atten(self.cfg)
 
         checkpointer = ModelCheckpointer(model)
         #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
         checkpointer.resume_or_load(model_path, strict_mode=True)
-
         model = model.to(device)
 
         self.recognizer = model
-        self.converter = AttnLabelConverter(self.cfg["character"], device=device)
         self.max_h = self.cfg.MODEL.IMG_H
         self.max_w = self.cfg.MODEL.IMG_W
         self.pad = self.cfg.MODEL.PAD
         self.max_label_length = self.cfg.MODEL.MAX_LABEL_LENGTH
-        self.output = output
-        self.seperator = seperator
-        self.fontpath = fontpath
-        self.vis = Visualizer(output_folder = self.output)
         
     def _remove_unknown(self, text):
         text = re.sub(f'[{self.cfg.SOLVER.UNKNOWN}]+', "", text)
@@ -281,19 +318,18 @@ class Recoglayer():
             text = self._remove_unknown(pred)
             return text, confidence_score
 
-    def __call__(self, img, boxes=None, subvocab = None):
+    def __call__(self, img, boxes=None, output=None, seperator=None, subvocab=None):
         if subvocab:
             self.intercept = InterceptVocab(subvocab, self.converter)
         else:
             self.intercept = None
-        if self.output:
-            if os.path.exists(self.output):
-                shutil.rmtree(self.output)
-            os.makedirs(self.output)
+        if output:
+            if not os.path.exists(output):
+                os.makedirs(output)
         if boxes is None:
             text, score = self.recog(img)
-            if self.output:
-                cv2.imwrite(os.path.join(self.output, text + '.jpg'), img)
+            if output:
+                cv2.imwrite(os.path.join(output, text + '.jpg'), img)
             return text
         else:
             recog_result_list = list()
@@ -307,30 +343,22 @@ class Recoglayer():
                     x0, y0 = np.min(poly, axis=0)
                     x1, y1 = np.max(poly, axis=0)
                 roi = img[y0:y1, x0:x1]
-                # print(roi)
                 try:
-                    if not self.seperator:
+                    if not seperator:
                         text, score = self.recog(roi)
-                    elif self.seperator == 'logic':
+                    elif seperator == 'logic':
                         _, l_roi = logic_seperator(roi)
                         text = ''
                         for ro in l_roi:
                             te, score = self.recog(ro)
                             text = text + te
-                            # print(te)
-                            # show_image(ro)
                 except:
                     text = ''
                     score = -1
                     print('cant recog box ', roi.shape)
+
+                if output:
+                    cv2.imwrite(os.path.join(output, 'result' + str(i) + '_' + text + '.jpg'), roi)
                 recog_result_list.append(text)
                 confidence_score_list.append(score)
-            
-            # visulize result
-            if self.output and self.fontpath:
-                img = self.vis.visualizer(image_ori=img, contours=boxes, font=self.fontpath, texts=recog_result_list)
-                # save result image
-                cv2.imwrite(os.path.join(self.output, "result.jpg"), img)
-            return recog_result_list
-
-
+            return recog_result_list, confidence_score_list
