@@ -27,3 +27,4 @@ albumentations==0.5.0
 tensorboard==2.4.1
 fvcore==0.1.2.post20210115
 anybadge
+beautifulsoup4

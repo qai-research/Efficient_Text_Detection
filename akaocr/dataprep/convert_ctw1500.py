@@ -3,19 +3,25 @@ import pathlib
 import shutil
 import json
 from PIL import Image
+import argparse
+from tqdm import tqdm
 from bs4 import BeautifulSoup
 from pathlib import Path
 
-img_path = 'D:/kimnh3/dataset/ocr/raw_download/SCUT-CTW1500/v1-xml/train-1000/train_images'
-ann_path = 'D:/kimnh3/dataset/ocr/raw_download/SCUT-CTW1500/v1-xml/train-1000/ctw1500_train_labels'
-des_path = 'D:/kimnh3/dataset/ocr/converted/scut-ctw1500/train'
-data_set = 'train'
-def convert():
+
+def convert(img_path, ann_path, des_path):
     des_img_path = os.path.join(des_path, 'images')
     des_jsn_path = os.path.join(des_path, 'annotations')
-    for xml in os.listdir(ann_path):
+    if os.path.exists(des_img_path) and os.path.isdir(des_img_path):
+        shutil.rmtree(des_img_path)
+    if os.path.exists(des_jsn_path) and os.path.isdir(des_jsn_path):
+        shutil.rmtree(des_jsn_path)
+    #create folder output if not exist
+    Path(des_img_path).mkdir(parents=True, exist_ok=True)
+    Path(des_jsn_path).mkdir(parents=True, exist_ok=True)
+
+    for xml in tqdm(os.listdir(ann_path)):
         if xml.endswith('.xml'):
-            print(xml)
             ann = {}
 
             #get data in xml and append to ann
@@ -44,7 +50,6 @@ def convert():
                 x2, y2 = x1+width, y1
                 x3, y3 = x2, y2+height
                 x4, y4 = x3-width, y3
-                print(left, top, width, height)
 
                 #get label text
                 lbl = box.find_all('label')[0].text
@@ -62,10 +67,6 @@ def convert():
                 word["char"] = []
                 words.append(word)
             ann["words"] = words
-
-            #create folder output
-            Path(des_img_path).mkdir(parents=True, exist_ok=True)
-            Path(des_jsn_path).mkdir(parents=True, exist_ok=True)
             
             #copy img and save json
             src_img = os.path.join(img_path, img_name)
@@ -76,6 +77,21 @@ def convert():
             with open(des_jsn, 'w') as js:
                 json.dump(ann, js, indent=4)
 
-            break
-print("Done convert set, check at: ", des_img_path)
+    print("Done convert set, check at: ", des_img_path)
 
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--img_path', required=True, help='path to source image path')
+    parser.add_argument('--ann_path', required=True, help='path to annot path')
+    parser.add_argument('--des_path', required=True, help='path to destination output path (contain images and annotations subfolder)')
+
+    opt = parser.parse_args()
+    convert(img_path=opt.img_path, ann_path=opt.ann_path, des_path=opt.des_path)
+
+if __name__ == '__main__':
+    main()
+
+
+# img_path D:/kimnh3/dataset/ocr/raw_download/SCUT-CTW1500/v1-xml/train-1000/train_images
+# ann_path D:/kimnh3/dataset/ocr/raw_download/SCUT-CTW1500/v1-xml/train-1000/ctw1500_train_labels
+# des_path D:/kimnh3/dataset/ocr/converted/scut-ctw1500/train
