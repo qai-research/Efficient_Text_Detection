@@ -64,7 +64,6 @@ def convert(train_img, train_gt, test_img, test_gt, des_path):
                 box = [int(ori_box[j]) for j in range(8)]
                 word = ori_box[8:]
                 word = word[0].strip().strip('"\"')
-                print(word)
                 text["text"] = word
                 text["type"] = "None"
                 text["x1"] = box[0]
@@ -81,7 +80,6 @@ def convert(train_img, train_gt, test_img, test_gt, des_path):
             copy(file_name, images_output_path)
             with open(os.path.join(annotations_output_path, data["file"][:-3] + "json"), "w") as file:
                     json.dump(data, file, indent=4)
-            count+=1
 
 def main():
     parser = argparse.ArgumentParser()
