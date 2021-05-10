@@ -12,6 +12,7 @@ subset = ['train','test']
 
 def convert(train_img, train_gt, test_img, test_gt, des_path):
     #remove if exist
+    count = 0
     for ss in subset:
         dest = Path(des_path).joinpath(ss)
         images_output_path = dest.joinpath("images")
@@ -39,7 +40,7 @@ def convert(train_img, train_gt, test_img, test_gt, des_path):
 
         for file_name in img_list:
             img_name = str(file_name)
-            img_name = img_name[img_name.rfind('img'):] if ss=="test" else img_name[img_name.rfind('.jpg')-3:]
+            img_name = img_name[img_name.rfind('img'):]
             gt_name = "gt_" + img_name[:-4] + ".txt"
             ann_path = gt_path.joinpath(gt_name)
             try:
@@ -59,26 +60,28 @@ def convert(train_img, train_gt, test_img, test_gt, des_path):
 
             for line in lines:
                 text = dict()
-                ori_box = line.strip().encode('utf-8').decode('utf-8-sig').split(' ') if ss=="train" else line.strip().encode('utf-8').decode('utf-8-sig').split(', ')
-                box = [int(ori_box[j]) for j in range(4)]
-                word = ori_box[4:]
+                ori_box = line.strip().encode('utf-8').decode('utf-8-sig').split(',')
+                box = [int(ori_box[j]) for j in range(8)]
+                word = ori_box[8:]
                 word = word[0].strip().strip('"\"')
+                print(word)
                 text["text"] = word
                 text["type"] = "None"
                 text["x1"] = box[0]
                 text["y1"] = box[1]
                 text["x2"] = box[2]
-                text["y2"] = box[1]
-                text["x3"] = box[2]
-                text["y3"] = box[3]
-                text["x4"] = box[0]
-                text["y4"] = box[3]
+                text["y2"] = box[3]
+                text["x3"] = box[4]
+                text["y3"] = box[5]
+                text["x4"] = box[6]
+                text["y4"] = box[7]
                 text["chars"] = []
                 data["words"].append(text)
 
             copy(file_name, images_output_path)
             with open(os.path.join(annotations_output_path, data["file"][:-3] + "json"), "w") as file:
                     json.dump(data, file, indent=4)
+            count+=1
 
 def main():
     parser = argparse.ArgumentParser()

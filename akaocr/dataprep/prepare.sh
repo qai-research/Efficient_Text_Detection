@@ -21,6 +21,22 @@ unzip COCO_Text.zip
 # run convert dataset(ex. on 72)
 python code/convert_cocotext.py --src_path train2014 --annot_path COCO_Text.json --des_path cocotext
 
+
+# ICDAR13
+wget -O Challenge2_Training_Task12_Images.zip https://rrc.cvc.uab.es/downloads/Challenge2_Training_Task12_Images.zip
+wget -O Challenge2_Training_Task1_GT.zip https://rrc.cvc.uab.es/downloads/Challenge2_Training_Task1_GT.zip
+
+wget -O Challenge2_Test_Task12_Images.zip https://rrc.cvc.uab.es/downloads/Challenge2_Test_Task12_Images.zip
+wget -O Challenge2_Test_Task1_GT.zip https://rrc.cvc.uab.es/downloads/Challenge2_Test_Task1_GT.zip
+
+# unzip
+unzip Challenge2_Training_Task12_Images.zip -d Challenge2_Training_Task12_Images
+unzip Challenge2_Training_Task1_GT.zip -d Challenge2_Training_Task1_GT
+unzip Challenge2_Test_Task12_Images.zip -d Challenge2_Test_Task12_Images
+unzip Challenge2_Test_Task1_GT.zip -d Challenge2_Test_Task1_GT
+# run convert dataset (ex. on 72)
+python code/convert_icdar13.py --train_img Challenge2_Training_Task12_Images --train_gt Challenge2_Training_Task1_GT --test_img Challenge2_Test_Task12_Images --test_gt Challenge2_Test_Task1_GT --des_path icdar13
+
 # ICDAR15
 wget -O ch4_training_images.zip https://rrc.cvc.uab.es/downloads/ch4_training_images.zip
 wget -O ch4_training_localization_transcription_gt.zip https://rrc.cvc.uab.es/downloads/ch4_training_localization_transcription_gt.zip
@@ -35,10 +51,6 @@ unzip ch4_test_images.zip -d ch4_test_images
 unzip Challenge4_Test_Task1_GT.zip -d Challenge4_Test_Task1_GT
 
 # run convert dataset (ex. on 72)
-python code/convert_icdar13.py --train_img ch4_training_images --train_gt ch4_training_localization_transcription_gt --test_img ch4_test_images --test_gt Challenge4_Test_Task1_GT --des_path icdar13
-# python code/convert_icdar13.py --train_img D:\kimnh3\dataset\ocr\raw_download\ICDAR13\1.localization\Challenge2_Training_Task12_Images --train_gt D:\kimnh3\dataset\ocr\raw_download\ICDAR13\1.localization\Challenge2_Training_Task1_GT --test_img D:\kimnh3\dataset\ocr\raw_download\ICDAR13\1.localization\Challenge2_Test_Task12_Images --test_gt D:\kimnh3\dataset\ocr\raw_download\ICDAR13\1.localization\Challenge2_Test_Task1_GT --des_path D:\kimnh3\dataset\ocr\converted\icdar13
+python code/convert_icdar15.py --train_img ch4_training_images --train_gt ch4_training_localization_transcription_gt --test_img ch4_test_images --test_gt Challenge4_Test_Task1_GT --des_path icdar13
 
 #convert lmdb
-
-# ICDAR15
-python code/convert_icdar15.py --train_img D:\kimnh3\dataset\ocr\raw_download\ICDAR15\ch4_training_images --train_gt D:\kimnh3\dataset\ocr\raw_download\ICDAR15\ch4_training_localization_transcription_gt --test_img D:\kimnh3\dataset\ocr\raw_download\ICDAR15\ch4_test_images --test_gt D:\kimnh3\dataset\ocr\raw_download\ICDAR15\Challenge4_Test_Task1_GT --des_path D:\kimnh3\dataset\ocr\converted\icdar15
