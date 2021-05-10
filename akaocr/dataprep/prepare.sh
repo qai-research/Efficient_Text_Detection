@@ -74,13 +74,25 @@ unzip -n SynthText.zip
 python code/convert_synthtext.py --data_path SynthText --des_path synthtext800k
 #convert lmdb (for loop sub synthtext folders)
 cd synthtext800k
+mkdir synthtext_8train
+mkdir synthtext_1test
+mv synthtext_9 synthtext_1test/.
+mv * synthtext_8train
+
+# create for 1 test sets (ST_synthtext_9)
+cd synthtext_1test
+python ../code/seq_detectolmdb.py --torecog 0 --input synthtext_9 --output ../data/synthtext/synthtext_1test
+
+cd ../synthtext_8train
+
+# create for 8 train sets (ST_synthtex_1...8)
 for st in *; do
     echo $st
     mkdir -p ../data/synthtext/$st
-    python ../code/seq_detectolmdb.py --torecog 0 --input $st --output ../data/synthtext/$st
+    python ../code/seq_detectolmdb.py --torecog 0 --input $st --output ../data/synthtext/synthtext_9train/$st
 done
 
-cd ..
+cd ../..
 
 # print complete message
 echo "Prepare 4 datasets completed, check at akaocr/data/..."
