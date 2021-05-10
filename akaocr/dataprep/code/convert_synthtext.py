@@ -10,6 +10,8 @@ import itertools
 import argparse
 
 def convert(data_path, des_path):
+    print('Converting groundtruth for synthtext800k...')
+    print('There are n*100000 images, n are: ')
     data_path = Path(data_path)
     gt_path = data_path.joinpath("gt.mat")
     mat = scipy.io.loadmat(gt_path)
