@@ -20,7 +20,8 @@ unzip train2014.zip
 unzip COCO_Text.zip
 # run convert dataset(ex. on 72)
 python code/convert_cocotext.py --src_path train2014 --annot_path COCO_Text.json --des_path cocotext
-
+#convert lmdb
+python code/seq_detectolmdb.py --input cocotext --output lmdb_train/cocotext
 
 # ICDAR13
 wget -O Challenge2_Training_Task12_Images.zip https://rrc.cvc.uab.es/downloads/Challenge2_Training_Task12_Images.zip
@@ -36,6 +37,8 @@ unzip Challenge2_Test_Task12_Images.zip -d Challenge2_Test_Task12_Images
 unzip Challenge2_Test_Task1_GT.zip -d Challenge2_Test_Task1_GT
 # run convert dataset (ex. on 72)
 python code/convert_icdar13.py --train_img Challenge2_Training_Task12_Images --train_gt Challenge2_Training_Task1_GT --test_img Challenge2_Test_Task12_Images --test_gt Challenge2_Test_Task1_GT --des_path icdar13
+#convert lmdb
+python code/seq_detectolmdb.py --input icdar13 --output lmdb_train/icdar13
 
 # ICDAR15
 wget -O ch4_training_images.zip https://rrc.cvc.uab.es/downloads/ch4_training_images.zip
@@ -51,6 +54,6 @@ unzip ch4_test_images.zip -d ch4_test_images
 unzip Challenge4_Test_Task1_GT.zip -d Challenge4_Test_Task1_GT
 
 # run convert dataset (ex. on 72)
-python code/convert_icdar15.py --train_img ch4_training_images --train_gt ch4_training_localization_transcription_gt --test_img ch4_test_images --test_gt Challenge4_Test_Task1_GT --des_path icdar13
-
+python code/convert_icdar15.py --train_img ch4_training_images --train_gt ch4_training_localization_transcription_gt --test_img ch4_test_images --test_gt Challenge4_Test_Task1_GT --des_path icdar15
 #convert lmdb
+python code/seq_detectolmdb.py --input icdar15 --output lmdb_train/icdar15
