@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # """
 # _____________________________________________________________________________
-# Created By  : Nguyen Huu Kim - huukim911
+# Created By  : Nguyen Huu Kim - huukim98@gmail.com
 # Created Date: May 6, 2021 2:25pm GMT+0700
 # Project : AkaOCR core
 # _____________________________________________________________________________
@@ -25,8 +25,7 @@ unzip COCO_Text.zip
 # run convert dataset(ex. on 72)
 python code/convert_cocotext.py --src_path train2014 --annot_path COCO_Text.json --des_path cocotext
 #convert lmdb
-python code/seq_detectolmdb.py --input cocotext/train --output ../data/train/cocotext
-python code/seq_detectolmdb.py --input cocotext/test --output ../data/test/cocotext
+python code/seq_detectolmdb.py --torecog 0 --input cocotext --output ../data/cocotext
 
 # ICDAR13
 wget -nc -O Challenge2_Training_Task12_Images.zip https://rrc.cvc.uab.es/downloads/Challenge2_Training_Task12_Images.zip
@@ -43,8 +42,7 @@ unzip Challenge2_Test_Task1_GT.zip -d Challenge2_Test_Task1_GT
 # run convert dataset (ex. on 72)
 python code/convert_icdar13.py --train_img Challenge2_Training_Task12_Images --train_gt Challenge2_Training_Task1_GT --test_img Challenge2_Test_Task12_Images --test_gt Challenge2_Test_Task1_GT --des_path icdar13
 #convert lmdb
-python code/seq_detectolmdb.py --input icdar13/train --output ../data/train/icdar13
-python code/seq_detectolmdb.py --input icdar13/test --output ../data/test/icdar13
+python code/seq_detectolmdb.py --torecog 0 --input icdar13/train --output ../data/icdar13
 
 # ICDAR15
 wget -nc -O ch4_training_images.zip https://rrc.cvc.uab.es/downloads/ch4_training_images.zip
@@ -62,5 +60,4 @@ unzip Challenge4_Test_Task1_GT.zip -d Challenge4_Test_Task1_GT
 # run convert dataset (ex. on 72)
 python code/convert_icdar15.py --train_img ch4_training_images --train_gt ch4_training_localization_transcription_gt --test_img ch4_test_images --test_gt Challenge4_Test_Task1_GT --des_path icdar15
 #convert lmdb
-python code/seq_detectolmdb.py --input icdar15/train --output ../data/train/icdar15
-python code/seq_detectolmdb.py --input icdar15/test --output ../data/train/icdar15
+python code/seq_detectolmdb.py --torecog 0 --input icdar15/train --output ../data/icdar15

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 _____________________________________________________________________________
-Created By  : Nguyen Huu Kim - huukim911
+Created By  : Nguyen Huu Kim - huukim98@gmail.com
 Created Date: May 5, 2021 3:04pm GMT+0700
 Project : AkaOCR core
 _____________________________________________________________________________
