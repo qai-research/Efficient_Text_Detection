@@ -11,7 +11,7 @@
 # """
 
 # mkdir data training folders
-mkdir -p ../data/cocotext ../data/icdar13 ../data/icdar15
+mkdir -p ../data/cocotext ../data/icdar13 ../data/icdar15 ../synthtext
 
 # Cocotext (https://rrc.cvc.uab.es/?ch=4&com=downloads)
 # Image (train2014.zip)
