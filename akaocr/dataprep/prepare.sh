@@ -11,7 +11,7 @@
 # """
 
 # set flag variable for status
-export failed=0
+|| export failed=0
 
 # Cocotext (https://rrc.cvc.uab.es/?ch=4&com=downloads)
 # Image (train2014.zip)
@@ -22,10 +22,10 @@ wget -nc -O COCO_Text.zip https://s3.amazonaws.com/cocotext/COCO_Text.zip
 unzip -n train2014.zip
 unzip -n COCO_Text.zip
 # run convert dataset(ex. on 72)
-python code/convert_cocotext.py --src_path train2014 --annot_path COCO_Text.json --des_path cocotext export failed=1
+python code/convert_cocotext.py --src_path train2014 --annot_path COCO_Text.json --des_path cocotext || export failed=1
 #convert lmdb
 mkdir -p ../data/cocotext
-python code/seq_detectolmdb.py --torecog 0 --input cocotext --output ../data/cocotext export failed=1
+python code/seq_detectolmdb.py --torecog 0 --input cocotext --output ../data/cocotext || export failed=1
 
 # ICDAR13
 wget -nc -O Challenge2_Training_Task12_Images.zip https://rrc.cvc.uab.es/downloads/Challenge2_Training_Task12_Images.zip
@@ -40,10 +40,10 @@ unzip -n Challenge2_Training_Task1_GT.zip -d Challenge2_Training_Task1_GT
 unzip -n Challenge2_Test_Task12_Images.zip -d Challenge2_Test_Task12_Images
 unzip -n Challenge2_Test_Task1_GT.zip -d Challenge2_Test_Task1_GT
 # run convert dataset (ex. on 72)
-python code/convert_icdar13.py --train_img Challenge2_Training_Task12_Images --train_gt Challenge2_Training_Task1_GT --test_img Challenge2_Test_Task12_Images --test_gt Challenge2_Test_Task1_GT --des_path icdar13 export failed=1
+python code/convert_icdar13.py --train_img Challenge2_Training_Task12_Images --train_gt Challenge2_Training_Task1_GT --test_img Challenge2_Test_Task12_Images --test_gt Challenge2_Test_Task1_GT --des_path icdar13 || export failed=1
 #convert lmdb
 mkdir -p ../data/icdar13
-python code/seq_detectolmdb.py --torecog 0 --input icdar13 --output ../data/icdar13 export failed=1
+python code/seq_detectolmdb.py --torecog 0 --input icdar13 --output ../data/icdar13 || export failed=1
 
 # ICDAR15
 wget -nc -O ch4_training_images.zip https://rrc.cvc.uab.es/downloads/ch4_training_images.zip
@@ -59,10 +59,10 @@ unzip -n ch4_test_images.zip -d ch4_test_images
 unzip -n Challenge4_Test_Task1_GT.zip -d Challenge4_Test_Task1_GT
 
 # run convert dataset (ex. on 72)
-python code/convert_icdar15.py --train_img ch4_training_images --train_gt ch4_training_localization_transcription_gt --test_img ch4_test_images --test_gt Challenge4_Test_Task1_GT --des_path icdar15 export failed=1
+python code/convert_icdar15.py --train_img ch4_training_images --train_gt ch4_training_localization_transcription_gt --test_img ch4_test_images --test_gt Challenge4_Test_Task1_GT --des_path icdar15 || export failed=1
 #convert lmdb
 mkdir -p  ../data/icdar15
-python code/seq_detectolmdb.py --torecog 0 --input icdar15 --output ../data/icdar15 export failed=1
+python code/seq_detectolmdb.py --torecog 0 --input icdar15 --output ../data/icdar15 || export failed=1
 
 
 # Synthtext800k
@@ -71,7 +71,7 @@ wget -nc -O SynthText.zip https://thor.robots.ox.ac.uk/~vgg/data/scenetext/Synth
 # unzip
 unzip -n SynthText.zip
 # run convert dataset (ex. on 72)
-python code/convert_synthtext.py --data_path SynthText --des_path synthtext800k export failed=1
+python code/convert_synthtext.py --data_path SynthText --des_path synthtext800k || export failed=1
 #convert lmdb (for loop sub synthtext folders)
 cd synthtext800k
 mkdir synthtext_train
@@ -82,7 +82,7 @@ mv synthtext_p* synthtext_train/.
 # create for 1 test sets (ST_synthtext_p9)
 cd synthtext_test
 mkdir -p ../../../data/synthtext/synthtext_test/synthtext_p9
-python ../../code/seq_detectolmdb.py --torecog 0 --input synthtext_p9 --output ../../../data/synthtext/synthtext_test/synthtext_p9 export failed=1
+python ../../code/seq_detectolmdb.py --torecog 0 --input synthtext_p9 --output ../../../data/synthtext/synthtext_test/synthtext_p9 || export failed=1
 
 cd ../synthtext_train
 
@@ -90,7 +90,7 @@ cd ../synthtext_train
 for st in *; do
     echo $st
     mkdir -p ../../../data/synthtext/synthtext_train/$st
-    python ../../code/seq_detectolmdb.py --torecog 0 --input $st --output ../../../data/synthtext/synthtext_train/$st export failed=1
+    python ../../code/seq_detectolmdb.py --torecog 0 --input $st --output ../../../data/synthtext/synthtext_train/$st || export failed=1
 done
 
 cd ../../
