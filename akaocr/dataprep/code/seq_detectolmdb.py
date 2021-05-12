@@ -36,7 +36,7 @@ def main():
         anp = fo.joinpath('annotations')
         if not imp.exists() or not anp.exists():
             continue
-        print(f'processing {str(fo.name)}')
+        print('processing ', str(fo.name))
         out_name = fo.name.replace("ST_", "")
         # out_croplmdb = output_folder_path.joinpath(fo.name)
         # out_crop
