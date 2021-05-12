@@ -13,15 +13,20 @@ import sys
 import torch
 
 sys.path.append("../")
+# from models.detec.heatmap import HEAT
 from models.recog.atten import Atten
 from engine import Trainer
 from engine.config import setup, parse_base
 from engine.trainer.loop import CustomLoopHeat, CustomLoopAtten
 from engine.build import build_dataloader
+
+# from utils.data.dataloader import LoadTestDetecDataset
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 from engine.metric.accuracy import RecogAccuracy, DetecAccuracy
 from engine.metric.evaluation import DetecEvaluation, RecogEvaluation
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def test_recog(args):
     cfg = setup("recog", args)
@@ -38,12 +43,14 @@ def test_recog(args):
                       evaluation=evaluate, resume=True)
     trainer.do_train()
 
+
 def main():
     parser = parse_base()
     parser.add_argument('--data_recog', type=str, default="../data/data_recog/train", help='path to recog data')
     parser.add_argument('--data_test_recog', type=str, default="../data/data_recog/val", help='path to test recog data')
     args = parser.parse_args()
     test_recog(args)
+
 
 if __name__ == '__main__':
     main()

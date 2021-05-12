@@ -17,8 +17,6 @@ import numpy as np
 import shutil
 
 from models.detec.heatmap import HEAT
-from models.detec.resnet_fpn_heatmap import HEAT_RESNET
-from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from models.recog.atten import Atten
 import os
 from engine.solver import ModelCheckpointer
@@ -97,14 +95,9 @@ class Detectlayer():
         # print(args)
         if model_path is None:
             model_path = experiment_loader(type='detec')
-        
-        if self.cfg.MODEL.NAME == "CRAFT":
-            model = HEAT()
-        elif self.cfg.MODEL.NAME == "RESNET":
-            model = HEAT_RESNET()
-        elif self.cfg.MODEL.NAME == "EFFICIENT":
-            model = HEAT_EFFICIENT()
-        
+        model = HEAT()
+        # model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
+
         checkpointer = ModelCheckpointer(model)
         #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
         checkpointer.resume_or_load(model_path, strict_mode=True)
@@ -207,6 +200,8 @@ class Recoglayer():
         #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
         checkpointer.resume_or_load(model_path, strict_mode=True)
 
+        # state_dict = torch.load(model_path, map_location=torch.device(device))
+        # model.load_state_dict(copy_state_dict(state_dict))
         model = model.to(device)
 
         self.recognizer = model
@@ -327,9 +322,12 @@ class Recoglayer():
                 confidence_score_list.append(score)
             
             # visulize result
+            print(self.output, 'xxx')
+            print(self.fontpath, 'yyy')
             if self.output and self.fontpath:
                 img = self.vis.visualizer(image_ori=img, contours=boxes, font=self.fontpath, texts=recog_result_list)
                 # save result image
+                print(self.output, 'xxxx')
                 cv2.imwrite(os.path.join(self.output, "result.jpg"), img)
             return recog_result_list
 
