@@ -11,7 +11,7 @@
 # """
 
 # set flag variable for status
-|| export failed=0
+export failed=0
 
 # Cocotext (https://rrc.cvc.uab.es/?ch=4&com=downloads)
 # Image (train2014.zip)
