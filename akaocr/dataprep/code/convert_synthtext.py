@@ -22,7 +22,7 @@ def convert(data_path, des_path):
         if i % 100000 == 0:
             count += 1
             print(count)
-        sub_path = des_path.joinpath("synthtext_"+str(count))
+        sub_path = des_path.joinpath("synthtext_p"+str(count))
         save_img_path = des_path.joinpath(sub_path, "images")
         save_ann_path = des_path.joinpath(sub_path, "annotations")
         if not os.path.exists(save_img_path):
