@@ -7,7 +7,7 @@ This README contains:
 Note: The repo is design to run on Unix OS (Ubuntu).
 <!-- DATA PREPROCESSING -->
 ## Data preprocessing
-The raw dataset is downloaded and processed in bash (.sh) file. Temporary data download is located in the same dir as .sh file. <br>
+The raw dataset is downloaded and processed as steps in bash (.sh) file. Temporary data download is located in the same dir as .sh file. <br>
 Raw dataset then will be extract and convert into the followings format:
 ### Expected dataset structure for COCO instance/keypoint detection:
 
@@ -21,16 +21,20 @@ cocotext/
 icdar15/
     ...
 synthtext800k/
-    synthtext_1test
-        synthtext_9
+    synthtext_test
+        synthtext_p9
             annotations/
                 <img_file_name>.json
             images/
                 <img_file_name>.jpg
-    synthtext_9train
-        synthtext_1/
+    synthtext_train
+        synthtext_p1/
+            annotations/
+                    <img_file_name>.json
+                images/
+                    <img_file_name>.jpg
         ...
-        synthtext_8
+        synthtext_p8
     ...
 ```
 <!-- DATA STRUCTURE FOR TRAINING/TESTING-->
@@ -43,22 +47,25 @@ data/
         cocotext/
             ST/
                 ST_train/
+                    data.mdb
+                    lock.mdb
                 ST_test/
+                    ...
         synthtext/
-            synthtext_9train
-                synthtext_1
-                    ST/
-                        ST_train/
-                        ST_test/
-                synthtext_*
+            synthtext_train
+                ST/
+                    synthtext_p1
+                        data.mdb
+                        lock.mdb
+                    synthtext_p*
                     ...
-                synthtext_8
-                    ...
-            synthtext_1test
-                synthtext_9
-                    ST/
-                        ST_train/
-                        ST_test/
+                    synthtext_p8
+                        ...
+            synthtext_test
+                ST/
+                    synthtext_p9
+                        data.mdb
+                        lock.mdb
         icdar13/
             ST/
                 ST_train/
