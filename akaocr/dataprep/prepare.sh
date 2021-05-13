@@ -68,39 +68,29 @@ export failed=0
 # python code/seq_detectolmdb.py --torecog 0 --input icdar15 --output ../data/icdar15 || export failed=1
 
 
-# Synthtext800k
-# download
-wget -nc -O SynthText.zip https://thor.robots.ox.ac.uk/~vgg/data/scenetext/SynthText.zip
-# unzip
-unzip -n SynthText.zip
-# run convert dataset (ex. on 72)
-python code/convert_synthtext.py --data_path SynthText --des_path synthtext800k || export failed=1
-#convert lmdb (for loop sub synthtext folders)
+# # Synthtext800k
+# # download
+# wget -nc -O SynthText.zip https://thor.robots.ox.ac.uk/~vgg/data/scenetext/SynthText.zip
+# # unzip
+# unzip -n SynthText.zip
+# # run convert dataset (ex. on 72)
+# python code/convert_synthtext.py --data_path SynthText --des_path synthtext800k || export failed=1
+
+#convert lmdb
 cd synthtext800k
-pwd
 mkdir synthtext_train
 mkdir synthtext_test
-ls
-pwd
-mv synthtext_p9 synthtext_test/.
-mv synthtext_p* synthtext_train/.
-ls
-ls synthtext_test
-ls synthtext_train
-# create for 1 test sets (ST_synthtext_p9)
-cd synthtext_test
-pwd
-mkdir -p ../../../data/synthtext/synthtext_test/synthtext_p9
-python ../../code/seq_detectolmdb.py --torecog 0 --input synthtext_p9 --output ../../../data/synthtext/synthtext_test/synthtext_p9 || export failed=1
 
-cd ../synthtext_train
+mv synthtext800k/synthtext_p9 synthtext_test/.
+mv synthtext800k/synthtext_p* synthtext_train/.
+
+# create for 1 test sets (ST_synthtext_p9)
+mkdir -p ../../data/synthtext/synthtext_test/synthtext_p9
+python ../code/seq_detectolmdb.py --torecog 0 --input synthtext_test --output ../../data/synthtext/synthtext_test || export failed=1
 
 # create for 8 train sets (ST_synthtex_p1...8)
-for st in *; do
-    echo $st
-    mkdir -p ../../../data/synthtext/synthtext_train/$st
-    python ../../code/seq_detectolmdb.py --torecog 0 --input $st --output ../../../data/synthtext/synthtext_train/$st || export failed=1
-done
+mkdir -p ../../data/synthtext/synthtext_train
+python ../code/seq_detectolmdb.py --torecog 0 --input synthtext_train --output ../../data/synthtext/synthtext_train || export failed=1
 
 cd ../../
 
