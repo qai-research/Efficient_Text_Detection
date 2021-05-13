@@ -28,6 +28,8 @@ mkdir -p ../data/cocotext ../data/cocotext/train ../data/cocotext/test
 python code/seq_detectolmdb.py --torecog 0 --input cocotext --output ../data/cocotext || export failed=1
 mv ../data/cocotext/ST/ST_train/ ../data/cocotext/train/.
 mv ../data/cocotext/ST/ST_test/ ../data/cocotext/test/.
+rm -rf ../data/cocotext/ST
+
 # ICDAR13
 wget -nc -O Challenge2_Training_Task12_Images.zip https://rrc.cvc.uab.es/downloads/Challenge2_Training_Task12_Images.zip
 wget -nc -O Challenge2_Training_Task1_GT.zip https://rrc.cvc.uab.es/downloads/Challenge2_Training_Task1_GT.zip
@@ -50,6 +52,8 @@ mkdir -p ../data/icdar13 ../data/icdar13/train ../data/icdar13/test
 python code/seq_detectolmdb.py --torecog 0 --input icdar13 --output ../data/icdar13 || export failed=1
 mv ../data/icdar13/ST/ST_train/ ../data/icdar13/train/.
 mv ../data/icdar13/ST/ST_test/ ../data/icdar13/test/.
+rm -rf ../data/icdar13/ST
+
 # ICDAR15
 wget -nc -O ch4_training_images.zip https://rrc.cvc.uab.es/downloads/ch4_training_images.zip
 wget -nc -O ch4_training_localization_transcription_gt.zip https://rrc.cvc.uab.es/downloads/ch4_training_localization_transcription_gt.zip
@@ -70,6 +74,7 @@ mkdir -p  ../data/icdar15  ../data/icdar15/train ../data/icdar15/test
 python code/seq_detectolmdb.py --torecog 0 --input icdar15 --output ../data/icdar15 || export failed=1
 mv ../data/icdar15/ST/ST_train/ ../data/icdar15/train/.
 mv ../data/icdar15/ST/ST_test/ ../data/icdar15/test/.
+rm -rf ../data/icdar15/ST
 
 # Synthtext800k
 # download
