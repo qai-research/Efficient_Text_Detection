@@ -30,17 +30,20 @@ export failed=0
 # # ICDAR13
 # wget -nc -O Challenge2_Training_Task12_Images.zip https://rrc.cvc.uab.es/downloads/Challenge2_Training_Task12_Images.zip
 # wget -nc -O Challenge2_Training_Task1_GT.zip https://rrc.cvc.uab.es/downloads/Challenge2_Training_Task1_GT.zip
-
+# wget -nc -O Challenge2_Training_Task2_GT.zip https://rrc.cvc.uab.es/downloads/Challenge2_Training_Task2_GT.zip
 # wget -nc -O Challenge2_Test_Task12_Images.zip https://rrc.cvc.uab.es/downloads/Challenge2_Test_Task12_Images.zip
 # wget -nc -O Challenge2_Test_Task1_GT.zip https://rrc.cvc.uab.es/downloads/Challenge2_Test_Task1_GT.zip
+
 
 # # unzip
 # unzip -n Challenge2_Training_Task12_Images.zip -d Challenge2_Training_Task12_Images
 # unzip -n Challenge2_Training_Task1_GT.zip -d Challenge2_Training_Task1_GT
+# unzip -n Challenge2_Training_Task2_GT.zip -d Challenge2_Training_Task2_GT
 # unzip -n Challenge2_Test_Task12_Images.zip -d Challenge2_Test_Task12_Images
 # unzip -n Challenge2_Test_Task1_GT.zip -d Challenge2_Test_Task1_GT
+
 # # run convert dataset (ex. on 72)
-# python code/convert_icdar13.py --train_img Challenge2_Training_Task12_Images --train_gt Challenge2_Training_Task1_GT --test_img Challenge2_Test_Task12_Images --test_gt Challenge2_Test_Task1_GT --des_path icdar13 || export failed=1
+# python code/convert_icdar13_char.py --train_img Challenge2_Training_Task12_Images --train_gt Challenge2_Training_Task1_GT --train_ch_gt Challenge2_Training_Task2_GT --test_img Challenge2_Test_Task12_Images --test_gt Challenge2_Test_Task1_GT --des_path icdar13 || export failed=1
 # #convert lmdb
 # mkdir -p ../data/icdar13
 # python code/seq_detectolmdb.py --torecog 0 --input icdar13 --output ../data/icdar13 || export failed=1
@@ -103,7 +106,7 @@ cd ../../
 
 # print complete message
 if [ ${failed} -ne 0 ]; then
-        echo "Prepare failed, check at error on the terminal history above..."
+        echo "Prepare failed, check error on the terminal history above..."
       else
         echo "Prepare 4 datasets completed, check at akaocr/data/..."
       fi
