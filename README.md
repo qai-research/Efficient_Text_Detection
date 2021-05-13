@@ -27,11 +27,21 @@ This repo combine the power of heat map based text detection method with advance
 
 <!-- GETTING STARTED -->
 ## Getting Started
+### Data preparation
+Run bash script: <br>
+>sh akaocr/dataprep/prepare.sh
+
+### Training
+Replace \<data train/test> with target train/test set of dataset in akaocr/data. For ex:
+>--data_detec=akaocr/data/icdar13/train <br>
+>--data_test=akaocr/data/icdar13/test <br>
+
+
 Train detec: <br>
->python tools/train_detec.py --data_detec=\<data train> --data_test_detec=\<data test> --exp=\<experiment name> --config=\<config path> --weight=\<pretrain model>
+>python akaocr/tools/train_detec.py --data_detec=\<data train> --data_test_detec=\<data test> --exp=\<experiment name> --config=\<config path> --weight=\<pretrain model>
 
 Train recog: <br>
->python tools/train_recog.py --data_recog=\<data train> --data_test_recog=\<data test> --exp=\<experiment name> --config=\<config path> --weight=\<pretrain model>
+>python akaocr/tools/train_recog.py --data_recog=\<data train> --data_test_recog=\<data test> --exp=\<experiment name> --config=\<config path> --weight=\<pretrain model>
     
 ### Prerequisites
 
