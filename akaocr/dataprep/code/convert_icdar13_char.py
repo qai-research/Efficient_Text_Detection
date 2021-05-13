@@ -48,7 +48,8 @@ def convert(train_img, train_gt, train_ch_gt, test_img, test_gt, des_path):
             ch_lines = []
             try:
                 lines = open(str(ann_path), encoding='utf-8').readlines()
-                ch_lines = open(str(ch_ann_path), encoding='utf-8').readlines()
+                if ss=="train":
+                    ch_lines = open(str(ch_ann_path), encoding='utf-8').readlines()
             except:
                 continue
 
@@ -109,6 +110,8 @@ def convert(train_img, train_gt, train_ch_gt, test_img, test_gt, des_path):
                         char["x4"] = int(ch[5])
                         char["y4"] = int(ch[8])
                         text["chars"].append(char)
+                else:
+                    text["chars"]=[]
                 data["words"].append(text)
 
             copy(file_name, images_output_path)
