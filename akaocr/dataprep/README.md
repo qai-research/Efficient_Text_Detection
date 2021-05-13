@@ -45,31 +45,34 @@ The datasets for training/testing model is expected to locate in /akaocr/data/. 
 data/
     train/
         cocotext/
-            ST/
+            train/
                 ST_train/
                     data.mdb
                     lock.mdb
+            test/
                 ST_test/
                     ...
         synthtext/
-            synthtext_train
-                ST/
-                    synthtext_p1
-                        data.mdb
-                        lock.mdb
-                    synthtext_p*
+            train/
+                ST_synthtext_p1/
+                    data.mdb
+                    lock.mdb
+                ST_synthtext_p*/
+                ...
+                ST_synthtext_p8/
                     ...
-                    synthtext_p8
-                        ...
-            synthtext_test
-                ST/
-                    synthtext_p9
-                        data.mdb
-                        lock.mdb
+            test
+                ST_synthtext_p9
+                    data.mdb
+                    lock.mdb
         icdar13/
-            ST/
+            train/
                 ST_train/
+                    data.mdb
+                    lock.mdb
+            test/    
                 ST_test/
+                    ...
         ...
 ```
 <!-- RUN BASH SCRIPT TO PREPARE LMDB DATASET-->
