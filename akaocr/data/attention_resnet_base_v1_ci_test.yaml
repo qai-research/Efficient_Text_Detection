@@ -49,7 +49,7 @@ MODEL:
   HIDDEN_SIZE : 128
 
   # name of the vocab file
-  VOCAB : char_jpn_v2.txt
+  VOCAB : char_eng.txt
 
 SOLVER:
   # number of data loading workers default=0, int
