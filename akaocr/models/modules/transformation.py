@@ -59,6 +59,10 @@ class TPSSpatialTransformerNetwork(nn.Module):
         build_P_prime = self.GridGenerator.build_P_prime(batch_C_prime)  # batch_size x n (= I_r_width x I_r_height) x 2
         build_P_prime_reshape = build_P_prime.reshape([build_P_prime.size(0), self.I_r_size[0], self.I_r_size[1], 2])
         
+        # Fix error "Type mismatch error with torch.nn.functional.grid_sample() under AMP" (https://github.com/pytorch/pytorch/issues/42218)
+        # Pytorch fixed in 1.9.0, remove below line (.float()) when run on torch 1.9.0
+        build_P_prime_reshape = build_P_prime_reshape.float()  
+    
         if torch.__version__ > "1.2.0":
             batch_I_r = F.grid_sample(batch_I, build_P_prime_reshape, padding_mode='border', align_corners=True)
         else:

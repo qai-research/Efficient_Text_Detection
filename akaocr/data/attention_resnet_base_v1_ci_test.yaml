@@ -49,7 +49,7 @@ MODEL:
   HIDDEN_SIZE : 128
 
   # name of the vocab file
-  VOCAB : char_eng.txt
+  VOCAB : char_jpn_v2.txt
 
 SOLVER:
   # number of data loading workers default=0, int
@@ -67,6 +67,9 @@ SOLVER:
   # threshold of iters to stop training when no F1 improvement
   EARLY_STOP_AFTER : 5
 
+  # enable optimization with NVIDIA's apex feature for automatic mixed FP16/FP32 precision (AMP)
+  MIXED_PRECISION: True
+
   # interval of iteration to do validation
   EVAL_PERIOD: 500
   # IDs of devices that host the data, model, etc.
@@ -79,11 +82,7 @@ SOLVER:
   BEAM_SIZE : 1
 
   # initial learning rate, float
-  # lr for model CRAFT
-  # BASE_LR : 3.2768e-3
-  
-  # lr for model EFFICIENT
-  BASE_LR : 3.2768e-4
+  BASE_LR : 3.2768e-3
 
   # for data_filtering mode
   DATA_FILTERING : True

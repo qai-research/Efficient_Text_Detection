@@ -106,7 +106,8 @@ _C.SOLVER.DEVICE_IDS = None
 _C.SOLVER.BATCH_SIZE = 1
 # initial learning rate, float
 _C.SOLVER.LR = 3.2768e-3
-
+# level of optimization with NVIDIA's apex feature for automatic mixed FP16/FP32 precision (AMP), NOTE: currently only O1 is supported, and use "O1" to activate.
+_C.SOLVER.MIXED_PRECISION = True
 ############################
 # See detectron2/solver/build.py for LR scheduler options
 # List of LR scheduler options from detectron2 [WarmupMultiStepLR, WarmupCosineLR]

@@ -255,9 +255,9 @@ def get_exp_weight(exp_path):
     found_checkpoint = str(exp_path.joinpath(cp_name))
     return found_checkpoint, cp_name
 
-# def dict2namespace(di):
-#     for d in di:
-#         if type(di[d]) is dict:
-#             di[d] = Namespace(**di[d])
-#     di = Namespace(**di)
-#     return di
+def dict2namespace(di):
+    for d in di:
+        if type(di[d]) is dict:
+            di[d] = Namespace(**di[d])
+    di = Namespace(**di)
+    return di

@@ -1,9 +1,8 @@
 import math
+import os
 from utils.data.collates import NormalizePAD, ResizeNormalize
 from PIL import ImageFont, ImageDraw, Image
 from pathlib import Path
-from utils.utility import initial_logger
-logger = initial_logger()
 import numpy as np
 import cv2
 
@@ -57,7 +56,7 @@ class Visualizer:
         write the image to output_folder
     """
 
-    def __init__(self, output_folder='./', pre='', suf='random'):
+    def __init__(self, data_path='./data', output_folder='./', pre='', suf='random'):
         """
         Parameters
         ----------
@@ -68,7 +67,7 @@ class Visualizer:
         suf : str or "random", optional, default: "random"
             the suffix to be appended after the given image's name
         """
-        print(2,output_folder)
+        self.data_path = Path(data_path)
         self.output_folder = Path(output_folder)
         self.pre = pre
         self.suf = suf
@@ -112,9 +111,18 @@ class Visualizer:
         return image
 
     @staticmethod
-    def draw_text(image, text, x, y, font_size=18, color=(0, 0, 0), font=None, thickness=3):
+    def draw_text(self, image, text, x, y, font_size=18, color=(0, 0, 0), font=None, thickness=3):
         img = np.copy(image)
-
+        default_font = 'default_vis_font.ttf'
+        #find font in data input folder
+        if self.data_path!=os.path.join(self.data_path, default_font):
+            font_lst = sorted(self.data_path.glob('*.ttf'))
+            if len(font_lst) < 1:
+                # font = None
+                font = os.path.join(self.data_path, default_font)
+            else:
+                font = str(font_lst[0])
+        
         if font is None:
             (text_width, text_height) = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, fontScale=font_size,
                                                         thickness=thickness)[0]
@@ -134,7 +142,6 @@ class Visualizer:
             draw = ImageDraw.Draw(im_pil)
             u_font = ImageFont.truetype(font, font_size)
             draw.text((x, y), text, font=u_font, fill=color)
-
             img = cv2.cvtColor(np.array(im_pil), cv2.COLOR_RGB2BGR)
         return img
 
@@ -143,6 +150,7 @@ class Visualizer:
                    gt_text=None, gt_color=(0, 0, 255)):
         image = image_ori.copy()
         imshape = image.shape
+        
         if len(imshape) == 2:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
         if windows is None:
@@ -153,15 +161,15 @@ class Visualizer:
             if texts is not None:
                 if gt_text is None:
                     for con, tex in zip(contours, texts):
-                        image = self.draw_text(image, tex, con[3][0], con[3][1], font=font, font_size=font_size,
+                        image = self.draw_text(self, image, tex, con[3][0], con[3][1], font=font, font_size=font_size,
                                                color=tcolor)
                 else:
                     for con, tex, gt in zip(contours, texts, gt_text):
                         if tex == gt:
-                            image = self.draw_text(image, tex, con[3][0], con[3][1], font=font, font_size=font_size,
+                            image = self.draw_text(self, image, tex, con[3][0], con[3][1], font=font, font_size=font_size,
                                                    color=gt_color)
                         else:
-                            image = self.draw_text(image, tex, con[3][0], con[3][1], font=font, font_size=font_size,
+                            image = self.draw_text(self, image, tex, con[3][0], con[3][1], font=font, font_size=font_size,
                                                    color=tcolor)
 
         elif boxes is not None:
@@ -170,14 +178,14 @@ class Visualizer:
             if texts is not None:
                 if gt_text is None:
                     for box, tex in zip(boxes, texts):
-                        image = self.draw_text(image, tex, box[0], box[3], font=font, font_size=font_size, color=tcolor)
+                        image = self.draw_text(self, image, tex, box[0], box[3], font=font, font_size=font_size, color=tcolor)
                 else:
                     for box, tex, gt in zip(boxes, texts, gt_text):
                         if tex == gt:
-                            image = self.draw_text(image, tex, box[0], box[3], font=font, font_size=font_size,
+                            image = self.draw_text(self, image, tex, box[0], box[3], font=font, font_size=font_size,
                                                    color=gt_color)
                         else:
-                            image = self.draw_text(image, tex, box[0], box[3], font=font, font_size=font_size,
+                            image = self.draw_text(self, image, tex, box[0], box[3], font=font, font_size=font_size,
                                                    color=tcolor)
 
         if lines is not None:
@@ -193,18 +201,21 @@ class Visualizer:
             cv2.destroyAllWindows()
         return image
 
-def experiment_loader(name='best_accuracy.pth', type='detec', data_path="../"):
+def experiment_loader(name='test', type='detec', data_path='./data'):
     data_path = Path(data_path)
     if type == 'detec':
-        saved_model_path = 'data/exp_detec/test'
-    elif type == 'recog':
-        saved_model_path = 'data/exp_recog/test'
-    saved_model = data_path.joinpath(saved_model_path, name)
-    if not saved_model.exists():
-        logger.warning(f"No saved model name {name} in {saved_model_path}")
-        logger.warning(f"Load latest saved model")
-        saved_model_list = sorted(data_path.joinpath(saved_model_path).glob('*.pth'))
-        if len(saved_model_list)<1:
-            raise Exception("No model for experiment ", name, " in ", data_path.joinpath(saved_model_path))
-        saved_model = str(saved_model_list[-1])
-    return saved_model
+        saved_models_path = 'exp_detec'
+    else:
+        saved_models_path = 'exp_recog'
+    data_path = data_path.joinpath(saved_models_path, name)
+    if not data_path.exists():
+        raise Exception("No experiment folder for", name)
+    saved_model = sorted(data_path.glob('*.pth'))
+    saved_config = sorted(data_path.glob('*.yaml'))
+
+    if len(saved_model) < 1:
+        raise Exception("No model for experiment ", name, type, "in", data_path)
+    if len(saved_config) < 1:
+        raise Exception("No config for experiment ", name, type, "in", data_path)
+
+    return str(saved_model[0]), str(saved_config[0])

@@ -3,8 +3,8 @@ _BASE_:
   MODEL_TYPE: HEAT_BASE
 
 MODEL:
-  # name of model detec (CRAFT, EFFICIENT)
-  NAME : EFFICIENT
+  # name of model detec (CRAFT, RESNET, EFFICIENT)
+  NAME : CRAFT
 
   # the minimum size of the image's longer dimension, int
   MIN_SIZE : 700
@@ -29,7 +29,10 @@ SOLVER:
   NUM_SAMPLES : 200
 
   # threshold of iters to stop training when no F1 improvement
-  EARLY_STOP_AFTER : 20
+  EARLY_STOP_AFTER : 5
+
+  # enable optimization with NVIDIA's apex feature for automatic mixed FP16/FP32 precision (AMP)
+  MIXED_PRECISION: True
 
   # interval of iteration to do validation
   EVAL_PERIOD: 5000
@@ -41,11 +44,8 @@ SOLVER:
   BATCH_SIZE : 1
 
   # initial learning rate, float
-  # lr for model CRAFT
-  # BASE_LR : 3.2768e-3
-  
-  # lr for model EFFICIENT
-  BASE_LR : 3.2768e-4
+  BASE_LR : 3.2768e-3
+
 
 INFERENCE:
   # threshold for texts heat map, 0 < text_threshold < 1, smaller means fewer text filtered, float

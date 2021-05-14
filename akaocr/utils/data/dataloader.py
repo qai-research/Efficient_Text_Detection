@@ -132,19 +132,24 @@ class LoadDataset:
 
 
 class LoadDatasetIterator:
-    def __init__(self, cfg, data, selected_data=None):
+    def __init__(self, cfg, data, selected_data=None, ratio=None):
         """
         Infinite iterator to load multiple dataset
         :param cfg: config namespace
         :param selected_data: list of selected data from lake
         """
+        if selected_data is not None and ratio is not None:
+            assert len(selected_data) == len(ratio), ValueError("The dataset's ration do not match with number of "
+                                                                "dataset")
         root_path = Path(data)
-        self.idi = 0
+        self.index_idx_list = 0
+        self.ratio = ratio
         self.list_dataset = list()
         self.list_iterator = list()
         self.filled_selected_data = list()
+        error_dataset_list = list()
         loader = LoadDataset(cfg, vocab=cfg.MODEL.VOCAB)
-        for dataset_name in selected_data:
+        for idx, dataset_name in enumerate(selected_data):
             dataset_path = root_path.joinpath(dataset_name)
             if cfg._BASE_.MODEL_TYPE == "ATTEN_BASE":
                 dataset = loader.load_dataset_recog_ocr(str(dataset_path))
@@ -156,20 +161,39 @@ class LoadDatasetIterator:
                 self.list_dataset.append(dataset)
                 self.list_iterator.append(iter(dataset))
                 self.filled_selected_data.append(dataset_name)
+                error_dataset_list.append(idx)
+
+        if self.ratio is not None:
+            error_dataset_list.sort(reverse=True)
+            for err in error_dataset_list:
+                self.ratio.pop(err)
+        self.idx_list = self.get_idx_list()
+
+    def get_idx_list(self):
+        dataset_num = len(self.list_dataset)
+        if self.ratio is None:
+            idx_list = [i for i in range(dataset_num)]
+        else:
+            idx_list = list()
+            for i in range(dataset_num):
+                for idx in range(self.ratio[i]):
+                    idx_list.append(i)
+        return idx_list
 
     def __iter__(self):
         return self
 
     def __next__(self):
         while True:
-            if self.idi > len(self.list_iterator) - 1:
-                self.idi = 0
+            if self.index_idx_list >= len(self.idx_list):
+                self.index_idx_list = 0
+            self.idi = self.idx_list[self.index_idx_list]
             try:
                 logger.debug(len(self.list_iterator))
                 logger.debug(self.idi)
                 data_loader_iter = self.list_iterator[self.idi]
                 data = data_loader_iter.next()
-                self.idi += 1
+                self.index_idx_list += 1
                 return data
             except StopIteration:
                 self.list_iterator[self.idi] = iter(self.list_dataset[self.idi])
@@ -178,7 +202,7 @@ class LoadDatasetIterator:
                 logger.warning(f"Getting data from dataloader failed")
 
 
-class LoadDatasetDetecBBox():
+class LoadDatasetDetecBBox:
     def __init__(self, data, cfg):
         """
         Load detection data with bouding boxes label
