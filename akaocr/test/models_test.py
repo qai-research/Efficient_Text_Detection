@@ -18,7 +18,7 @@ import torch
 from models.detec.heatmap import HEAT
 from models.recog.atten import Atten
 from models.modules.converters import AttnLabelConverter
-from engine.config import setup, dict2namespace, load_yaml_config
+from engine.config import setup, load_yaml_config, dict2namespace
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
