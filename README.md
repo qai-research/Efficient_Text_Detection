@@ -40,24 +40,18 @@ If the installation get error or cannot found packages, you may need to upgrade 
 ### Data detect preparation
 Run bash script: <br>
 >cd akaocr/dataprep <br>
->sh prepare.sh
+>sh prepare_detec.sh
 
 ### Training
 Replace (akaocr) with relative path and match the target train/test set of dataset in akaocr/data. For ex, for ICDAR13:
 >--data_detec=(akaocr)/data/icdar13/train <br>
 >--data_test=(akaocr)/data/icdar13/test <br>
 
-
 Train detec: <br>
 >cd akaocr/tools
 
 >python3 train_detec.py --data_detec=../data/<dataset_name>/train --data_test_detec=../data/<dataset_name>/test --exp=\<experiment_name> --weight=\<pretrain_model>
 
-Train recog: <br>
->cd akaocr/tools
-
->python3 train_recog.py --data_recog=../data/<dataset_name>/train --data_test_recog=../data/<dataset_name>/test --exp=\<experiment_name> --weight=\<pretrain_model>
-    
 ### Prerequisites
 
 List of dependencies

@@ -80,7 +80,7 @@ data/
 We create a bash script to auto preprocessing data for training/testing. Script is located in: akaocr/dataprep/prepare.sh<br>
 ### Run the followings command: <br>
 >cd akaocr/dataprep <br>
->sh .prepare.sh <br>
+>sh prepare_detec.sh <br>
 
 After running bash file, successful message "Prepare 4 datasets completed, check at akaocr/data/..." would appear.
 
