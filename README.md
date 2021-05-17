@@ -27,21 +27,36 @@ This repo combine the power of heat map based text detection method with advance
 
 <!-- GETTING STARTED -->
 ## Getting Started
-### Data preparation
+### Setup environment
+Install pytorch:
+>pip3 install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
+
+Use requirements.txt (note: use pip/pip3 and python/python3 base on your environment settings)
+>cd akaocr/ <br>
+>pip3 install -r requirements.txt
+
+If the installation get error or cannot found packages, you may need to upgrade your pip first:
+>pip3 install --upgrade pip
+### Data detect preparation
 Run bash script: <br>
->sh akaocr/dataprep/prepare.sh
+>cd akaocr/dataprep <br>
+>sh prepare.sh
 
 ### Training
-Replace \<data train/test> with target train/test set of dataset in akaocr/data. For ex:
->--data_detec=akaocr/data/icdar13/train <br>
->--data_test=akaocr/data/icdar13/test <br>
+Replace (akaocr) with relative path and match the target train/test set of dataset in akaocr/data. For ex, for ICDAR13:
+>--data_detec=(akaocr)/data/icdar13/train <br>
+>--data_test=(akaocr)/data/icdar13/test <br>
 
 
 Train detec: <br>
->python akaocr/tools/train_detec.py --data_detec=\<data train> --data_test_detec=\<data test> --exp=\<experiment name> --config=\<config path> --weight=\<pretrain model>
+>cd akaocr/tools
+
+>python3 train_detec.py --data_detec=../data/<dataset_name>/train --data_test_detec=../data/<dataset_name>/test --exp=\<experiment_name> --weight=\<pretrain_model>
 
 Train recog: <br>
->python akaocr/tools/train_recog.py --data_recog=\<data train> --data_test_recog=\<data test> --exp=\<experiment name> --config=\<config path> --weight=\<pretrain model>
+>cd akaocr/tools
+
+>python3 train_recog.py --data_recog=../data/<dataset_name>/train --data_test_recog=../data/<dataset_name>/test --exp=\<experiment_name> --weight=\<pretrain_model>
     
 ### Prerequisites
 
