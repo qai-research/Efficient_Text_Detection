@@ -46,7 +46,8 @@ class Trainer:
         return self.evaluation.run(model, data, metric=metric)
 
     def do_train(self):
-        start_timer()
+        if torch.cuda.is_available():
+            start_timer()
         self.model.train()
         optimizer = build_optimizer(self.cfg, self.model)
         scheduler = build_lr_scheduler(self.cfg, optimizer)
@@ -109,4 +110,5 @@ class Trainer:
                     torch.save(self.model.state_dict(), os.path.join(self.cfg.SOLVER.EXP, "iter_{:07d}.pth".format(iteration)))
                     self.metric, mess = self.do_test(self.model, self.test_loader, self.metric)
                     logger.info(mess)
-        end_timer_and_print("Mixed precision:" if self.cfg.SOLVER.MIXED_PRECISION else "Default precision:")
+        if torch.cuda.is_available():
+            end_timer_and_print("Mixed precision:" if self.cfg.SOLVER.MIXED_PRECISION else "Default precision:")
