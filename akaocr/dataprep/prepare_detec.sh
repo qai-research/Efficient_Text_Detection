@@ -95,14 +95,14 @@ mv synthtext800k/synthtext_p* synthtext_train/.
 # create for 1 test sets (ST_synthtext_p9)
 mkdir -p ../../data/synthtext/test
 python ../code/seq_detectolmdb.py --torecog 0 --input synthtext_test --output ../../data/synthtext/test || export failed=1
-mv ../data/synthtext/test/ST/ST_synthtext_p9/ ../data/synthtext/test/.
-rm -rf ../data/synthtext/test/ST
+mv ../../data/synthtext/test/ST/ST_synthtext_p9/ ../../data/synthtext/test/.
+rm -rf ../../data/synthtext/test/ST
 
 # create for 8 train sets (ST_synthtex_p1...8)
 mkdir -p ../../data/synthtext/train
 python ../code/seq_detectolmdb.py --torecog 0 --input synthtext_train --output ../../data/synthtext/train || export failed=1
-mv ../data/synthtext/train/ST/ST_synthtext_p*/ ../data/synthtext/train/.
-rm -rf ../data/synthtext/train/ST
+mv ../../data/synthtext/train/ST/ST_synthtext_p*/ ../../data/synthtext/train/.
+rm -rf ../../data/synthtext/train/ST
 
 cd ../../
 
