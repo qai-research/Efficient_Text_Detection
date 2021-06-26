@@ -22,7 +22,7 @@ from utils.utility import initial_logger
 
 logger = initial_logger()
 from utils.file_utils import read_vocab, copy_files
-from models.modules.converters import AttnLabelConverter
+from models.modules.converters import AttnLabelConverter, DanLabelConverter, CTCLabelConverter
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -161,8 +161,10 @@ def setup(tp="recog", args=None):
         cfg["character"].sort()
         if 'CTC' in cfg.MODEL.PREDICTION:
             converter = CTCLabelConverter(cfg["character"])
-        else:
+        elif 'Attn' in cfg.MODEL.PREDICTION:
             converter = AttnLabelConverter(cfg["character"], device=cfg.SOLVER.DEVICE)
+        else:
+            converter = DanLabelConverter(cfg["character"])
         # cfg.MODEL.VOCAB = read_vocab(cfg.MODEL.VOCAB)
         cfg.MODEL.NUM_CLASS = len(converter.character)
     return cfg

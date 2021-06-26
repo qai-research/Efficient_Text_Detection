@@ -18,6 +18,7 @@ from models.detec.heatmap import HEAT
 from models.detec.resnet_fpn_heatmap import HEAT_RESNET
 from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from models.recog.atten import Atten
+from models.recog.dan import DAN
 import torch
 from utils.utility import initial_logger
 
@@ -26,6 +27,7 @@ logger = initial_logger()
 from engine.metric.evaluation import DetecEvaluation, RecogEvaluation
 from engine.config import setup, parse_base
 from engine.build import build_dataloader, build_test_data_detec
+from models.modules.converters import DanLabelConverter, CTCLabelConverter, AttnLabelConverter
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -53,7 +55,22 @@ def detec_test_evaluation(args):
 
 def recog_test_evaluation(args):
     cfg = setup("recog", args)
-    model = Atten(cfg)
+    if cfg.MODEL.NAME == "Attn":
+        model = Atten(cfg)
+        if cfg.MODEL.PREDICTION == 'CTC':
+            converter = CTCLabelConverter(cfg.MODEL.VOCAB)
+            criterion = torch.nn.CTCLoss(zero_infinity=True).to(cfg.SOLVER.DEVICE)
+        elif cfg.MODEL.PREDICTION == 'Attn':
+            converter = AttnLabelConverter(cfg.MODEL.VOCAB, device=cfg.SOLVER.DEVICE)
+            criterion = torch.nn.CrossEntropyLoss(ignore_index=0).to(cfg.SOLVER.DEVICE)
+        else:
+            raise ValueError(f"invalid model prediction type")
+    elif cfg.MODEL.NAME == "DAN":
+        model = DAN(cfg)
+        criterion = torch.nn.CrossEntropyLoss(ignore_index=0).to(cfg.SOLVER.DEVICE)
+        converter = DanLabelConverter(cfg.MODEL.VOCAB)
+    else:
+        raise ValueError(f"invalid model type")
     model = torch.nn.DataParallel(model).to(device)
 
     checkpointer = ModelCheckpointer(model)
@@ -62,7 +79,7 @@ def recog_test_evaluation(args):
     checkpointer.resume_or_load(args.w_recog, strict_mode=False)
     model = model.to(device)
     test_loader = build_dataloader(cfg, args.data_test_recog)
-    evaluation = RecogEvaluation(cfg)
+    evaluation = RecogEvaluation(cfg, criterion, converter)
     _, mess = evaluation.run(model, test_loader)
     print(mess)
 

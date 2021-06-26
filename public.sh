@@ -15,7 +15,7 @@ git remote add public https://github.com/qai-research/Efficient_Text_Detection.g
 git checkout qaicom
 git status
 git checkout master -- akaocr/
-git reset HEAD akaocr/models/detec/resnet_fpn_heatmap.py akaocr/models/modules/backbones/Resnet_Extractor.py akaocr/synthtext/* akaocr/data/*
+git reset HEAD akaocr/models/detec/resnet_fpn_heatmap.py akaocr/models/recog/dan.py akaocr/models/modules/convolutional_aligment.py akaocr/models/modules/decoupled_text.py akaocr/models/modules/backbones/Resnet_Extractor.py akaocr/synthtext/* akaocr/data/*
 git status
 git commit -m "Update features"
 git push origin qaicom

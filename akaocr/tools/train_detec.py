@@ -14,6 +14,7 @@ import torch
 
 sys.path.append("../")
 from models.detec.heatmap import HEAT
+from models.detec.resnet_fpn_heatmap import HEAT_RESNET
 from models.detec.efficient_heatmap import HEAT_EFFICIENT
 from engine import Trainer
 from engine.config import setup, parse_base

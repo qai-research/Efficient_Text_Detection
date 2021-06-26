@@ -201,7 +201,7 @@ class Visualizer:
             cv2.destroyAllWindows()
         return image
 
-def experiment_loader(name='test', type='detec', data_path='./data'):
+def experiment_loader(name='test', type='detec', model_format='pth', data_path='./data'):
     data_path = Path(data_path)
     if type == 'detec':
         saved_models_path = 'exp_detec'
@@ -210,7 +210,14 @@ def experiment_loader(name='test', type='detec', data_path='./data'):
     data_path = data_path.joinpath(saved_models_path, name)
     if not data_path.exists():
         raise Exception("No experiment folder for", name)
-    saved_model = sorted(data_path.glob('*.pth'))
+    if model_format=='pth':
+        saved_model = sorted(data_path.glob('*.pth'))
+    elif model_format=='onnx':
+        saved_model = sorted(data_path.glob('*.onnx'))
+    elif model_format=='pt':
+        saved_model = sorted(data_path.glob('*.pt'))
+    elif model_format=='trt':
+        saved_model = sorted(data_path.glob('*.trt'))
     saved_config = sorted(data_path.glob('*.yaml'))
 
     if len(saved_model) < 1:

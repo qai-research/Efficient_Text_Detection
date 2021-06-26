@@ -17,7 +17,6 @@ from pre.image import ImageProc
 import torch
 import cv2
 import sys
-from models.modules.converters import AttnLabelConverter
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 """Evaluate detec model"""
 class DetecEvaluation:
@@ -105,7 +104,7 @@ class DetecEvaluation:
     
 """Evaluate recog model"""
 class RecogEvaluation():
-    def __init__(self, cfg):
+    def __init__(self, cfg, criterion, converter):
         """
         Args:
             model: model for evaluation
@@ -115,13 +114,8 @@ class RecogEvaluation():
 
         self.cfg = cfg
         self.num_samples = self.cfg.SOLVER.NUM_SAMPLES
-
-        if 'CTC' in self.cfg.MODEL.PREDICTION:
-            self.criterion = torch.nn.CTCLoss(zero_infinity=True).to(self.cfg.SOLVER.DEVICE)
-            self.converter = CTCLabelConverter(self.cfg["character"])
-        else:
-            self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0).to(self.cfg.SOLVER.DEVICE)  # ignore [GO] token = ignore index 0
-            self.converter = AttnLabelConverter(self.cfg["character"], device=self.cfg.SOLVER.DEVICE)
+        self.criterion = criterion
+        self.converter = converter
 
     def run(self, model, test_loader, metric=None):
         best_accuracy = -1

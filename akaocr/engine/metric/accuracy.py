@@ -12,20 +12,13 @@ _____________________________________________________________________________
 """
 
 import torch
-from models.modules.converters import CTCLabelConverter, AttnLabelConverter
 from engine.metric import recog_eval
 class RecogAccuracy():
-    def __init__(self, cfg):
+    def __init__(self, cfg, criterion, converter):
         self.cfg = cfg
-        if cfg.MODEL.PREDICTION == 'CTC':
-            self.converter = CTCLabelConverter(cfg.MODEL.VOCAB)
-            self.criterion = torch.nn.CTCLoss(zero_infinity=True).to(self.cfg.SOLVER.DEVICE)
-        elif cfg.MODEL.PREDICTION == 'Attn':
-            self.converter = AttnLabelConverter(cfg.MODEL.VOCAB, device=cfg.SOLVER.DEVICE)
-            self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0).to(self.cfg.SOLVER.DEVICE)
-        else:
-            raise ValueError(f"invalid model prediction type")
-       
+        self.criterion = criterion
+        self.converter = converter
+               
     def run(self, model, inputs):
         with torch.no_grad():
             inputs = zip([inputs[0]], [inputs[1]])

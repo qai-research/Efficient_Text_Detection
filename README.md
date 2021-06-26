@@ -8,7 +8,7 @@
 
 # Efficient Text Detection
 This repo combine the power of heat map based text detection method with advance backbone from efficient line-up.
-
+Inference pipeline using NVIDIA Triton Inferencing Server: multi-model inference (Torch JIT .pt, ONNX, TensorRT engine) by HTTP/gRPC, give advanced performance when using TensorRT engine than classic inference (using Torch .pth).
 ## Project Structure
 
 ```
@@ -51,6 +51,11 @@ Train detec: <br>
 >cd akaocr/tools
 
 >python3 train_detec.py --data_detec=../data/<dataset_name>/train --data_test_detec=../data/<dataset_name>/test --exp=\<experiment_name> --weight=\<pretrain_model>
+
+### Inferencing using Triton Server (check at akaocr/tools/inference/README.md for details guideline):
+1. Setup environment and tools
+2. Prepare Triton server docker image, akaOCR source repo or client docker image
+3. Run the server image in container and start inferencing
 
 ### Prerequisites
 

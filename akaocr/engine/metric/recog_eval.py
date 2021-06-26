@@ -34,52 +34,68 @@ def validation(model, criterion, evaluation_loader, converter, config):
         text_for_loss, length_for_loss = converter.encode(labels, max_label_length=int(config.MODEL.MAX_LABEL_LENGTH))
 
         start_time = time.time()
-        if 'CTC' in config.MODEL.PREDICTION:
-            preds = model(image, text_for_pred)
+        if config.MODEL.NAME == "Attn":
+            if 'CTC' in config.MODEL.PREDICTION:
+                preds = model(image, text_for_pred)
+                forward_time = time.time() - start_time
+
+                # Calculate evaluation loss for CTC deocder.
+                preds_size = torch.IntTensor([preds.size(1)] * batch_size)
+                # permute 'preds' to use CTCloss format
+                cost = criterion(preds.log_softmax(2).permute(1, 0, 2), text_for_loss, preds_size, length_for_loss)
+
+                # Select max probabilty (greedy decoding) then decode index to character
+                _, preds_index = preds.max(2)
+                preds_index = preds_index.view(-1)
+                preds_str = converter.decode(preds_index.data, preds_size.data)
+                preds_prob = F.softmax(preds, dim=2)
+                preds_max_prob, _ = preds_prob.max(dim=2)
+                
+            elif 'Attn' in config.MODEL.PREDICTION:
+                preds = model(image, text_for_pred, is_train=False)
+                forward_time = time.time() - start_time
+
+                preds = preds[:, :text_for_loss.shape[1] - 1, :]
+                target = text_for_loss[:, 1:]  # without [GO] Symbol
+                cost = criterion(preds.contiguous().view(-1, preds.shape[-1]), target.contiguous().view(-1))
+
+                # select max probabilty (greedy decoding) then decode index to character
+                _, preds_index = preds.max(2)
+
+                preds_str = converter.decode(preds_index, length_for_pred)
+                labels = converter.decode(text_for_loss[:, 1:], length_for_loss)
+                preds_prob = F.softmax(preds, dim=2)
+                preds_max_prob, _ = preds_prob.max(dim=2)
+
+        elif config.MODEL.NAME == "DAN":
+            text_flatten = []
+            for j in range(0, text_for_loss.size()[0]):
+                cur_label = text_for_loss[j].tolist()
+                text_flatten += cur_label[:cur_label.index(0)+1]
+            text_flatten = torch.LongTensor(text_flatten)
+
+            text_for_loss = text_for_loss.to(config.SOLVER.DEVICE)
+            text_flatten = text_flatten.to(config.SOLVER.DEVICE)
+
+            preds = model(image, text_for_loss, length_for_loss)  # align with Attention.forward
+            cost = criterion(preds[0], text_flatten)
+            preds_str, preds_max_prob = converter.decode(preds[0], length_for_loss)
             forward_time = time.time() - start_time
-
-            # Calculate evaluation loss for CTC deocder.
-            preds_size = torch.IntTensor([preds.size(1)] * batch_size)
-            # permute 'preds' to use CTCloss format
-            cost = criterion(preds.log_softmax(2).permute(1, 0, 2), text_for_loss, preds_size, length_for_loss)
-
-            # Select max probabilty (greedy decoding) then decode index to character
-            _, preds_index = preds.max(2)
-            preds_index = preds_index.view(-1)
-            preds_str = converter.decode(preds_index.data, preds_size.data)
-
-        else:
-            preds = model(image, text_for_pred, is_train=False)
-            forward_time = time.time() - start_time
-
-            preds = preds[:, :text_for_loss.shape[1] - 1, :]
-            target = text_for_loss[:, 1:]  # without [GO] Symbol
-            cost = criterion(preds.contiguous().view(-1, preds.shape[-1]), target.contiguous().view(-1))
-
-            # select max probabilty (greedy decoding) then decode index to character
-            _, preds_index = preds.max(2)
-
-            preds_str = converter.decode(preds_index, length_for_pred)
-            labels = converter.decode(text_for_loss[:, 1:], length_for_loss)
 
         infer_time += forward_time
         valid_loss_avg.add(cost)
-
         # calculate accuracy & confidence score
-        preds_prob = F.softmax(preds, dim=2)
-        preds_max_prob, _ = preds_prob.max(dim=2)
         confidence_score_list = []
         for gt, pred, pred_max_prob in zip(labels, preds_str, preds_max_prob):
-            if 'Attn' in config.MODEL.PREDICTION:
-                gt = gt[:gt.find('[s]')]
-                pred_EOS = pred.find('[s]')
-                pred = pred[:pred_EOS]  # prune after "end of sentence" token ([s])
-                pred_max_prob = pred_max_prob[:pred_EOS]
-
+            if config.MODEL.NAME == "Attn":
+                if 'Attn' in config.MODEL.PREDICTION:
+                    gt = gt[:gt.find('[s]')]
+                    pred_EOS = pred.find('[s]')
+                    pred = pred[:pred_EOS]  # prune after "end of sentence" token ([s])
+                    pred_max_prob = pred_max_prob[:pred_EOS]
             if not config.MODEL.SENSITIVE:  # case insensitive
                 pred = pred.lower()
                 gt = gt.lower()
-            # print(config["character"])
             if config.SOLVER.DATA_FILTERING:
                 pred = ''.join([c for c in list(pred) if c in config["character"]])
                 gt = ''.join([c for c in list(gt) if c in config["character"]])
@@ -103,7 +119,7 @@ def validation(model, criterion, evaluation_loader, converter, config):
             confidence_score_list.append(confidence_score)
 
         # if i == num_batches-1:  # stop after a number of batches is reached
-        if i == config.SOLVER.NUM_SAMPLES - 1:
+        if i == (config.SOLVER.NUM_SAMPLES - 1):
             break
     accuracy = n_correct / float(length_of_data) * 100
     norm_ED = norm_ED / float(length_of_data)  # ICDAR2019 Normalized Edit Distance

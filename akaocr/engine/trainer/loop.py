@@ -12,7 +12,6 @@ _____________________________________________________________________________
 import torch
 from utils.file_utils import read_vocab
 from engine.trainer.loss import MapLoss
-from models.modules.converters import CTCLabelConverter, AttnLabelConverter, Averager
 
 class CustomLoopHeat:
     def __init__(self, cfg):
@@ -37,17 +36,9 @@ class CustomLoopHeat:
         return loss, acc
 
 class CustomLoopAtten:
-    def __init__(self, cfg):
-        # self.loss = torch.nn.CrossEntropyLoss(ignore_index=0).to(cfg.SOLVER.DEVICE)
-        if cfg.MODEL.PREDICTION == 'CTC':
-            self.loss_func = torch.nn.CTCLoss(zero_infinity=True).to(cfg.SOLVER.DEVICE)
-            self.converter = CTCLabelConverter(cfg.MODEL.VOCAB)
-        elif cfg.MODEL.PREDICTION == 'Attn':
-            self.loss_func = torch.nn.CrossEntropyLoss(ignore_index=0).to(
-                cfg.SOLVER.DEVICE)  # ignore [GO] token = ignore index 0
-            self.converter = AttnLabelConverter(cfg.MODEL.VOCAB, device=cfg.SOLVER.DEVICE)
-        else:
-            raise ValueError(f"invalid model prediction type")
+    def __init__(self, cfg, loss_func, converter):
+        self.loss_func = loss_func
+        self.converter = converter
         self.cfg = cfg
 
     def loop(self, model, inputs, accuracy = None):
@@ -55,21 +46,34 @@ class CustomLoopAtten:
         images = images.to(self.cfg.SOLVER.DEVICE)
         text, length = self.converter.encode(labels, max_label_length=self.cfg.MODEL.MAX_LABEL_LENGTH)
         batch_size = images.size(0)
+        if self.cfg.MODEL.NAME == "Attn":
+            if self.cfg.MODEL.PREDICTION == 'CTC':
+                preds = model(images, text).log_softmax(2)
+                preds_size = torch.IntTensor([preds.size(1)] * batch_size)
+                preds = preds.permute(1, 0, 2)
 
-        if self.cfg.MODEL.PREDICTION == 'CTC':
-            preds = model(images, text).log_softmax(2)
-            preds_size = torch.IntTensor([preds.size(1)] * batch_size)
-            preds = preds.permute(1, 0, 2)
+                torch.backends.cudnn.enabled = False
+                loss = self.loss_func(preds, text.to(self.cfg.SOLVER.DEVICE), preds_size.to(self.cfg.SOLVER.DEVICE),
+                                length.to(self.cfg.SOLVER.DEVICE))
+                torch.backends.cudnn.enabled = True
 
-            torch.backends.cudnn.enabled = False
-            loss = self.loss_func(preds, text.to(self.cfg.SOLVER.DEVICE), preds_size.to(self.cfg.SOLVER.DEVICE),
-                             length.to(self.cfg.SOLVER.DEVICE))
-            torch.backends.cudnn.enabled = True
+            elif self.cfg.MODEL.PREDICTION == 'Attn':
+                preds = model(images, text[:, :-1])  # align with Attention.forward
+                target = text[:, 1:]  # without [GO] Symbol
+                loss = self.loss_func(preds.view(-1, preds.shape[-1]), target.contiguous().view(-1))
+            
+        elif self.cfg.MODEL.NAME == 'DAN':
+            text_flatten = []
+            for i in range(0, text.size()[0]):
+                cur_label = text[i].tolist()
+                text_flatten += cur_label[:cur_label.index(0)+1]
+            text_flatten = torch.LongTensor(text_flatten)
 
-        elif self.cfg.MODEL.PREDICTION == 'Attn':
-            preds = model(images, text[:, :-1])  # align with Attention.forward
-            target = text[:, 1:]  # without [GO] Symbol
-            loss = self.loss_func(preds.view(-1, preds.shape[-1]), target.contiguous().view(-1))
+            text = text.to(self.cfg.SOLVER.DEVICE)
+            text_flatten = text_flatten.to(self.cfg.SOLVER.DEVICE)
+
+            preds = model(images, text, length)  # align with Attention.forward
+            loss = self.loss_func(preds[0], text_flatten)
         else:
             raise ValueError(f"invalid model prediction type")
         if accuracy is not None:

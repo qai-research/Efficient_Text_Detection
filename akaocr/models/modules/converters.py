@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 _____________________________________________________________________________
-Created By  : Nguyen Minh Trang - Trangnm5
+Created By  : Nguyen Minh Trang - Trangnm5, Nguyen Ngoc Nghia - Nghiann3
 Created Date: Mon November 03 10:00:00 VNT 2020
 Project : AkaOCR core
 _____________________________________________________________________________
@@ -99,6 +99,39 @@ class CTCLabelConverter(object):
             index += l
         return texts
 
+class DanLabelConverter():
+    def __init__(self, character):
+        self.character = character
+        self.dict = character
+        
+    def encode(self, label_batch, max_label_length=None):
+        max_len = max([len(s) for s in label_batch])
+        out = torch.zeros(len(label_batch), max_len+1).long()
+        for i in range(0, len(label_batch)):
+            cur_encoded = torch.tensor([self.dict.index(char) if char in self.dict else len(self.dict)
+                                        for char in label_batch[i]]) + 1
+            out[i][0:len(cur_encoded)] = cur_encoded
+        label_length = []
+        for i in range(0, out.size()[0]):
+            cur_label = out[i].tolist()
+            label_length.append(cur_label.index(0)+1)
+        label_length = torch.IntTensor(label_length)
+        return out, label_length
+
+    def decode(self, net_out, length):
+    # decoding prediction into text with geometric-mean probability
+    # the probability is used to select the more realiable prediction when using bi-directional decoders
+        out = []
+        out_prob = [] 
+        net_out = F.softmax(net_out, dim = 1)
+        for i in range(0, length.shape[0]):
+            current_idx_list = net_out[int(length[:i].sum()) : int(length[:i].sum() + length[i] - 1)].topk(1)[1][:,0].tolist()
+            current_text = ''.join([self.dict[_-1] if _ > 0 and _ <= len(self.dict) else '' for _ in current_idx_list])
+            current_probability = net_out[int(length[:i].sum()) : int(length[:i].sum() + length[i])].topk(1)[0][:,0]
+            current_probability = torch.exp(torch.log(current_probability).sum() / current_probability.size()[0])
+            out.append(current_text)
+            out_prob.append(current_probability)
+        return (out, out_prob)
 
 class AttnLabelConverter(object):
     """

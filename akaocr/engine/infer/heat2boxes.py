@@ -44,6 +44,7 @@ class Heat2boxes:
             return 0  # same
 
     def convert(self, evaluation = False):
+        # print(0,self.y)
         score_text = self.y[0, :, :, 0].cpu().data.numpy()
         score_link = self.y[0, :, :, 1].cpu().data.numpy()
         

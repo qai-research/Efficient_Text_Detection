@@ -33,6 +33,7 @@ from engine.config import get_cfg_defaults
 from utils.utility import initial_logger
 from pipeline.util import AlignCollate, experiment_loader
 from pre.image import ImageProc
+from utils.runtime import start_timer, end_timer_and_print
 
 logger = initial_logger()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -93,11 +94,11 @@ class Detectlayer():
     __call__
         execute the pipeline
     """
-    def __init__(self, config=None, model_path=None, model_name='test', data_path='./data',
+    def __init__(self, config=None, model_path=None, model_name='test', model_format='pth', data_path='./data',
                  window=(1280, 800), bufferx=50, buffery=20, preprocess=None, postprocess=None):
         super().__init__()
         if not config:
-            detec_model_path, detec_model_config = experiment_loader(name=model_name, type='detec',
+            detec_model_path, detec_model_config = experiment_loader(name=model_name, type='detec', model_format=model_format,
                                                                        data_path=data_path)
             config = detec_model_config
             model_path = detec_model_path
@@ -105,25 +106,30 @@ class Detectlayer():
 
         self.cfg = get_cfg_defaults()
         self.cfg.merge_from_file(config)
+        if model_format=='pth':
+            if self.cfg.MODEL.NAME == "CRAFT":
+                model = HEAT()
+            elif self.cfg.MODEL.NAME == "RESNET":
+                model = HEAT_RESNET()
+            elif self.cfg.MODEL.NAME == "EFFICIENT":
+                model = HEAT_EFFICIENT()
 
-        if self.cfg.MODEL.NAME == "CRAFT":
-            model = HEAT()
-        elif self.cfg.MODEL.NAME == "RESNET":
-            model = HEAT_RESNET()
-        elif self.cfg.MODEL.NAME == "EFFICIENT":
-            model = HEAT_EFFICIENT()
-
-        checkpointer = ModelCheckpointer(model)
-        #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
-        checkpointer.resume_or_load(model_path, strict_mode=True)
-        model = model.to(device)
+            checkpointer = ModelCheckpointer(model)
+            #strict_mode=False (default) to ignore different at layers/size between 2 models, otherwise, must be identical and raise error.
+            checkpointer.resume_or_load(model_path, strict_mode=True)
+            model = model.to(device)
+        elif model_format=='onnx':
+            self.model_path=model_path
 
         self.window_shape = window
         self.bufferx = bufferx
         self.buffery = buffery
-        self.detector = model
+        self.model_format = model_format
+        if model_format=='pth':
+            self.detector = model
 
     def detect(self, img):
+        # print('img: ',img.shape)
         img_resized, target_ratio = ImageProc.resize_aspect_ratio(
             img, self.cfg.MODEL.MAX_SIZE, interpolation=cv2.INTER_LINEAR
         )
@@ -132,7 +138,28 @@ class Detectlayer():
         img_resized = torch.from_numpy(img_resized).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
         img_resized = (img_resized.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
         img_resized = img_resized.to(device)
-        y,_ = self.detector(img_resized)
+        # print('img_resized: ',img_resized.shape)
+        start_timer()
+        if self.model_format=='pth':
+            y,_ = self.detector(img_resized)
+        elif self.model_format=='onnx':
+            import onnxruntime
+            ort_session = onnxruntime.InferenceSession(self.model_path)
+
+            def to_numpy(tensor):
+                return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
+
+            # compute ONNX Runtime output prediction
+            ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(img_resized)}
+            ort_outs = ort_session.run(None, ort_inputs)
+            y, _ = ort_outs[0], ort_outs[1]
+            # print('onnx out: ',ort_outs[0].shape)
+            # print('onnx 2nd out: ', ort_outs[1].shape)
+
+        end_timer_and_print("Inference using {} model: ", format(self.model_format))
+
+        # print('y-shape: ',y.shape)
+        # print('y: ',y)
         box_list = Heat2boxes(self.cfg, y, ratio_w, ratio_h)
         box_list, heatmap = box_list.convert()
         for i in range(len(box_list)):
@@ -149,7 +176,10 @@ class Detectlayer():
             all_heat = []
             for i, row in enumerate(imgs):
                 for j, img in enumerate(row):
+                    
                     boxes, heatmap = self.detect(img)
+                    # print('boxes: ',boxes)
+                    # print('heatmap: ',heatmap)
                     list_heat = list()
                     for bo in boxes:
                         y0, x0 = np.min(bo, axis=0)
@@ -192,6 +222,8 @@ class Detectlayer():
             result = np.array(all_boxes)
         else:
             result, all_heat = self.detect(imgs)
+            # print('boxes: ',result)
+            # print('heatmap: ',all_heat)
         return result, all_heat
 
 
@@ -211,7 +243,7 @@ class Recoglayer():
     __call__(image, boxes)
         image : crop image to recognize or big image with bounding boxes to crop and return list of recognized results
     """
-    def __init__(self, config=None, model_path=None, model_name='test', data_path='./data',
+    def __init__(self, config=None, model_path=None, model_name='test', model_format='pth', data_path='./data',
                  preprocess=None, postprocess=None, lang='eng+jpn'):
         super().__init__()
 
@@ -240,8 +272,10 @@ class Recoglayer():
         self.cfg["character"].sort()
         if 'CTC' in self.cfg.MODEL.PREDICTION:
             self.converter = CTCLabelConverter(self.cfg["character"])
-        else:
+        elif 'Attn' in self.cfg.MODEL.PREDICTION:
             self.converter = AttnLabelConverter(self.cfg["character"], device=self.cfg.SOLVER.DEVICE)
+        else:
+            self.converter = DanLabelConverter(self.cfg["character"])
         self.cfg.MODEL.NUM_CLASS = len(self.converter.character)
        
         model = Atten(self.cfg)
