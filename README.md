@@ -92,9 +92,9 @@ MIT License
 <!-- CONTACT -->
 ## Contact
 
-Email - [nguyenvietbac1@gmail.com](nguyenvietbac1@gmail.com) <br>
-Email - [nnnghia.96@gmail.com](nnnghia.96@gmail.com) <br>
-Email - [huukim98@gmail.com](huukim98@gmail.com)
+Bac Ng
+Nghia Ng
+Kim Ng
 
 <!-- ACKNOWLEDGEMENTS -->
 ## Acknowledgements
